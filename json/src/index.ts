@@ -20,35 +20,46 @@ export enum TokenType {
 type StringToken = {
 	type: TokenType.String;
 	value: string;
+	length: number;
+};
+
+type BooleanToken = {
+	type: TokenType.Boolean;
+	value: boolean;
+	length: number;
 };
 
 type Token =
 	| {
 			type: TokenType.Null;
+			length: number;
 	  }
 	| {
 			type: TokenType.LeftParenthesis;
+			length: number;
 	  }
 	| {
 			type: TokenType.RightParenthesis;
+			length: number;
 	  }
 	| {
 			type: TokenType.LeftSquareBracket;
+			length: number;
 	  }
 	| {
 			type: TokenType.RightSquareBracket;
+			length: number;
 	  }
 	| {
 			type: TokenType.Colon;
+			length: number;
 	  }
 	| {
 			type: TokenType.Comma;
+			length: number;
 	  }
 	| StringToken
-	| {
-			type: TokenType.Boolean;
-			value: boolean;
-	  };
+	| BooleanToken;
 
 class JSONParser {
 	private index = 0;
@@ -56,7 +67,9 @@ class JSONParser {
 
 	skipWhitespace() {
 		const whitespace = /^\s+/;
-		const { length } = whitespace.exec(this.text) || { length: 0 };
+		const { length } = whitespace.exec(this.remainingInput) || {
+			length: 0,
+		};
 
 		this.advance(length);
 	}
@@ -79,7 +92,7 @@ class JSONParser {
 		this.index += numberOfChars;
 	}
 
-	nextToken(): Token {
+	peekToken(): Token {
 		this.skipWhitespace();
 
 		const { remainingInput } = this;
@@ -87,42 +100,50 @@ class JSONParser {
 		const stringPattern = /^"([^\n"]|\\")*"$/;
 
 		if (/^null/.exec(remainingInput)) {
-			this.advance(4);
 			return {
 				type: TokenType.Null,
+				length: 4,
 			};
 		} else if (/^true/.exec(remainingInput)) {
-			this.advance(4);
-			return { type: TokenType.Boolean, value: true };
+			return { type: TokenType.Boolean, value: true, length: 4 };
 		} else if (/^false/.exec(remainingInput)) {
-			this.advance(5);
-			return { type: TokenType.Boolean, value: false };
-		} else if (stringPattern.test(this.text)) {
-			this.advance(this.text.length);
+			return { type: TokenType.Boolean, value: false, length: 5 };
+		} else if (stringPattern.test(remainingInput)) {
+			const raw = remainingInput.slice(1, remainingInput.length - 1);
 
 			return {
 				type: TokenType.String,
-				value: this.text
-					.slice(1, this.text.length - 1)
+				value: raw
 					.replace('\\"', '"')
 					.replace("\\n", "\n")
 					.replace("\\a", "a"),
+				length: raw.length,
 			};
 		} else if (remainingInput[0] === "{") {
-			return { type: TokenType.LeftParenthesis };
+			return { type: TokenType.LeftParenthesis, length: 1 };
 		} else if (remainingInput[0] === "}") {
-			return { type: TokenType.RightParenthesis };
+			return { type: TokenType.RightParenthesis, length: 1 };
 		} else if (remainingInput[0] === "[") {
-			return { type: TokenType.LeftSquareBracket };
+			return { type: TokenType.LeftSquareBracket, length: 1 };
 		} else if (remainingInput[0] === "]") {
-			return { type: TokenType.RightSquareBracket };
+			return { type: TokenType.RightSquareBracket, length: 1 };
 		} else if (remainingInput[0] === ":") {
-			return { type: TokenType.Colon };
+			return { type: TokenType.Colon, length: 1 };
 		} else if (remainingInput[0] === ",") {
-			return { type: TokenType.Comma };
+			return { type: TokenType.Comma, length: 1 };
 		} else {
 			throw new Error(`unexpected input ${this.remainingInput}`);
 		}
+	}
+
+	consumeToken(type?: TokenType): Token {
+		const token = this.peekToken();
+		if (type !== void 0) {
+			this.expectToken(token, type);
+		}
+		this.advance(token.length);
+
+		return token;
 	}
 
 	expectToken(token: Token, tokenType: TokenType) {
@@ -143,12 +164,18 @@ class JSONParser {
 		return (token as StringToken).value;
 	}
 
+	parseBoolean(token: Token) {
+		this.consumeToken(TokenType.Boolean);
+
+		return (token as BooleanToken).value;
+	}
+
 	parse() {
-		const token = this.nextToken();
+		const token = this.peekToken();
 
 		switch (token.type) {
 			case TokenType.Boolean:
-				return token.value;
+				return this.parseBoolean(token);
 			case TokenType.Null:
 				return null;
 			case TokenType.String:

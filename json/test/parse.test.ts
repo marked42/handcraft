@@ -15,8 +15,8 @@ describe("parseJSON", () => {
 	});
 
 	it("should ignore whitespace", () => {
-		expect(parseJSON(" null")).toBe(null);
 		expect(parseJSON(" true")).toBe(true);
+		expect(parseJSON(" null")).toBe(null);
 		expect(parseJSON(" false")).toBe(false);
 	});
 });
