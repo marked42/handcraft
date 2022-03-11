@@ -16,6 +16,15 @@ export function parseJSON(text: string) {
 		return false;
 	}
 
+	const stringPattern = /^"([^\n"]|\\")*"$/;
+	if (stringPattern.test(text)) {
+		return text
+			.slice(1, text.length - 1)
+			.replace('\\"', '"')
+			.replace("\\n", "\n")
+			.replace("\\a", "a");
+	}
+
 	return {};
 }
 

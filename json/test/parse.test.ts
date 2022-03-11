@@ -20,3 +20,25 @@ describe("parseJSON", () => {
 		expect(parseJSON(" false")).toBe(false);
 	});
 });
+
+describe("string", () => {
+	it("supports empty string", () => {
+		expect(parseJSON('""')).toEqual("");
+	});
+
+	it("supports double quote string", () => {
+		expect(parseJSON('"a"')).toEqual("a");
+	});
+
+	it("supports escaped quote", () => {
+		expect(parseJSON('"\\""')).toEqual('"');
+	});
+
+	it("support escaped new line", () => {
+		expect(parseJSON('"\\n"')).toEqual("\n");
+	});
+
+	it("handles other escapes", () => {
+		expect(parseJSON('"\\a"')).toEqual("a");
+	});
+});

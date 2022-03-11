@@ -13,3 +13,5 @@
 1. String `"a"`
 1. Null `null`
 1. Boolean `true` `false`
+
+ecma262 的 11.8.4
