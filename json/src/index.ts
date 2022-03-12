@@ -98,7 +98,7 @@ class JSONParser {
 
 		const { remainingInput } = this;
 
-		const stringPattern = /^"([^\\\n"]|\\("|n|t|v|f))*"/;
+		const stringPattern = /^"([^\\\n"]|\\(\\|\/|"|b|n|t|r|f))*"/;
 
 		if (/^null/.exec(remainingInput)) {
 			return {
@@ -115,12 +115,18 @@ class JSONParser {
 
 			const raw = string.slice(1, string.length - 1);
 
+			// TODO: refactor
 			return {
 				type: TokenType.String,
 				value: raw
 					.replace('\\"', '"')
+					.replace("\\\\", "\\")
+					.replace("\\/", "/")
+					.replace("\\b", "\b")
+					.replace("\\f", "\f")
 					.replace("\\n", "\n")
-					.replace("\\a", "a"),
+					.replace("\\r", "\r")
+					.replace("\\t", "\t"),
 				length: string.length,
 			};
 		} else if (remainingInput[0] === "{") {

@@ -36,12 +36,20 @@ describe("string", () => {
 		expect(parseJSON('"a"')).toEqual("a");
 	});
 
-	it("supports escaped quote", () => {
-		expect(parseJSON('"\\""')).toEqual('"');
-	});
-
-	it("support escaped new line", () => {
-		expect(parseJSON('"\\n"')).toEqual("\n");
+	it("support valid single escaped char", () => {
+		const pairs = [
+			{ literal: String.raw`"\""`, value: '"' },
+			{ literal: String.raw`"\\"`, value: "\\" },
+			{ literal: String.raw`"\/"`, value: "/" },
+			{ literal: String.raw`"\b"`, value: "\b" },
+			{ literal: String.raw`"\f"`, value: "\f" },
+			{ literal: String.raw`"\n"`, value: "\n" },
+			{ literal: String.raw`"\r"`, value: "\r" },
+			{ literal: String.raw`"\t"`, value: "\t" },
+		];
+		pairs.forEach(({ literal, value }) => {
+			expect(parseJSON(literal)).toEqual(value);
+		});
 	});
 
 	it("throw error on invalid escape sequence", () => {
