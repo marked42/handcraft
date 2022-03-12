@@ -1,10 +1,6 @@
 import { parseJSON } from "../src";
 
 describe("parseJSON", () => {
-	it("should parse empty object", () => {
-		expect(parseJSON("{}")).toEqual({});
-	});
-
 	it("should parse null", () => {
 		expect(parseJSON("null")).toBe(null);
 	});
@@ -18,6 +14,16 @@ describe("parseJSON", () => {
 		expect(parseJSON(" true")).toBe(true);
 		expect(parseJSON(" null")).toBe(null);
 		expect(parseJSON(" false")).toBe(false);
+	});
+});
+
+describe("object", () => {
+	it("empty object", () => {
+		expect(parseJSON("{}")).toEqual({});
+	});
+
+	it("object with single value", () => {
+		expect(parseJSON('{ "a": null }')).toEqual({ a: null });
 	});
 });
 
@@ -38,7 +44,9 @@ describe("string", () => {
 		expect(parseJSON('"\\n"')).toEqual("\n");
 	});
 
-	it("handles other escapes", () => {
-		expect(parseJSON('"\\a"')).toEqual("a");
+	it("throw error on invalid escape sequence", () => {
+		expect(() => {
+			parseJSON('"\\a"');
+		}).toThrowError();
 	});
 });

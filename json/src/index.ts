@@ -29,11 +29,12 @@ type BooleanToken = {
 	length: number;
 };
 
+type NullToken = {
+	type: TokenType.Null;
+	length: number;
+};
 type Token =
-	| {
-			type: TokenType.Null;
-			length: number;
-	  }
+	| NullToken
 	| {
 			type: TokenType.LeftParenthesis;
 			length: number;
@@ -97,7 +98,7 @@ class JSONParser {
 
 		const { remainingInput } = this;
 
-		const stringPattern = /^"([^\n"]|\\")*"$/;
+		const stringPattern = /^"([^\\\n"]|\\("|n|t|v|f))*"/;
 
 		if (/^null/.exec(remainingInput)) {
 			return {
@@ -109,7 +110,10 @@ class JSONParser {
 		} else if (/^false/.exec(remainingInput)) {
 			return { type: TokenType.Boolean, value: false, length: 5 };
 		} else if (stringPattern.test(remainingInput)) {
-			const raw = remainingInput.slice(1, remainingInput.length - 1);
+			const match = stringPattern.exec(remainingInput);
+			const string = match![0];
+
+			const raw = string.slice(1, string.length - 1);
 
 			return {
 				type: TokenType.String,
@@ -117,7 +121,7 @@ class JSONParser {
 					.replace('\\"', '"')
 					.replace("\\n", "\n")
 					.replace("\\a", "a"),
-				length: raw.length,
+				length: string.length,
 			};
 		} else if (remainingInput[0] === "{") {
 			return { type: TokenType.LeftParenthesis, length: 1 };
@@ -136,6 +140,7 @@ class JSONParser {
 		}
 	}
 
+	// TODO: narrow down token type
 	consumeToken(type?: TokenType): Token {
 		const token = this.peekToken();
 		if (type !== void 0) {
@@ -148,26 +153,64 @@ class JSONParser {
 
 	expectToken(token: Token, tokenType: TokenType) {
 		if (tokenType !== token.type) {
-			throw new Error(`unexpected token type ${tokenType}`);
+			throw new Error(
+				`expected token type ${tokenType}, get token ${JSON.stringify(
+					token
+				)}`
+			);
 		}
 	}
 
-	parseObject(token: Token) {
-		this.expectToken(token, TokenType.LeftParenthesis);
-		return {};
+	parseObject() {
+		const token = this.consumeToken(TokenType.LeftParenthesis);
+		const object: Record<string, any> = {};
+
+		if (this.peekToken().type === TokenType.RightParenthesis) {
+			this.consumeToken();
+			return object;
+		}
+
+		while (true) {
+			const nextToken = this.peekToken();
+			if (nextToken.type === TokenType.String) {
+				this.consumeToken();
+				this.consumeToken(TokenType.Colon);
+				const value = this.parse();
+
+				object[nextToken.value] = value;
+
+				if (this.peekToken().type === TokenType.Comma) {
+					this.consumeToken();
+				} else {
+					break;
+				}
+			} else {
+				throw new Error(`unexpected token ${token}`);
+			}
+		}
+
+		this.consumeToken(TokenType.RightParenthesis);
+
+		return object;
 	}
 
-	parseString(token: Token) {
-		this.expectToken(token, TokenType.String);
+	parseString() {
+		const token = this.consumeToken(TokenType.String);
 
 		// TODO: expectToken should narrow token to StringToken type
 		return (token as StringToken).value;
 	}
 
-	parseBoolean(token: Token) {
-		this.consumeToken(TokenType.Boolean);
+	parseBoolean() {
+		const token = this.consumeToken(TokenType.Boolean);
 
 		return (token as BooleanToken).value;
+	}
+
+	parseNull() {
+		this.consumeToken(TokenType.Null);
+
+		return null;
 	}
 
 	parse() {
@@ -175,13 +218,16 @@ class JSONParser {
 
 		switch (token.type) {
 			case TokenType.Boolean:
-				return this.parseBoolean(token);
+				return this.parseBoolean();
+
 			case TokenType.Null:
-				return null;
+				return this.parseNull();
+
 			case TokenType.String:
-				return this.parseString(token);
+				return this.parseString();
+
 			case TokenType.LeftParenthesis:
-				return this.parseObject(token);
+				return this.parseObject();
 			default:
 				throw new Error(`unexpected input ${this.remainingInput}`);
 		}
