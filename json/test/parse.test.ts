@@ -40,12 +40,12 @@ describe("string", () => {
 		const pairs = [
 			{ literal: String.raw`"\""`, value: '"' },
 			{ literal: String.raw`"\\"`, value: "\\" },
-			// { literal: String.raw`"\/"`, value: "/" },
-			// { literal: String.raw`"\b"`, value: "\b" },
-			// { literal: String.raw`"\f"`, value: "\f" },
-			// { literal: String.raw`"\n"`, value: "\n" },
-			// { literal: String.raw`"\r"`, value: "\r" },
-			// { literal: String.raw`"\t"`, value: "\t" },
+			{ literal: String.raw`"\/"`, value: "/" },
+			{ literal: String.raw`"\b"`, value: "\b" },
+			{ literal: String.raw`"\f"`, value: "\f" },
+			{ literal: String.raw`"\n"`, value: "\n" },
+			{ literal: String.raw`"\r"`, value: "\r" },
+			{ literal: String.raw`"\t"`, value: "\t" },
 		];
 		pairs.forEach(({ literal, value }) => {
 			expect(parseJSON(literal)).toEqual(value);

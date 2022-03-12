@@ -22,44 +22,35 @@ export enum TokenType {
 type StringToken = {
 	type: TokenType.String;
 	value: string;
-	length: number;
 };
 
 type BooleanToken = {
 	type: TokenType.Boolean;
 	value: boolean;
-	length: number;
 };
 
 type NullToken = {
 	type: TokenType.Null;
-	length: number;
 };
 type Token =
 	| NullToken
 	| {
 			type: TokenType.LeftParenthesis;
-			length: number;
 	  }
 	| {
 			type: TokenType.RightParenthesis;
-			length: number;
 	  }
 	| {
 			type: TokenType.LeftSquareBracket;
-			length: number;
 	  }
 	| {
 			type: TokenType.RightSquareBracket;
-			length: number;
 	  }
 	| {
 			type: TokenType.Colon;
-			length: number;
 	  }
 	| {
 			type: TokenType.Comma;
-			length: number;
 	  }
 	| StringToken
 	| BooleanToken;
@@ -72,8 +63,67 @@ function isWhitespace(codePoint: number) {
 	return whitespaceCodePoints.includes(codePoint);
 }
 
+function isControlCharacter(codePoint: number) {
+	const min = 0x0000;
+	const max = 0x001f;
+
+	return min <= codePoint && codePoint <= max;
+}
+
+function isSameCodePoint(codePoint: number, str: string, index: number = 0) {
+	const char = str.codePointAt(index);
+	if (char === void 0) {
+		throw new Error(`string ${str} has no code point at index ${index}`);
+	}
+
+	return codePoint === char;
+}
+
+function isDecimalDigit(codePoint: number) {
+	const min = "0".codePointAt(0)!;
+	const max = "9".codePointAt(0)!;
+
+	return containsCodePoint([min, max], codePoint);
+}
+
+function containsCodePoint(
+	codePointRange: [number, number],
+	codePoint: number
+) {
+	const [min, max] = codePointRange;
+
+	return min <= codePoint && codePoint <= max;
+}
+
+function isLowerCaseAToF(codePoint: number) {
+	const min = "a".codePointAt(0)!;
+	const max = "f".codePointAt(0)!;
+
+	return containsCodePoint([min, max], codePoint);
+}
+
+function isUpperCaseAToF(codePoint: number) {
+	const min = "a".codePointAt(0)!;
+	const max = "f".codePointAt(0)!;
+
+	return containsCodePoint([min, max], codePoint);
+}
+
+function isHexDigit(codePoint: number) {
+	return (
+		isDecimalDigit(codePoint) ||
+		isLowerCaseAToF(codePoint) ||
+		isUpperCaseAToF(codePoint)
+	);
+}
+
+export const CHAR_EOF = -1;
+
+function isEOFCharacter(codePoint: number) {
+	return CHAR_EOF === codePoint;
+}
+
 class JSONParser {
-	private index = 0;
 	constructor(private readonly text: string) {
 		this.codePoints = getStringCodePoints(text);
 	}
@@ -81,7 +131,7 @@ class JSONParser {
 	private readonly codePoints: number[];
 	private codePointIndex = 0;
 
-	skipWhitespace_() {
+	skipWhitespace() {
 		for (let i = this.codePointIndex; i < this.codePoints.length; i++) {
 			if (!isWhitespace(this.codePoints[i])) {
 				this.codePointIndex = i;
@@ -90,26 +140,19 @@ class JSONParser {
 		}
 	}
 
-	peekChar() {
-		return this.codePoints[this.codePointIndex];
+	peekChar(offset = 0) {
+		const index = this.codePointIndex + offset;
+
+		return index < this.codePoints.length
+			? this.codePoints[index]
+			: CHAR_EOF;
 	}
 
-	advance_(offset: number) {
+	advanceChar(offset: number) {
 		this.codePointIndex = Math.min(
 			this.codePointIndex + offset,
 			this.codePoints.length
 		);
-	}
-
-	skipWhitespace() {
-		const whitespace = /^\s+/;
-		const { length } = whitespace.exec(this.remainingInput) || {
-			length: 0,
-		};
-
-		this.advance(length);
-
-		this.skipWhitespace_();
 	}
 
 	private consumeKeyword(keyword: string) {
@@ -123,12 +166,8 @@ class JSONParser {
 					`unexpected keyword at index ${this.codePointIndex} from input ${this.text}`
 				);
 			}
-			this.advance_(1);
+			this.advanceChar(1);
 		}
-	}
-
-	private get remainingInput() {
-		return this.text.substring(this.index);
 	}
 
 	private assertNonNegativeInteger(value: number) {
@@ -139,18 +178,106 @@ class JSONParser {
 		throw new Error(`${value} is not a non negative integer.`);
 	}
 
-	private advance(numberOfChars: number) {
-		this.assertNonNegativeInteger(numberOfChars);
-
-		this.index += numberOfChars;
-	}
-
 	private token: Token | null = null;
+
+	peekStringToken(): StringToken {
+		const codePoints: number[] = [];
+
+		if (!isSameCodePoint(this.peekChar(), '"')) {
+			throw new Error("expect string to begin with double quote");
+		}
+		this.advanceChar(1);
+
+		while (true) {
+			const char = this.peekChar();
+
+			if (isControlCharacter(char)) {
+				throw new Error(
+					`controls characters U+0000 ~ U+001F are not allowed in string, at index ${this.codePointIndex}`
+				);
+			}
+
+			if (isSameCodePoint(char, "\n")) {
+				throw new Error(
+					`newline character is not allowed in string, at index ${this.codePointIndex}`
+				);
+			}
+
+			if (isEOFCharacter(char)) {
+				throw new Error(
+					`unexpected end-of-file when parsing string from input ${this.text}`
+				);
+			}
+
+			this.advanceChar(1);
+			if (isSameCodePoint(char, "\\")) {
+				const validSingleEscape = [
+					['"', '"'],
+					["\\", "\\"],
+					["/", "/"],
+					["b", "\b"],
+					["f", "\f"],
+					["r", "\r"],
+					["n", "\n"],
+					["t", "\t"],
+				];
+
+				const escape = validSingleEscape.find(([c]) =>
+					isSameCodePoint(this.peekChar(), c)
+				);
+
+				if (typeof escape?.[1] === "string") {
+					this.advanceChar(1);
+
+					codePoints.push(escape[1].codePointAt(0)!);
+					continue;
+				}
+
+				if (!isSameCodePoint(this.peekChar(), "u")) {
+					throw new Error(
+						`invalid single character escape sequence \\${String.fromCodePoint(
+							this.peekChar()
+						)}`
+					);
+				}
+				this.advanceChar(1);
+
+				const invalidUnicodeEscapeSequence = [0, 1, 2, 3].some((i) =>
+					isHexDigit(this.peekChar(i))
+				);
+				if (invalidUnicodeEscapeSequence) {
+					throw new Error(
+						`invalid unicode escape sequence at index ${this.codePointIndex} in ${this.text}`
+					);
+				}
+
+				const codePoint =
+					0x1000 * this.peekChar(0) +
+					0x0100 * this.peekChar(1) +
+					0x0010 * this.peekChar(2) +
+					0x0001 * this.peekChar(3);
+
+				this.advanceChar(3);
+				codePoints.push(codePoint);
+				continue;
+			}
+
+			if (isSameCodePoint(char, '"')) {
+				break;
+			} else {
+				// normal character
+				codePoints.push(char);
+			}
+		}
+
+		return {
+			type: TokenType.String,
+			value: String.fromCodePoint(...codePoints),
+		};
+	}
 
 	doPeekToken(): Token {
 		this.skipWhitespace();
-
-		const { remainingInput } = this;
 
 		const char = this.peekChar();
 
@@ -159,78 +286,43 @@ class JSONParser {
 				this.consumeKeyword("null");
 				return {
 					type: TokenType.Null,
-					length: 4,
 				};
 			case "t".codePointAt(0):
 				this.consumeKeyword("true");
 				return {
 					type: TokenType.Boolean,
 					value: true,
-					length: 4,
 				};
 			case "f".codePointAt(0):
 				this.consumeKeyword("false");
 				return {
 					type: TokenType.Boolean,
 					value: false,
-					length: 5,
 				};
 			case "{".codePointAt(0):
 				this.consumeKeyword("{");
-				return { type: TokenType.LeftParenthesis, length: 1 };
+				return { type: TokenType.LeftParenthesis };
 			case "}".codePointAt(0):
 				this.consumeKeyword("}");
-				return { type: TokenType.RightParenthesis, length: 1 };
+				return { type: TokenType.RightParenthesis };
 			case "[".codePointAt(0):
 				this.consumeKeyword("[");
-				return { type: TokenType.LeftSquareBracket, length: 1 };
+				return { type: TokenType.LeftSquareBracket };
 			case "]".codePointAt(0):
 				this.consumeKeyword("]");
-				return { type: TokenType.LeftSquareBracket, length: 1 };
+				return { type: TokenType.LeftSquareBracket };
 			case ":".codePointAt(0):
 				this.consumeKeyword(":");
-				return { type: TokenType.Colon, length: 1 };
+				return { type: TokenType.Colon };
 			case ",".codePointAt(0):
 				this.consumeKeyword(",");
-				return { type: TokenType.Comma, length: 1 };
+				return { type: TokenType.Comma };
+
+			case '"'.codePointAt(0):
+				return this.peekStringToken();
 		}
 
-		if (/^"/.test(remainingInput)) {
-			const stringPattern = /^"([^\\\n"]|\\.)*"/;
-			const match = stringPattern.exec(remainingInput);
-			const string = match![0];
-			const raw = string.slice(1, string.length - 1);
-
-			const disallowedCharacterRe = /[\u0000-\u001F]/;
-			if (disallowedCharacterRe.test(raw)) {
-				throw new Error(
-					`controls characters U+0000 ~ U+001F are not allowed in string, input is ${raw}`
-				);
-			}
-
-			const invalidSingleEscape = /\\[^\\"/bfnrtu]/;
-			if (invalidSingleEscape.test(raw)) {
-				throw new Error(`invalid escape sequence in ${raw}`);
-			}
-
-			this.advance_(string.length);
-			// TODO: refactor
-			return {
-				type: TokenType.String,
-				value: raw
-					.replace('\\"', '"')
-					.replace("\\\\", "\\")
-					.replace("\\/", "/")
-					.replace("\\b", "\b")
-					.replace("\\f", "\f")
-					.replace("\\n", "\n")
-					.replace("\\r", "\r")
-					.replace("\\t", "\t"),
-				length: string.length,
-			};
-		} else {
-			throw new Error(`unexpected input ${this.remainingInput}`);
-		}
+		throw new Error(`unexpected input ${this.text}`);
 	}
 
 	peekToken(): Token {
@@ -251,7 +343,6 @@ class JSONParser {
 		if (type !== void 0) {
 			this.expectToken(token, type);
 		}
-		this.advance(token.length);
 
 		this.clearToken();
 
@@ -335,8 +426,11 @@ class JSONParser {
 
 			case TokenType.LeftParenthesis:
 				return this.parseObject();
+
 			default:
-				throw new Error(`unexpected input ${this.remainingInput}`);
+				throw new Error(
+					`unexpected input ${this.text} at index ${this.codePointIndex}`
+				);
 		}
 	}
 }
