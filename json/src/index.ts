@@ -98,8 +98,6 @@ class JSONParser {
 
 		const { remainingInput } = this;
 
-		const stringPattern = /^"([^\\\n"]|\\(\\|\/|"|b|n|t|r|f))*"/;
-
 		if (/^null/.exec(remainingInput)) {
 			return {
 				type: TokenType.Null,
@@ -109,11 +107,23 @@ class JSONParser {
 			return { type: TokenType.Boolean, value: true, length: 4 };
 		} else if (/^false/.exec(remainingInput)) {
 			return { type: TokenType.Boolean, value: false, length: 5 };
-		} else if (stringPattern.test(remainingInput)) {
+		} else if (/^"/.test(remainingInput)) {
+			const stringPattern = /^"([^\\\n"]|\\.)*"/;
 			const match = stringPattern.exec(remainingInput);
 			const string = match![0];
-
 			const raw = string.slice(1, string.length - 1);
+
+			const disallowedCharacterRe = /[\u0000-\u001F]/;
+			if (disallowedCharacterRe.test(raw)) {
+				throw new Error(
+					`controls characters U+0000 ~ U+001F are not allowed in string, input is ${raw}`
+				);
+			}
+
+			const invalidSingleEscape = /\\[^\\"/bfnrtu]/;
+			if (invalidSingleEscape.test(raw)) {
+				throw new Error(`invalid escape sequence in ${raw}`);
+			}
 
 			// TODO: refactor
 			return {
