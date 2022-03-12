@@ -1,4 +1,4 @@
-import { getStringCodePoints } from "../src/getStringCodePoints";
+import { getStringCodePoints } from "../src/codePoints";
 
 it("getStringCodePoints", () => {
 	const input = "null";

@@ -1,4 +1,13 @@
-import { getStringCodePoints } from "./getStringCodePoints";
+import {
+	isControlCharacter,
+	isEOFCharacter,
+	isHexDigit,
+	isSameCodePoint,
+	isWhitespace,
+	CHAR_EOF,
+	getHexDigitsMathematicalValue,
+	getStringCodePoints,
+} from "./codePoints";
 
 export function parseJSON(text: string) {
 	const parser = new JSONParser(text);
@@ -54,105 +63,6 @@ type Token =
 	  }
 	| StringToken
 	| BooleanToken;
-
-function isWhitespace(codePoint: number) {
-	const whitespaceCodePoints = [" ", "\t", "\n", "\r"].map((c) =>
-		c.codePointAt(0)
-	);
-
-	return whitespaceCodePoints.includes(codePoint);
-}
-
-function isControlCharacter(codePoint: number) {
-	const min = 0x0000;
-	const max = 0x001f;
-
-	return min <= codePoint && codePoint <= max;
-}
-
-function isSameCodePoint(codePoint: number, str: string, index: number = 0) {
-	const char = str.codePointAt(index);
-	if (char === void 0) {
-		throw new Error(`string ${str} has no code point at index ${index}`);
-	}
-
-	return codePoint === char;
-}
-
-function isDecimalDigit(codePoint: number) {
-	const min = "0".codePointAt(0)!;
-	const max = "9".codePointAt(0)!;
-
-	return containsCodePoint([min, max], codePoint);
-}
-
-function getHexDigitMathematicalValue(codePoint: number) {
-	if (isDecimalDigit(codePoint)) {
-		return codePoint - "0".codePointAt(0)!;
-	}
-
-	if (isLowerCaseAToF(codePoint)) {
-		return codePoint - "a".codePointAt(0)! + 10;
-	}
-
-	if (isUpperCaseAToF(codePoint)) {
-		return codePoint - "A".codePointAt(0)! + 10;
-	}
-
-	throw new Error(
-		`code point ${String.fromCodePoint(
-			codePoint
-		)}(${codePoint}) is not hex digit`
-	);
-}
-
-function getHexDigitsMathematicalValue(...codePoints: number[]) {
-	let unit = 0x0001;
-	let value = 0;
-	for (let i = codePoints.length - 1; i >= 0; i--) {
-		value += getHexDigitMathematicalValue(codePoints[i]) * unit;
-		unit *= 16;
-	}
-
-	return value;
-}
-
-function containsCodePoint(
-	codePointRange: [number, number],
-	codePoint: number
-) {
-	const [min, max] = codePointRange;
-
-	return min <= codePoint && codePoint <= max;
-}
-
-function isLowerCaseAToF(codePoint: number) {
-	const min = "a".codePointAt(0)!;
-	const max = "f".codePointAt(0)!;
-
-	return containsCodePoint([min, max], codePoint);
-}
-
-function isUpperCaseAToF(codePoint: number) {
-	const min = "A".codePointAt(0)!;
-	const max = "F".codePointAt(0)!;
-
-	return containsCodePoint([min, max], codePoint);
-}
-
-function isHexDigit(codePoint: number) {
-	return (
-		isDecimalDigit(codePoint) ||
-		isLowerCaseAToF(codePoint) ||
-		isUpperCaseAToF(codePoint)
-	);
-}
-
-export const CHAR_EOF = -1;
-
-function isEOFCharacter(codePoint: number) {
-	return CHAR_EOF === codePoint;
-}
 
 class JSONParser {
 	constructor(private readonly text: string) {
