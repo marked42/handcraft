@@ -90,4 +90,6 @@ describe("string", () => {
 			parseJSON('"\\u000"');
 		}).toThrowError();
 	});
+
+	it.todo("unicode surrogate pair");
 });
