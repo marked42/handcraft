@@ -1,3 +1,5 @@
+import { getStringCodePoints } from "./getStringCodePoints";
+
 export function parseJSON(text: string) {
 	const parser = new JSONParser(text);
 
@@ -62,9 +64,42 @@ type Token =
 	| StringToken
 	| BooleanToken;
 
+function isWhitespace(codePoint: number) {
+	const whitespaceCodePoints = [" ", "\t", "\n", "\r"].map((c) =>
+		c.codePointAt(0)
+	);
+
+	return whitespaceCodePoints.includes(codePoint);
+}
+
 class JSONParser {
 	private index = 0;
-	constructor(private readonly text: string) {}
+	constructor(private readonly text: string) {
+		this.codePoints = getStringCodePoints(text);
+	}
+
+	private readonly codePoints: number[];
+	private codePointIndex = 0;
+
+	skipWhitespace_() {
+		for (let i = this.codePointIndex; i < this.codePoints.length; i++) {
+			if (!isWhitespace(this.codePoints[i])) {
+				this.codePointIndex = i;
+				break;
+			}
+		}
+	}
+
+	peekChar() {
+		return this.codePoints[this.codePointIndex];
+	}
+
+	advance_(offset: number) {
+		this.codePointIndex = Math.min(
+			this.codePointIndex + offset,
+			this.codePoints.length
+		);
+	}
 
 	skipWhitespace() {
 		const whitespace = /^\s+/;
@@ -73,6 +108,23 @@ class JSONParser {
 		};
 
 		this.advance(length);
+
+		this.skipWhitespace_();
+	}
+
+	private consumeKeyword(keyword: string) {
+		if (typeof keyword !== "string" || !keyword.length) {
+			throw new Error(`expect non empty string, get ${keyword}`);
+		}
+
+		for (const c of keyword) {
+			if (this.peekChar() !== c.charCodeAt(0)) {
+				throw new Error(
+					`unexpected keyword at index ${this.codePointIndex} from input ${this.text}`
+				);
+			}
+			this.advance_(1);
+		}
 	}
 
 	private get remainingInput() {
@@ -93,21 +145,57 @@ class JSONParser {
 		this.index += numberOfChars;
 	}
 
-	peekToken(): Token {
+	private token: Token | null = null;
+
+	doPeekToken(): Token {
 		this.skipWhitespace();
 
 		const { remainingInput } = this;
 
-		if (/^null/.exec(remainingInput)) {
-			return {
-				type: TokenType.Null,
-				length: 4,
-			};
-		} else if (/^true/.exec(remainingInput)) {
-			return { type: TokenType.Boolean, value: true, length: 4 };
-		} else if (/^false/.exec(remainingInput)) {
-			return { type: TokenType.Boolean, value: false, length: 5 };
-		} else if (/^"/.test(remainingInput)) {
+		const char = this.peekChar();
+
+		switch (char) {
+			case "n".codePointAt(0):
+				this.consumeKeyword("null");
+				return {
+					type: TokenType.Null,
+					length: 4,
+				};
+			case "t".codePointAt(0):
+				this.consumeKeyword("true");
+				return {
+					type: TokenType.Boolean,
+					value: true,
+					length: 4,
+				};
+			case "f".codePointAt(0):
+				this.consumeKeyword("false");
+				return {
+					type: TokenType.Boolean,
+					value: false,
+					length: 5,
+				};
+			case "{".codePointAt(0):
+				this.consumeKeyword("{");
+				return { type: TokenType.LeftParenthesis, length: 1 };
+			case "}".codePointAt(0):
+				this.consumeKeyword("}");
+				return { type: TokenType.RightParenthesis, length: 1 };
+			case "[".codePointAt(0):
+				this.consumeKeyword("[");
+				return { type: TokenType.LeftSquareBracket, length: 1 };
+			case "]".codePointAt(0):
+				this.consumeKeyword("]");
+				return { type: TokenType.LeftSquareBracket, length: 1 };
+			case ":".codePointAt(0):
+				this.consumeKeyword(":");
+				return { type: TokenType.Colon, length: 1 };
+			case ",".codePointAt(0):
+				this.consumeKeyword(",");
+				return { type: TokenType.Comma, length: 1 };
+		}
+
+		if (/^"/.test(remainingInput)) {
 			const stringPattern = /^"([^\\\n"]|\\.)*"/;
 			const match = stringPattern.exec(remainingInput);
 			const string = match![0];
@@ -125,6 +213,7 @@ class JSONParser {
 				throw new Error(`invalid escape sequence in ${raw}`);
 			}
 
+			this.advance_(string.length);
 			// TODO: refactor
 			return {
 				type: TokenType.String,
@@ -139,21 +228,21 @@ class JSONParser {
 					.replace("\\t", "\t"),
 				length: string.length,
 			};
-		} else if (remainingInput[0] === "{") {
-			return { type: TokenType.LeftParenthesis, length: 1 };
-		} else if (remainingInput[0] === "}") {
-			return { type: TokenType.RightParenthesis, length: 1 };
-		} else if (remainingInput[0] === "[") {
-			return { type: TokenType.LeftSquareBracket, length: 1 };
-		} else if (remainingInput[0] === "]") {
-			return { type: TokenType.RightSquareBracket, length: 1 };
-		} else if (remainingInput[0] === ":") {
-			return { type: TokenType.Colon, length: 1 };
-		} else if (remainingInput[0] === ",") {
-			return { type: TokenType.Comma, length: 1 };
 		} else {
 			throw new Error(`unexpected input ${this.remainingInput}`);
 		}
+	}
+
+	peekToken(): Token {
+		if (!this.token) {
+			this.token = this.doPeekToken();
+		}
+
+		return this.token;
+	}
+
+	clearToken() {
+		this.token = null;
 	}
 
 	// TODO: narrow down token type
@@ -163,6 +252,8 @@ class JSONParser {
 			this.expectToken(token, type);
 		}
 		this.advance(token.length);
+
+		this.clearToken();
 
 		return token;
 	}
@@ -201,7 +292,7 @@ class JSONParser {
 					break;
 				}
 			} else {
-				throw new Error(`unexpected token ${token}`);
+				throw new Error(`unexpected token ${JSON.stringify(token)}`);
 			}
 		}
 
@@ -247,7 +338,5 @@ class JSONParser {
 			default:
 				throw new Error(`unexpected input ${this.remainingInput}`);
 		}
-
-		return {};
 	}
 }
