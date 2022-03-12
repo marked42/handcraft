@@ -32,11 +32,28 @@ describe("string", () => {
 		expect(parseJSON('""')).toEqual("");
 	});
 
-	it("supports double quote string", () => {
+	it("supports characters excluding control characters, new line and double quote", () => {
 		expect(parseJSON('"a"')).toEqual("a");
+		expect(parseJSON('"\u0020"')).toEqual("\u0020");
 	});
 
-	it("support valid single escaped char", () => {
+	it("throw error when containing control characters U+0000 ~ U+001F", () => {
+		expect(() => {
+			parseJSON('"\u0000"');
+		}).toThrowError();
+
+		expect(() => {
+			parseJSON('"\u001F"');
+		}).toThrowError();
+	});
+
+	it("throw error when containing newline", () => {
+		expect(() => {
+			parseJSON('"\n"');
+		}).toThrowError();
+	});
+
+	it("support valid single character escape sequence", () => {
 		const pairs = [
 			{ literal: String.raw`"\""`, value: '"' },
 			{ literal: String.raw`"\\"`, value: "\\" },
@@ -52,15 +69,25 @@ describe("string", () => {
 		});
 	});
 
-	it("throw error on invalid escape sequence", () => {
+	it("throw error on invalid single character escape sequence", () => {
 		expect(() => {
 			parseJSON('"\\a"');
 		}).toThrowError();
 	});
 
-	it("throw error on control characters U+0000 ~ U+001F", () => {
+	it("supports unicode escape sequence", () => {
+		expect(parseJSON('"\\u0020"')).toEqual("\u0020");
+		expect(parseJSON('"\\u0020f"')).toEqual("\u0020f");
+		expect(parseJSON('"\\uFFFF"')).toEqual("\uFFFF");
+	});
+
+	it("throw error on invalid unicode escape sequence", () => {
 		expect(() => {
-			parseJSON('"\u0000"');
+			parseJSON('"\\u000g"');
+		}).toThrowError();
+
+		expect(() => {
+			parseJSON('"\\u000"');
 		}).toThrowError();
 	});
 });

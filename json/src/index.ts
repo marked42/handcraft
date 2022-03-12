@@ -86,6 +86,37 @@ function isDecimalDigit(codePoint: number) {
 	return containsCodePoint([min, max], codePoint);
 }
 
+function getHexDigitMathematicalValue(codePoint: number) {
+	if (isDecimalDigit(codePoint)) {
+		return codePoint - "0".codePointAt(0)!;
+	}
+
+	if (isLowerCaseAToF(codePoint)) {
+		return codePoint - "a".codePointAt(0)! + 10;
+	}
+
+	if (isUpperCaseAToF(codePoint)) {
+		return codePoint - "A".codePointAt(0)! + 10;
+	}
+
+	throw new Error(
+		`code point ${String.fromCodePoint(
+			codePoint
+		)}(${codePoint}) is not hex digit`
+	);
+}
+
+function getHexDigitsMathematicalValue(...codePoints: number[]) {
+	let unit = 0x0001;
+	let value = 0;
+	for (let i = codePoints.length - 1; i >= 0; i--) {
+		value += getHexDigitMathematicalValue(codePoints[i]) * unit;
+		unit *= 16;
+	}
+
+	return value;
+}
+
 function containsCodePoint(
 	codePointRange: [number, number],
 	codePoint: number
@@ -103,8 +134,8 @@ function isLowerCaseAToF(codePoint: number) {
 }
 
 function isUpperCaseAToF(codePoint: number) {
-	const min = "a".codePointAt(0)!;
-	const max = "f".codePointAt(0)!;
+	const min = "A".codePointAt(0)!;
+	const max = "F".codePointAt(0)!;
 
 	return containsCodePoint([min, max], codePoint);
 }
@@ -242,8 +273,8 @@ class JSONParser {
 				}
 				this.advanceChar(1);
 
-				const invalidUnicodeEscapeSequence = [0, 1, 2, 3].some((i) =>
-					isHexDigit(this.peekChar(i))
+				const invalidUnicodeEscapeSequence = [0, 1, 2, 3].some(
+					(i) => !isHexDigit(this.peekChar(i))
 				);
 				if (invalidUnicodeEscapeSequence) {
 					throw new Error(
@@ -251,13 +282,14 @@ class JSONParser {
 					);
 				}
 
-				const codePoint =
-					0x1000 * this.peekChar(0) +
-					0x0100 * this.peekChar(1) +
-					0x0010 * this.peekChar(2) +
-					0x0001 * this.peekChar(3);
+				const codePoint = getHexDigitsMathematicalValue(
+					this.peekChar(0),
+					this.peekChar(1),
+					this.peekChar(2),
+					this.peekChar(3)
+				);
 
-				this.advanceChar(3);
+				this.advanceChar(4);
 				codePoints.push(codePoint);
 				continue;
 			}
