@@ -15,6 +15,7 @@ export function parseJSON(text: string) {
 	return parser.parse();
 }
 
+// TODO: use class instead of union types
 export enum TokenType {
 	Null,
 	Boolean,
@@ -214,6 +215,7 @@ class JSONParser {
 
 		return {
 			type: TokenType.String,
+			// implicitly handles surrogate pair
 			value: String.fromCodePoint(...codePoints),
 		};
 	}

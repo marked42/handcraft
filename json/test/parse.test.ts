@@ -11,9 +11,9 @@ describe("parseJSON", () => {
 	});
 
 	it("should ignore whitespace", () => {
-		// expect(parseJSON(" true")).toBe(true);
+		expect(parseJSON(" true")).toBe(true);
 		expect(parseJSON(" null")).toBe(null);
-		// expect(parseJSON(" false")).toBe(false);
+		expect(parseJSON(" false")).toBe(false);
 	});
 });
 
@@ -91,5 +91,7 @@ describe("string", () => {
 		}).toThrowError();
 	});
 
-	it.todo("unicode surrogate pair");
+	it("unicode surrogate pair", () => {
+		expect(parseJSON('"\\uD834\\uDD1E"')).toEqual("𝄞");
+	});
 });

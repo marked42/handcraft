@@ -116,3 +116,38 @@ export function getStringCodePoints(str: string) {
 
 	return codePoints;
 }
+
+const LowSurrogateRange = { min: 0xd800, max: 0xdbff };
+const HighSurrogateRange = { min: 0xdc00, max: 0xdfff };
+
+class CodePointRange {
+	constructor(public readonly min: number, public readonly max: number) {}
+
+	contains(codePoint: number) {
+		return this.min <= codePoint && codePoint <= this.max;
+	}
+}
+
+function isLowSurrogate(codePoint: number) {
+	const { min, max } = LowSurrogateRange;
+
+	return min <= codePoint && codePoint <= max;
+}
+
+function isHighSurrogate(codePoint: number) {
+	const { min, max } = HighSurrogateRange;
+
+	return min <= codePoint && codePoint <= max;
+}
+
+function getCodePointFromSurrogatePair(low: number, high: number) {
+	if (!isLowSurrogate(low)) {
+		throw new Error(`${low}不是低代理对 U+D800 ~ U+DBFF`);
+	}
+
+	if (!isHighSurrogate(high)) {
+		throw new Error(`${high}不是高代理对 U+DC00 ~ U+DFFF`);
+	}
+
+	return (low - LowSurrogateRange.min) * (high - HighSurrogateRange.min);
+}
