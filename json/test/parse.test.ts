@@ -1,29 +1,23 @@
 import { parseJSON } from "../src";
 
-describe("parseJSON", () => {
+describe("null", () => {
 	it("should parse null", () => {
 		expect(parseJSON("null")).toBe(null);
 	});
+});
 
+describe("boolean", () => {
 	it("should parse boolean", () => {
 		expect(parseJSON("true")).toBe(true);
 		expect(parseJSON("false")).toBe(false);
 	});
+});
 
+describe("whitespace", () => {
 	it("should ignore whitespace", () => {
 		expect(parseJSON(" true")).toBe(true);
 		expect(parseJSON(" null")).toBe(null);
 		expect(parseJSON(" false")).toBe(false);
-	});
-});
-
-describe("object", () => {
-	it("empty object", () => {
-		expect(parseJSON("{}")).toEqual({});
-	});
-
-	it("object with single value", () => {
-		expect(parseJSON('{ "a": null }')).toEqual({ a: null });
 	});
 });
 
@@ -81,6 +75,10 @@ describe("string", () => {
 		expect(parseJSON('"\\uFFFF"')).toEqual("\uFFFF");
 	});
 
+	it("supports unicode escape sequence with no character assignment", () => {
+		expect(parseJSON('"\\uD800"')).toEqual("\uD800");
+	});
+
 	it("throw error on invalid unicode escape sequence", () => {
 		expect(() => {
 			parseJSON('"\\u000g"');
@@ -95,3 +93,24 @@ describe("string", () => {
 		expect(parseJSON('"\\uD834\\uDD1E"')).toEqual("𝄞");
 	});
 });
+
+describe("object", () => {
+	it("empty object", () => {
+		expect(parseJSON("{}")).toEqual({});
+	});
+
+	it("object with single value", () => {
+		expect(parseJSON('{ "a": null }')).toEqual({ a: null });
+	});
+
+	it("object with multiple values", () => {
+		expect(parseJSON('{ "a": null, "b": "test" }')).toEqual({
+			a: null,
+			b: "test",
+		});
+	});
+});
+
+// describe('array', () => {
+
+// })
