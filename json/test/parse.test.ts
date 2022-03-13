@@ -111,6 +111,30 @@ describe("object", () => {
 	});
 });
 
-// describe('array', () => {
+describe("array", () => {
+	it("empty array", () => {
+		expect(parseJSON("[]")).toEqual([]);
+	});
 
-// })
+	it("array with single value", () => {
+		expect(parseJSON("[ null ]")).toEqual([null]);
+	});
+
+	it("array with multiple values", () => {
+		expect(parseJSON('[ null, "test" ]')).toEqual([null, "test"]);
+	});
+
+	it("throw error on invalid patterns", () => {
+		expect(() => {
+			parseJSON("[,]");
+		}).toThrowError();
+
+		expect(() => {
+			parseJSON("[null,]");
+		}).toThrowError();
+
+		expect(() => {
+			parseJSON("[null,,]");
+		}).toThrowError();
+	});
+});

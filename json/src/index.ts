@@ -254,7 +254,7 @@ class JSONParser {
 				return { type: TokenType.LeftSquareBracket };
 			case "]".codePointAt(0):
 				this.consumeKeyword("]");
-				return { type: TokenType.LeftSquareBracket };
+				return { type: TokenType.RightSquareBracket };
 			case ":".codePointAt(0):
 				this.consumeKeyword(":");
 				return { type: TokenType.Colon };
@@ -355,6 +355,36 @@ class JSONParser {
 		return null;
 	}
 
+	parseArray() {
+		this.consumeToken(TokenType.LeftSquareBracket);
+		// TODO: json value typing
+		const result: any[] = [];
+
+		if (this.peekToken().type === TokenType.RightSquareBracket) {
+			this.consumeToken();
+			return result;
+		}
+
+		while (true) {
+			const element = this.parse();
+			result.push(element);
+
+			if (this.peekToken().type === TokenType.Comma) {
+				this.consumeToken();
+				continue;
+			}
+
+			if (this.peekToken().type === TokenType.RightSquareBracket) {
+				this.consumeToken();
+				break;
+			}
+
+			throw new Error(`unexpected token ${this.peekToken()}`);
+		}
+
+		return result;
+	}
+
 	parse() {
 		const token = this.peekToken();
 
@@ -370,6 +400,9 @@ class JSONParser {
 
 			case TokenType.LeftParenthesis:
 				return this.parseObject();
+
+			case TokenType.LeftSquareBracket:
+				return this.parseArray();
 
 			default:
 				throw new Error(
