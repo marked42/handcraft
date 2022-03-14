@@ -22,8 +22,61 @@ describe("whitespace", () => {
 });
 
 describe("number", () => {
-	it("integer", () => {
+	it("zero", () => {
 		expect(parseJSON("0")).toBe(0);
+	});
+
+	it("non zero integer", () => {
+		expect(parseJSON("1")).toBe(1);
+		expect(parseJSON("10")).toBe(10);
+		expect(parseJSON("12347883")).toBe(12347883);
+	});
+
+	it("error on invalid leading zero", () => {
+		expect(() => {
+			parseJSON("00");
+		}).toThrowError();
+
+		expect(() => {
+			parseJSON("01");
+		}).toThrowError();
+	});
+
+	// TODO: how to describe intention of a test
+	// TODO: test coverage
+	it("float", () => {
+		expect(parseJSON("1.0")).toBe(1.0);
+		expect(parseJSON("0.0")).toBe(0.0);
+	});
+
+	it("error on invalid float", () => {
+		expect(() => {
+			parseJSON("1.e");
+		}).toThrowError();
+	});
+
+	it("exponent", () => {
+		expect(parseJSON("1.0e1")).toBe(1.0e1);
+		expect(parseJSON("1.0e-1")).toBe(1.0e-1);
+		expect(parseJSON("1.0e+1")).toBe(1.0e1);
+		expect(parseJSON("1.0E1")).toBe(1.0e1);
+		expect(parseJSON("1.0E-1")).toBe(1.0e-1);
+		expect(parseJSON("1.0E+1")).toBe(1.0e1);
+	});
+
+	it("error on invalid exponent", () => {
+		expect(() => {
+			expect(parseJSON("1.0e"));
+		}).toThrowError();
+		expect(() => {
+			expect(parseJSON("1.0e+"));
+		}).toThrowError();
+		expect(() => {
+			expect(parseJSON("1.0e-"));
+		}).toThrowError();
+		expect(() => {
+			expect(parseJSON("1.0f"));
+		}).toThrowError();
 	});
 });
 

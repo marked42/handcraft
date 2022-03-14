@@ -31,6 +31,7 @@ export enum TokenType {
 	RightSquareBracket,
 	Comma,
 	Colon,
+	EOF,
 }
 
 type StringToken = {
@@ -52,8 +53,13 @@ type NumberToken = {
 	value: number;
 };
 
+type EOFToken = {
+	type: TokenType.EOF;
+};
+
 type Token =
 	| NullToken
+	| EOFToken
 	| NumberToken
 	| {
 			type: TokenType.LeftParenthesis;
@@ -270,6 +276,7 @@ class JSONParser {
 								getDecimalDigitMathematicalValue(
 									this.peekChar()
 								);
+							this.advanceChar(1);
 						}
 						state = State.FractionStart;
 					} else {
@@ -326,6 +333,7 @@ class JSONParser {
 								getDecimalDigitMathematicalValue(
 									this.peekChar()
 								);
+							this.advanceChar(1);
 						}
 					}
 					state = State.Stopped;
@@ -333,10 +341,10 @@ class JSONParser {
 			}
 		} while (state !== State.Stopped);
 
+		const base = sign * (integral + fraction);
 		return {
 			type: TokenType.Number,
-			value:
-				sign * Math.pow(integral + fraction, exponentSign * exponent),
+			value: base * Math.pow(10, exponentSign * exponent),
 		};
 	}
 
@@ -394,6 +402,10 @@ class JSONParser {
 			return this.peekNumberToken();
 		}
 
+		if (isEOFCharacter(char)) {
+			return { type: TokenType.EOF };
+		}
+
 		throw new Error(`unexpected input ${this.text}`);
 	}
 
@@ -445,7 +457,7 @@ class JSONParser {
 			if (nextToken.type === TokenType.String) {
 				this.consumeToken();
 				this.consumeToken(TokenType.Colon);
-				const value = this.parse();
+				const value = this.parseValue();
 
 				object[nextToken.value] = value;
 
@@ -494,7 +506,7 @@ class JSONParser {
 		}
 
 		while (true) {
-			const element = this.parse();
+			const element = this.parseValue();
 			result.push(element);
 
 			if (this.peekToken().type === TokenType.Comma) {
@@ -520,32 +532,68 @@ class JSONParser {
 		return token.value;
 	}
 
+	/**
+	 * 为了处理单个数字是非法的情况 00
+	 * 区分parse和parseValue，
+	 * parseValue解析成功后，后续还可以有输入
+	 * parse解析成功后，输入必须完结
+	 *
+	 * 一个token那个字符开始到那个字符结束
+	 * 1. 最长规则？
+	 * 2. 错误形式，明确token边界的话方便检测错误形式，给出友好的报错信息
+	 *
+	 * 考虑非递归实现，迭代实现中，如果解析结束后，栈内有多个json值，则输入非法
+	 */
 	parse() {
+		const value = this.parseValue();
+
+		this.skipWhitespace();
+
+		if (this.peekToken().type !== TokenType.EOF) {
+			throw new Error(
+				`unexpected token at index ${this.codePointIndex}, input should end here`
+			);
+		}
+
+		return value;
+	}
+
+	parseValue() {
 		const token = this.peekToken();
 
+		// TODO: typing JSON
+		let value: any;
 		switch (token.type) {
 			case TokenType.Boolean:
-				return this.parseBoolean();
+				value = this.parseBoolean();
+				break;
 
 			case TokenType.Null:
-				return this.parseNull();
+				value = this.parseNull();
+				break;
 
 			case TokenType.String:
-				return this.parseString();
+				value = this.parseString();
+				break;
 
 			case TokenType.LeftParenthesis:
-				return this.parseObject();
+				value = this.parseObject();
+				break;
 
 			case TokenType.LeftSquareBracket:
-				return this.parseArray();
+				value = this.parseArray();
+				break;
 
 			case TokenType.Number:
-				return this.parseNumber();
+				value = this.parseNumber();
+				break;
 
 			default:
 				throw new Error(
 					`unexpected input ${this.text} at index ${this.codePointIndex}`
 				);
 		}
+
+		return value;
 	}
 }
