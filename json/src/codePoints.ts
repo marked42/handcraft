@@ -33,9 +33,28 @@ export function isDecimalDigit(codePoint: number) {
 	return containsCodePoint([min, max], codePoint);
 }
 
-export function getHexDigitMathematicalValue(codePoint: number) {
+export function isDecimalDigitOneToNine(codePoint: number) {
+	const min = "1".codePointAt(0)!;
+	const max = "9".codePointAt(0)!;
+
+	return containsCodePoint([min, max], codePoint);
+}
+
+export function getDecimalDigitMathematicalValue(codePoint: number) {
 	if (isDecimalDigit(codePoint)) {
 		return codePoint - "0".codePointAt(0)!;
+	}
+
+	throw new Error(
+		`code point ${String.fromCodePoint(
+			codePoint
+		)}(${codePoint}) is not decimal digit`
+	);
+}
+
+export function getHexDigitMathematicalValue(codePoint: number) {
+	if (isDecimalDigit(codePoint)) {
+		return getDecimalDigitMathematicalValue(codePoint);
 	}
 
 	if (isLowerCaseAToF(codePoint)) {

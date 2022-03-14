@@ -7,6 +7,10 @@ import {
 	CHAR_EOF,
 	getHexDigitsMathematicalValue,
 	getStringCodePoints,
+	isDecimalDigit,
+	isDecimalDigitOneToNine,
+	getDecimalDigitMathematicalValue,
+	getHexDigitMathematicalValue,
 } from "./codePoints";
 
 export function parseJSON(text: string) {
@@ -42,8 +46,15 @@ type BooleanToken = {
 type NullToken = {
 	type: TokenType.Null;
 };
+
+type NumberToken = {
+	type: TokenType.Number;
+	value: number;
+};
+
 type Token =
 	| NullToken
+	| NumberToken
 	| {
 			type: TokenType.LeftParenthesis;
 	  }
@@ -220,6 +231,115 @@ class JSONParser {
 		};
 	}
 
+	peekNumberToken(): NumberToken {
+		let sign = 1;
+		let integral = 0;
+		let fractionDigitCount = 0;
+		let fraction = 0;
+		let exponent = 0;
+		let exponentSign = 1;
+
+		if (isSameCodePoint(this.peekChar(), "-")) {
+			this.advanceChar(1);
+			sign = -1;
+		}
+
+		enum State {
+			IntegralStart,
+			FractionStart,
+			ExponentialStart,
+			Stopped,
+		}
+
+		let state = State.IntegralStart;
+		do {
+			switch (state) {
+				case State.IntegralStart:
+					if (isSameCodePoint(this.peekChar(), "0")) {
+						this.advanceChar(1);
+						state = State.FractionStart;
+					} else if (isDecimalDigitOneToNine(this.peekChar())) {
+						integral = getDecimalDigitMathematicalValue(
+							this.peekChar()
+						);
+						this.advanceChar(1);
+
+						while (isDecimalDigit(this.peekChar())) {
+							integral =
+								integral * 10 +
+								getDecimalDigitMathematicalValue(
+									this.peekChar()
+								);
+						}
+						state = State.FractionStart;
+					} else {
+						throw new Error(
+							`unexpected number token at index ${this.codePointIndex} in ${this.text}`
+						);
+					}
+					break;
+				case State.FractionStart:
+					if (isSameCodePoint(this.peekChar(), ".")) {
+						this.advanceChar(1);
+
+						if (!isDecimalDigit(this.peekChar())) {
+							throw new Error("unexpected number token");
+						}
+
+						while (isDecimalDigit(this.peekChar())) {
+							fractionDigitCount++;
+							fraction =
+								fraction +
+								Math.pow(10, -fractionDigitCount) *
+									getHexDigitMathematicalValue(
+										this.peekChar()
+									);
+							this.advanceChar(1);
+						}
+					}
+
+					state = State.ExponentialStart;
+					break;
+				case State.ExponentialStart:
+					if (
+						isSameCodePoint(this.peekChar(), "e") ||
+						isSameCodePoint(this.peekChar(), "E")
+					) {
+						this.advanceChar(1);
+						if (isSameCodePoint(this.peekChar(), "+")) {
+							exponentSign = 1;
+							this.advanceChar(1);
+						} else if (isSameCodePoint(this.peekChar(), "-")) {
+							exponentSign = -1;
+							this.advanceChar(1);
+						}
+
+						if (!isDecimalDigit(this.peekChar())) {
+							throw new Error(
+								`unexpected number token at index ${this.codePointIndex}, input ${this.text}`
+							);
+						}
+
+						while (isDecimalDigit(this.peekChar())) {
+							exponent =
+								exponent * 10 +
+								getDecimalDigitMathematicalValue(
+									this.peekChar()
+								);
+						}
+					}
+					state = State.Stopped;
+					break;
+			}
+		} while (state !== State.Stopped);
+
+		return {
+			type: TokenType.Number,
+			value:
+				sign * Math.pow(integral + fraction, exponentSign * exponent),
+		};
+	}
+
 	doPeekToken(): Token {
 		this.skipWhitespace();
 
@@ -264,6 +384,14 @@ class JSONParser {
 
 			case '"'.codePointAt(0):
 				return this.peekStringToken();
+		}
+
+		const isNumberTokenStart = (char: number) => {
+			return isDecimalDigit(char) || isSameCodePoint(char, "-");
+		};
+
+		if (isNumberTokenStart(char)) {
+			return this.peekNumberToken();
 		}
 
 		throw new Error(`unexpected input ${this.text}`);
@@ -385,6 +513,13 @@ class JSONParser {
 		return result;
 	}
 
+	parseNumber() {
+		// TODO: type narrowing
+		const token = this.consumeToken(TokenType.Number) as NumberToken;
+
+		return token.value;
+	}
+
 	parse() {
 		const token = this.peekToken();
 
@@ -403,6 +538,9 @@ class JSONParser {
 
 			case TokenType.LeftSquareBracket:
 				return this.parseArray();
+
+			case TokenType.Number:
+				return this.parseNumber();
 
 			default:
 				throw new Error(

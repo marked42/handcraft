@@ -21,6 +21,12 @@ describe("whitespace", () => {
 	});
 });
 
+describe("number", () => {
+	it("integer", () => {
+		expect(parseJSON("0")).toBe(0);
+	});
+});
+
 describe("string", () => {
 	it("supports empty string", () => {
 		expect(parseJSON('""')).toEqual("");
