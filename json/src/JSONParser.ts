@@ -1,10 +1,10 @@
+import { TokenStream } from "./TokenStream";
 import {
-	TokenStream,
 	TokenType,
-	StringToken,
-	BooleanToken,
-	NumberToken,
-} from "./TokenStream";
+	StringTokenOld,
+	BooleanTokenOld,
+	NumberTokenOld,
+} from "./Token";
 
 export class JSONParser {
 	readonly tokenStream: TokenStream;
@@ -52,13 +52,13 @@ export class JSONParser {
 		const token = this.tokenStream.consumeToken(TokenType.String);
 
 		// TODO: expectToken should narrow token to StringToken type
-		return (token as StringToken).value;
+		return (token as StringTokenOld).value;
 	}
 
 	parseBoolean() {
 		const token = this.tokenStream.consumeToken(TokenType.Boolean);
 
-		return (token as BooleanToken).value;
+		return (token as BooleanTokenOld).value;
 	}
 
 	parseNull() {
@@ -100,7 +100,7 @@ export class JSONParser {
 		// TODO: type narrowing
 		const token = this.tokenStream.consumeToken(
 			TokenType.Number
-		) as NumberToken;
+		) as NumberTokenOld;
 
 		return token.value;
 	}

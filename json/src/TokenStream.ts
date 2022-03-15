@@ -13,71 +13,16 @@ import {
 	getHexDigitMathematicalValue,
 } from "./codePoints";
 
-// TODO: use class instead of union types
-export enum TokenType {
-	Null,
-	Boolean,
-	Number,
-	String,
-	LeftParenthesis,
-	RightParenthesis,
-	LeftSquareBracket,
-	RightSquareBracket,
-	Comma,
-	Colon,
-	EOF,
-}
-
-export type StringToken = {
-	type: TokenType.String;
-	value: string;
-};
-
-export type BooleanToken = {
-	type: TokenType.Boolean;
-	value: boolean;
-};
-
-export type NullToken = {
-	type: TokenType.Null;
-};
-
-export type NumberToken = {
-	type: TokenType.Number;
-	value: number;
-};
-
-export type EOFToken = {
-	type: TokenType.EOF;
-};
-
-export type Token =
-	| NullToken
-	| EOFToken
-	| NumberToken
-	| {
-			type: TokenType.LeftParenthesis;
-	  }
-	| {
-			type: TokenType.RightParenthesis;
-	  }
-	| {
-			type: TokenType.LeftSquareBracket;
-	  }
-	| {
-			type: TokenType.RightSquareBracket;
-	  }
-	| {
-			type: TokenType.Colon;
-	  }
-	| {
-			type: TokenType.Comma;
-	  }
-	| StringToken
-	| BooleanToken;
+import {
+	TokenOld,
+	TokenType,
+	StringTokenOld,
+	NumberTokenOld,
+	KeywordToken,
+} from "./Token";
 
 export class TokenStream {
-	private token: Token | null = null;
+	private token: TokenOld | null = null;
 	private codePointIndex = 0;
 	private readonly codePoints: number[] = [];
 
@@ -132,7 +77,7 @@ export class TokenStream {
 		}
 	}
 
-	doPeekToken(): Token {
+	doPeekToken(): TokenOld {
 		this.skipWhitespace();
 
 		const char = this.peekChar();
@@ -140,6 +85,7 @@ export class TokenStream {
 		switch (char) {
 			case "n".codePointAt(0):
 				this.consumeKeyword("null");
+				// return new KeywordToken("null");
 				return {
 					type: TokenType.Null,
 				};
@@ -193,7 +139,7 @@ export class TokenStream {
 		throw new Error(`unexpected input ${this.text}`);
 	}
 
-	peekStringToken(): StringToken {
+	peekStringToken(): StringTokenOld {
 		const codePoints: number[] = [];
 
 		if (!isSameCodePoint(this.peekChar(), '"')) {
@@ -289,7 +235,7 @@ export class TokenStream {
 		};
 	}
 
-	peekNumberToken(): NumberToken {
+	peekNumberToken(): NumberTokenOld {
 		let sign = 1;
 
 		// minus sign
@@ -375,7 +321,7 @@ export class TokenStream {
 		};
 	}
 
-	expectToken(token: Token, tokenType: TokenType) {
+	expectToken(token: TokenOld, tokenType: TokenType) {
 		if (tokenType !== token.type) {
 			throw new Error(
 				`expected token type ${tokenType}, get token ${JSON.stringify(
@@ -390,7 +336,7 @@ export class TokenStream {
 	}
 
 	// TODO: narrow down token type
-	consumeToken(type?: TokenType): Token {
+	consumeToken(type?: TokenType): TokenOld {
 		const token = this.peekToken();
 		if (type !== void 0) {
 			this.expectToken(token, type);
@@ -401,7 +347,7 @@ export class TokenStream {
 		return token;
 	}
 
-	peekToken(): Token {
+	peekToken(): TokenOld {
 		if (!this.token) {
 			this.token = this.doPeekToken();
 		}
