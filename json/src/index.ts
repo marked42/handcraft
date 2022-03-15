@@ -239,107 +239,82 @@ class JSONParser {
 
 	peekNumberToken(): NumberToken {
 		let sign = 1;
-		let integral = 0;
-		let fractionDigitCount = 0;
-		let fraction = 0;
-		let exponent = 0;
-		let exponentSign = 1;
 
+		// minus sign
 		if (isSameCodePoint(this.peekChar(), "-")) {
 			this.advanceChar(1);
 			sign = -1;
 		}
 
-		enum State {
-			IntegralStart,
-			FractionStart,
-			ExponentialStart,
-			Stopped,
+		// integral
+		let integral = 0;
+		if (isSameCodePoint(this.peekChar(), "0")) {
+			this.advanceChar(1);
+		} else if (isDecimalDigitOneToNine(this.peekChar())) {
+			integral = getDecimalDigitMathematicalValue(this.peekChar());
+			this.advanceChar(1);
+
+			while (isDecimalDigit(this.peekChar())) {
+				integral =
+					integral * 10 +
+					getDecimalDigitMathematicalValue(this.peekChar());
+				this.advanceChar(1);
+			}
+		} else {
+			throw new Error(
+				`unexpected number token at index ${this.codePointIndex} in ${this.text}`
+			);
 		}
 
-		let state = State.IntegralStart;
-		do {
-			switch (state) {
-				case State.IntegralStart:
-					if (isSameCodePoint(this.peekChar(), "0")) {
-						this.advanceChar(1);
-						state = State.FractionStart;
-					} else if (isDecimalDigitOneToNine(this.peekChar())) {
-						integral = getDecimalDigitMathematicalValue(
-							this.peekChar()
-						);
-						this.advanceChar(1);
+		// fraction
+		let fractionDigitCount = 0;
+		let fraction = 0;
+		if (isSameCodePoint(this.peekChar(), ".")) {
+			this.advanceChar(1);
 
-						while (isDecimalDigit(this.peekChar())) {
-							integral =
-								integral * 10 +
-								getDecimalDigitMathematicalValue(
-									this.peekChar()
-								);
-							this.advanceChar(1);
-						}
-						state = State.FractionStart;
-					} else {
-						throw new Error(
-							`unexpected number token at index ${this.codePointIndex} in ${this.text}`
-						);
-					}
-					break;
-				case State.FractionStart:
-					if (isSameCodePoint(this.peekChar(), ".")) {
-						this.advanceChar(1);
-
-						if (!isDecimalDigit(this.peekChar())) {
-							throw new Error("unexpected number token");
-						}
-
-						while (isDecimalDigit(this.peekChar())) {
-							fractionDigitCount++;
-							fraction =
-								fraction +
-								Math.pow(10, -fractionDigitCount) *
-									getHexDigitMathematicalValue(
-										this.peekChar()
-									);
-							this.advanceChar(1);
-						}
-					}
-
-					state = State.ExponentialStart;
-					break;
-				case State.ExponentialStart:
-					if (
-						isSameCodePoint(this.peekChar(), "e") ||
-						isSameCodePoint(this.peekChar(), "E")
-					) {
-						this.advanceChar(1);
-						if (isSameCodePoint(this.peekChar(), "+")) {
-							exponentSign = 1;
-							this.advanceChar(1);
-						} else if (isSameCodePoint(this.peekChar(), "-")) {
-							exponentSign = -1;
-							this.advanceChar(1);
-						}
-
-						if (!isDecimalDigit(this.peekChar())) {
-							throw new Error(
-								`unexpected number token at index ${this.codePointIndex}, input ${this.text}`
-							);
-						}
-
-						while (isDecimalDigit(this.peekChar())) {
-							exponent =
-								exponent * 10 +
-								getDecimalDigitMathematicalValue(
-									this.peekChar()
-								);
-							this.advanceChar(1);
-						}
-					}
-					state = State.Stopped;
-					break;
+			if (!isDecimalDigit(this.peekChar())) {
+				throw new Error("unexpected number token");
 			}
-		} while (state !== State.Stopped);
+
+			while (isDecimalDigit(this.peekChar())) {
+				fractionDigitCount++;
+				fraction =
+					fraction +
+					Math.pow(10, -fractionDigitCount) *
+						getHexDigitMathematicalValue(this.peekChar());
+				this.advanceChar(1);
+			}
+		}
+
+		// exponent
+		let exponent = 0;
+		let exponentSign = 1;
+		if (
+			isSameCodePoint(this.peekChar(), "e") ||
+			isSameCodePoint(this.peekChar(), "E")
+		) {
+			this.advanceChar(1);
+			if (isSameCodePoint(this.peekChar(), "+")) {
+				exponentSign = 1;
+				this.advanceChar(1);
+			} else if (isSameCodePoint(this.peekChar(), "-")) {
+				exponentSign = -1;
+				this.advanceChar(1);
+			}
+
+			if (!isDecimalDigit(this.peekChar())) {
+				throw new Error(
+					`unexpected number token at index ${this.codePointIndex}, input ${this.text}`
+				);
+			}
+
+			while (isDecimalDigit(this.peekChar())) {
+				exponent =
+					exponent * 10 +
+					getDecimalDigitMathematicalValue(this.peekChar());
+				this.advanceChar(1);
+			}
+		}
 
 		const base = sign * (integral + fraction);
 		return {
