@@ -478,20 +478,21 @@ class JSONParser {
 			return result;
 		}
 
-		while (true) {
+		const consumeElement = () => {
 			const element = this.parseValue();
 			result.push(element);
+		};
+		consumeElement();
 
-			if (this.peekToken().type === TokenType.Comma) {
-				this.consumeToken();
-				continue;
-			}
+		while (this.peekToken().type === TokenType.Comma) {
+			this.consumeToken();
 
-			if (this.peekToken().type === TokenType.RightSquareBracket) {
-				this.consumeToken();
-				break;
-			}
+			consumeElement();
+		}
 
+		if (this.peekToken().type === TokenType.RightSquareBracket) {
+			this.consumeToken();
+		} else {
 			throw new Error(`unexpected token ${this.peekToken()}`);
 		}
 
