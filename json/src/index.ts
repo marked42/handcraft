@@ -82,13 +82,14 @@ type Token =
 	| StringToken
 	| BooleanToken;
 
-class JSONParser {
-	constructor(private readonly text: string) {
+export class TokenStream {
+	private token: Token | null = null;
+	private codePointIndex = 0;
+	private readonly codePoints: number[] = [];
+
+	constructor(public readonly text: string) {
 		this.codePoints = getStringCodePoints(text);
 	}
-
-	private readonly codePoints: number[];
-	private codePointIndex = 0;
 
 	skipWhitespace() {
 		for (let i = this.codePointIndex; i < this.codePoints.length; i++) {
@@ -97,6 +98,14 @@ class JSONParser {
 				break;
 			}
 		}
+	}
+
+	public get index() {
+		return this.codePointIndex;
+	}
+
+	public set index(value: number) {
+		this.codePointIndex = value;
 	}
 
 	peekChar(offset = 0) {
@@ -114,7 +123,7 @@ class JSONParser {
 		);
 	}
 
-	private consumeKeyword(keyword: string) {
+	consumeKeyword(keyword: string) {
 		if (typeof keyword !== "string" || !keyword.length) {
 			throw new Error(`expect non empty string, get ${keyword}`);
 		}
@@ -129,15 +138,66 @@ class JSONParser {
 		}
 	}
 
-	private assertNonNegativeInteger(value: number) {
-		if (Number.isInteger(value) && value >= 0) {
-			return;
+	doPeekToken(): Token {
+		this.skipWhitespace();
+
+		const char = this.peekChar();
+
+		switch (char) {
+			case "n".codePointAt(0):
+				this.consumeKeyword("null");
+				return {
+					type: TokenType.Null,
+				};
+			case "t".codePointAt(0):
+				this.consumeKeyword("true");
+				return {
+					type: TokenType.Boolean,
+					value: true,
+				};
+			case "f".codePointAt(0):
+				this.consumeKeyword("false");
+				return {
+					type: TokenType.Boolean,
+					value: false,
+				};
+			case "{".codePointAt(0):
+				this.consumeKeyword("{");
+				return { type: TokenType.LeftParenthesis };
+			case "}".codePointAt(0):
+				this.consumeKeyword("}");
+				return { type: TokenType.RightParenthesis };
+			case "[".codePointAt(0):
+				this.consumeKeyword("[");
+				return { type: TokenType.LeftSquareBracket };
+			case "]".codePointAt(0):
+				this.consumeKeyword("]");
+				return { type: TokenType.RightSquareBracket };
+			case ":".codePointAt(0):
+				this.consumeKeyword(":");
+				return { type: TokenType.Colon };
+			case ",".codePointAt(0):
+				this.consumeKeyword(",");
+				return { type: TokenType.Comma };
+
+			case '"'.codePointAt(0):
+				return this.peekStringToken();
 		}
 
-		throw new Error(`${value} is not a non negative integer.`);
-	}
+		const isNumberTokenStart = (char: number) => {
+			return isDecimalDigit(char) || isSameCodePoint(char, "-");
+		};
 
-	private token: Token | null = null;
+		if (isNumberTokenStart(char)) {
+			return this.peekNumberToken();
+		}
+
+		if (isEOFCharacter(char)) {
+			return { type: TokenType.EOF };
+		}
+
+		throw new Error(`unexpected input ${this.text}`);
+	}
 
 	peekStringToken(): StringToken {
 		const codePoints: number[] = [];
@@ -321,73 +381,14 @@ class JSONParser {
 		};
 	}
 
-	doPeekToken(): Token {
-		this.skipWhitespace();
-
-		const char = this.peekChar();
-
-		switch (char) {
-			case "n".codePointAt(0):
-				this.consumeKeyword("null");
-				return {
-					type: TokenType.Null,
-				};
-			case "t".codePointAt(0):
-				this.consumeKeyword("true");
-				return {
-					type: TokenType.Boolean,
-					value: true,
-				};
-			case "f".codePointAt(0):
-				this.consumeKeyword("false");
-				return {
-					type: TokenType.Boolean,
-					value: false,
-				};
-			case "{".codePointAt(0):
-				this.consumeKeyword("{");
-				return { type: TokenType.LeftParenthesis };
-			case "}".codePointAt(0):
-				this.consumeKeyword("}");
-				return { type: TokenType.RightParenthesis };
-			case "[".codePointAt(0):
-				this.consumeKeyword("[");
-				return { type: TokenType.LeftSquareBracket };
-			case "]".codePointAt(0):
-				this.consumeKeyword("]");
-				return { type: TokenType.RightSquareBracket };
-			case ":".codePointAt(0):
-				this.consumeKeyword(":");
-				return { type: TokenType.Colon };
-			case ",".codePointAt(0):
-				this.consumeKeyword(",");
-				return { type: TokenType.Comma };
-
-			case '"'.codePointAt(0):
-				return this.peekStringToken();
+	expectToken(token: Token, tokenType: TokenType) {
+		if (tokenType !== token.type) {
+			throw new Error(
+				`expected token type ${tokenType}, get token ${JSON.stringify(
+					token
+				)}`
+			);
 		}
-
-		const isNumberTokenStart = (char: number) => {
-			return isDecimalDigit(char) || isSameCodePoint(char, "-");
-		};
-
-		if (isNumberTokenStart(char)) {
-			return this.peekNumberToken();
-		}
-
-		if (isEOFCharacter(char)) {
-			return { type: TokenType.EOF };
-		}
-
-		throw new Error(`unexpected input ${this.text}`);
-	}
-
-	peekToken(): Token {
-		if (!this.token) {
-			this.token = this.doPeekToken();
-		}
-
-		return this.token;
 	}
 
 	clearToken() {
@@ -406,77 +407,85 @@ class JSONParser {
 		return token;
 	}
 
-	expectToken(token: Token, tokenType: TokenType) {
-		if (tokenType !== token.type) {
-			throw new Error(
-				`expected token type ${tokenType}, get token ${JSON.stringify(
-					token
-				)}`
-			);
+	peekToken(): Token {
+		if (!this.token) {
+			this.token = this.doPeekToken();
 		}
+
+		return this.token;
+	}
+}
+
+class JSONParser {
+	readonly tokenStream: TokenStream;
+
+	constructor(private readonly text: string) {
+		this.tokenStream = new TokenStream(text);
 	}
 
 	parseObject() {
 		const object: Record<string, any> = {};
 
-		this.consumeToken(TokenType.LeftParenthesis);
+		this.tokenStream.consumeToken(TokenType.LeftParenthesis);
 
-		if (this.peekToken().type === TokenType.RightParenthesis) {
-			this.consumeToken();
+		if (this.tokenStream.peekToken().type === TokenType.RightParenthesis) {
+			this.tokenStream.consumeToken();
 			return object;
 		}
 
 		const consumeMember = () => {
-			const nextToken = this.peekToken();
+			const nextToken = this.tokenStream.peekToken();
 			if (nextToken.type !== TokenType.String) {
 				throw new Error(
-					`unexpected token ${nextToken.type} at index ${this.codePointIndex} from input ${this.text}, object member should start with string.`
+					`unexpected token ${nextToken.type} at index ${this.tokenStream.index} from input ${this.text}, object member should start with string.`
 				);
 			}
-			this.consumeToken();
-			this.consumeToken(TokenType.Colon);
+			this.tokenStream.consumeToken();
+			this.tokenStream.consumeToken(TokenType.Colon);
 			const value = this.parseValue();
 
 			object[nextToken.value] = value;
 		};
 
 		consumeMember();
-		while (this.peekToken().type === TokenType.Comma) {
-			this.consumeToken();
+		while (this.tokenStream.peekToken().type === TokenType.Comma) {
+			this.tokenStream.consumeToken();
 			consumeMember();
 		}
 
-		this.consumeToken(TokenType.RightParenthesis);
+		this.tokenStream.consumeToken(TokenType.RightParenthesis);
 
 		return object;
 	}
 
 	parseString() {
-		const token = this.consumeToken(TokenType.String);
+		const token = this.tokenStream.consumeToken(TokenType.String);
 
 		// TODO: expectToken should narrow token to StringToken type
 		return (token as StringToken).value;
 	}
 
 	parseBoolean() {
-		const token = this.consumeToken(TokenType.Boolean);
+		const token = this.tokenStream.consumeToken(TokenType.Boolean);
 
 		return (token as BooleanToken).value;
 	}
 
 	parseNull() {
-		this.consumeToken(TokenType.Null);
+		this.tokenStream.consumeToken(TokenType.Null);
 
 		return null;
 	}
 
 	parseArray() {
-		this.consumeToken(TokenType.LeftSquareBracket);
+		this.tokenStream.consumeToken(TokenType.LeftSquareBracket);
 		// TODO: json value typing
 		const result: any[] = [];
 
-		if (this.peekToken().type === TokenType.RightSquareBracket) {
-			this.consumeToken();
+		if (
+			this.tokenStream.peekToken().type === TokenType.RightSquareBracket
+		) {
+			this.tokenStream.consumeToken();
 			return result;
 		}
 
@@ -486,20 +495,22 @@ class JSONParser {
 		};
 		consumeElement();
 
-		while (this.peekToken().type === TokenType.Comma) {
-			this.consumeToken();
+		while (this.tokenStream.peekToken().type === TokenType.Comma) {
+			this.tokenStream.consumeToken();
 
 			consumeElement();
 		}
 
-		this.consumeToken(TokenType.RightSquareBracket);
+		this.tokenStream.consumeToken(TokenType.RightSquareBracket);
 
 		return result;
 	}
 
 	parseNumber() {
 		// TODO: type narrowing
-		const token = this.consumeToken(TokenType.Number) as NumberToken;
+		const token = this.tokenStream.consumeToken(
+			TokenType.Number
+		) as NumberToken;
 
 		return token.value;
 	}
@@ -519,9 +530,9 @@ class JSONParser {
 	parse() {
 		const value = this.parseValue();
 
-		if (this.peekToken().type !== TokenType.EOF) {
+		if (this.tokenStream.peekToken().type !== TokenType.EOF) {
 			throw new Error(
-				`unexpected token at index ${this.codePointIndex}, input should end here`
+				`unexpected token at index ${this.tokenStream.index}, input should end here`
 			);
 		}
 
@@ -529,7 +540,7 @@ class JSONParser {
 	}
 
 	parseValue() {
-		const token = this.peekToken();
+		const token = this.tokenStream.peekToken();
 
 		// TODO: typing JSON
 		let value: any;
@@ -560,7 +571,7 @@ class JSONParser {
 
 			default:
 				throw new Error(
-					`unexpected input ${this.text} at index ${this.codePointIndex}`
+					`unexpected input ${this.text} at index ${this.tokenStream.index}`
 				);
 		}
 
