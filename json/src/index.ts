@@ -417,31 +417,33 @@ class JSONParser {
 	}
 
 	parseObject() {
-		const token = this.consumeToken(TokenType.LeftParenthesis);
 		const object: Record<string, any> = {};
+
+		this.consumeToken(TokenType.LeftParenthesis);
 
 		if (this.peekToken().type === TokenType.RightParenthesis) {
 			this.consumeToken();
 			return object;
 		}
 
-		while (true) {
+		const consumeMember = () => {
 			const nextToken = this.peekToken();
-			if (nextToken.type === TokenType.String) {
-				this.consumeToken();
-				this.consumeToken(TokenType.Colon);
-				const value = this.parseValue();
-
-				object[nextToken.value] = value;
-
-				if (this.peekToken().type === TokenType.Comma) {
-					this.consumeToken();
-				} else {
-					break;
-				}
-			} else {
-				throw new Error(`unexpected token ${JSON.stringify(token)}`);
+			if (nextToken.type !== TokenType.String) {
+				throw new Error(
+					`unexpected token ${nextToken.type} at index ${this.codePointIndex} from input ${this.text}, object member should start with string.`
+				);
 			}
+			this.consumeToken();
+			this.consumeToken(TokenType.Colon);
+			const value = this.parseValue();
+
+			object[nextToken.value] = value;
+		};
+
+		consumeMember();
+		while (this.peekToken().type === TokenType.Comma) {
+			this.consumeToken();
+			consumeMember();
 		}
 
 		this.consumeToken(TokenType.RightParenthesis);
@@ -490,11 +492,7 @@ class JSONParser {
 			consumeElement();
 		}
 
-		if (this.peekToken().type === TokenType.RightSquareBracket) {
-			this.consumeToken();
-		} else {
-			throw new Error(`unexpected token ${this.peekToken()}`);
-		}
+		this.consumeToken(TokenType.RightSquareBracket);
 
 		return result;
 	}
