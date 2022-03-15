@@ -168,8 +168,8 @@ class JSONParser {
 				);
 			}
 
-			this.advanceChar(1);
 			if (isSameCodePoint(char, "\\")) {
+				this.advanceChar(1);
 				const validSingleEscape = [
 					['"', '"'],
 					["\\", "\\"],
@@ -189,46 +189,44 @@ class JSONParser {
 					this.advanceChar(1);
 
 					codePoints.push(escape[1].codePointAt(0)!);
-					continue;
-				}
+				} else if (isSameCodePoint(this.peekChar(), "u")) {
+					this.advanceChar(1);
 
-				if (!isSameCodePoint(this.peekChar(), "u")) {
+					const invalidUnicodeEscapeSequence = [0, 1, 2, 3].some(
+						(i) => !isHexDigit(this.peekChar(i))
+					);
+					if (invalidUnicodeEscapeSequence) {
+						throw new Error(
+							`invalid unicode escape sequence at index ${this.codePointIndex} in ${this.text}`
+						);
+					}
+
+					const codePoint = getHexDigitsMathematicalValue(
+						this.peekChar(0),
+						this.peekChar(1),
+						this.peekChar(2),
+						this.peekChar(3)
+					);
+
+					this.advanceChar(4);
+					codePoints.push(codePoint);
+				} else {
 					throw new Error(
 						`invalid single character escape sequence \\${String.fromCodePoint(
 							this.peekChar()
 						)}`
 					);
 				}
-				this.advanceChar(1);
-
-				const invalidUnicodeEscapeSequence = [0, 1, 2, 3].some(
-					(i) => !isHexDigit(this.peekChar(i))
-				);
-				if (invalidUnicodeEscapeSequence) {
-					throw new Error(
-						`invalid unicode escape sequence at index ${this.codePointIndex} in ${this.text}`
-					);
-				}
-
-				const codePoint = getHexDigitsMathematicalValue(
-					this.peekChar(0),
-					this.peekChar(1),
-					this.peekChar(2),
-					this.peekChar(3)
-				);
-
-				this.advanceChar(4);
-				codePoints.push(codePoint);
-				continue;
-			}
-
-			if (isSameCodePoint(char, '"')) {
+			} else if (isSameCodePoint(char, '"')) {
 				break;
 			} else {
 				// normal character
 				codePoints.push(char);
+				this.advanceChar(1);
 			}
 		}
+
+		this.advanceChar(1);
 
 		return {
 			type: TokenType.String,
@@ -521,8 +519,6 @@ class JSONParser {
 	 */
 	parse() {
 		const value = this.parseValue();
-
-		this.skipWhitespace();
 
 		if (this.peekToken().type !== TokenType.EOF) {
 			throw new Error(

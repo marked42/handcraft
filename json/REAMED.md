@@ -14,4 +14,57 @@
 1. Null `null`
 1. Boolean `true` `false`
 
+手写解析的注意点
+
+1. 区分 peek/next/ expect 的操作
+1. 注意消耗输出进行状态转移的时候记得调用 next
+
+```js
+// 0次或者1次
+// a?
+
+if (first(a)) {
+	// a
+}
+
+// 串联
+a b
+
+
+// 选择 分支选择如果不能到达接受态，那么在非法输入下抛错
+a | b
+if (first(a)) {
+
+} else if (first(b)) {
+
+} else {
+
+}
+
+// 0次或者多次
+a*
+while (first(a)) {
+
+}
+
+
+// 1次或者多次
+a+
+first(a)
+// a
+while (first(a)) {
+
+}
+
+if (!first(a)) {
+    // error
+}
+while (first(a)) {
+
+}
+
+```
+
+错误输入可以提前抛出异常
+
 ecma262 的 11.8.4
