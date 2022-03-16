@@ -1,5 +1,7 @@
 import { StringCharacterStream } from "./CharacterStream";
+import { JSONValue } from "./JSON";
 import { JSONParser } from "./JSONParser";
+import { JSONPrinter } from "./JSONPrinter";
 import { TokenStream } from "./TokenStream";
 
 export function parseJSON(text: string) {
@@ -8,4 +10,10 @@ export function parseJSON(text: string) {
 	const parser = new JSONParser(tokenStream);
 
 	return parser.parse();
+}
+
+export function printJSON(value: JSONValue) {
+	const printer = new JSONPrinter();
+
+	return printer.print(value);
 }
