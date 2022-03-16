@@ -1,11 +1,5 @@
 import { TokenStream } from "./TokenStream";
-import {
-	Token,
-	TokenType,
-	StringToken,
-	BooleanToken,
-	NumberToken,
-} from "./Token";
+import { TokenType, StringToken, BooleanToken, NumberToken } from "./Token";
 import { JSONArray, JSONValue } from "./JSONValue";
 
 export class JSONParser {
@@ -16,20 +10,18 @@ export class JSONParser {
 
 		this.tokenStream.eat(TokenType.LeftParenthesis);
 
-		if (this.tokenStream.peek().type === TokenType.RightParenthesis) {
+		if (this.tokenStream.match(TokenType.RightParenthesis)) {
 			this.tokenStream.eat();
 			return object;
 		}
 
 		const parseObjectMember = () => {
 			const nextToken = this.tokenStream.peek() as StringToken;
-			if (nextToken.type !== TokenType.String) {
-				this.reportUnexpectedToken(
-					nextToken,
-					"Object member should start with string."
-				);
-			}
-			this.tokenStream.eat();
+			this.tokenStream.eat(
+				TokenType.String,
+				"Object member should start with string."
+			);
+
 			this.tokenStream.eat(TokenType.Colon);
 			const value = this.parseValue();
 
@@ -37,7 +29,7 @@ export class JSONParser {
 		};
 
 		parseObjectMember();
-		while (this.tokenStream.peek().type === TokenType.Comma) {
+		while (this.tokenStream.match(TokenType.Comma)) {
 			this.tokenStream.eat();
 			parseObjectMember();
 		}
@@ -70,7 +62,7 @@ export class JSONParser {
 		this.tokenStream.eat(TokenType.LeftSquareBracket);
 		const result: JSONArray = [];
 
-		if (this.tokenStream.peek().type === TokenType.RightSquareBracket) {
+		if (this.tokenStream.match(TokenType.RightSquareBracket)) {
 			this.tokenStream.eat();
 			return result;
 		}
@@ -81,7 +73,7 @@ export class JSONParser {
 		};
 		consumeElement();
 
-		while (this.tokenStream.peek().type === TokenType.Comma) {
+		while (this.tokenStream.match(TokenType.Comma)) {
 			this.tokenStream.eat();
 
 			consumeElement();
@@ -114,10 +106,7 @@ export class JSONParser {
 	parse() {
 		const value = this.parseValue();
 
-		const token = this.tokenStream.peek();
-		if (token.type !== TokenType.EOF) {
-			this.reportUnexpectedToken(token, "Input should end here.");
-		}
+		this.tokenStream.expect(TokenType.EOF, "Input should end here.");
 
 		return value;
 	}
@@ -152,15 +141,9 @@ export class JSONParser {
 				break;
 
 			default:
-				this.reportUnexpectedToken(token);
+				this.tokenStream.throwUnexpectedTokenError();
 		}
 
 		return value;
-	}
-
-	reportUnexpectedToken(token: Token, message: string = "") {
-		throw new Error(
-			`Unexpected token ${token.type} at position ${this.tokenStream.characterIndex} in JSON. ${message}`
-		);
 	}
 }

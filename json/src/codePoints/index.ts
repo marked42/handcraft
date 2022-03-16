@@ -4,6 +4,10 @@ export * from "./surrogate";
 export * from "./decimal";
 export * from "./hexadecimal";
 
+export interface CodePointPredicate {
+	(cp: number): boolean;
+}
+
 export function isSameCodePoint(
 	codePoint: number,
 	str: string,

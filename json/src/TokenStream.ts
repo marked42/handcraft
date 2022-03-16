@@ -17,10 +17,6 @@ export class TokenStream {
 
 	constructor(private readonly characterStream: CharacterStream) {}
 
-	public get characterIndex() {
-		return this.characterStream.codePointIndex;
-	}
-
 	peek(): Token {
 		if (!this.token) {
 			this.token = this.doPeek();
@@ -30,25 +26,36 @@ export class TokenStream {
 	}
 
 	// TODO: narrow down token type
-	eat<T extends TokenType>(type?: T): Token {
-		const token = this.peek();
+	eat<T extends TokenType>(type?: T, message?: string): Token {
 		if (type !== void 0) {
-			this.expect(token, type);
+			this.expect(type, message);
 		}
 
+		const token = this.peek();
 		this.token = null;
 
 		return token;
 	}
 
-	private expect(token: Token, tokenType: TokenType) {
+	match(type: TokenType) {
+		return this.peek().type === type;
+	}
+
+	public expect(tokenType: TokenType, message?: string) {
+		const token = this.peek();
+		const fallbackMessage = `Expect ${tokenType} but get ${JSON.stringify(
+			token
+		)}`;
+
 		if (tokenType !== token.type) {
-			throw new Error(
-				`Unexpected token at position ${
-					this.characterStream.codePointIndex
-				} in JSON. Expect ${tokenType} but get ${JSON.stringify(token)}`
-			);
+			this.throwUnexpectedTokenError(message || fallbackMessage);
 		}
+	}
+
+	public throwUnexpectedTokenError(message?: string) {
+		throw new Error(
+			`Unexpected token at position ${this.characterStream.codePointIndex} in JSON. ${message}`
+		);
 	}
 
 	// @ts-ignore last statement throws so it's not needed to return anything, ts cannot infer this.
@@ -130,9 +137,10 @@ export class TokenStream {
 	private parseStringToken(): StringToken {
 		const codePoints: number[] = [];
 
-		if (!isSameCodePoint(this.characterStream.peek(), '"')) {
-			throw new Error("expect string to begin with double quote");
-		}
+		this.characterStream.expect(
+			'"',
+			"expect string to begin with double quote"
+		);
 		this.characterStream.advance(1);
 
 		while (true) {
@@ -144,7 +152,7 @@ export class TokenStream {
 				);
 			}
 
-			if (isSameCodePoint(char, "\n")) {
+			if (this.characterStream.match("\n")) {
 				this.reportInvalidToken(
 					"Character newline is not allowed in string."
 				);
@@ -156,11 +164,11 @@ export class TokenStream {
 				);
 			}
 
-			if (isSameCodePoint(char, "\\")) {
+			if (this.characterStream.match("\\")) {
 				this.characterStream.advance(1);
 
 				codePoints.push(this.parseEscapeSequence());
-			} else if (isSameCodePoint(char, '"')) {
+			} else if (this.characterStream.match('"')) {
 				break;
 			} else {
 				// normal character
@@ -179,7 +187,7 @@ export class TokenStream {
 	}
 
 	private parseEscapeSequence() {
-		if (isSameCodePoint(this.characterStream.peek(), "u")) {
+		if (this.characterStream.match("u")) {
 			this.characterStream.advance(1);
 
 			return this.parseUnicodeEscapeSequence();
@@ -203,7 +211,7 @@ export class TokenStream {
 		];
 
 		const escape = validSingleEscape.find(([c]) =>
-			isSameCodePoint(this.characterStream.peek(), c)
+			this.characterStream.match(c)
 		);
 
 		if (typeof escape?.[1] === "string") {
@@ -221,7 +229,7 @@ export class TokenStream {
 
 	private parseUnicodeEscapeSequence() {
 		const invalidUnicodeEscapeSequence = [0, 1, 2, 3].some(
-			(i) => !isHexDigit(this.characterStream.peek(i))
+			(i) => !this.characterStream.match(isHexDigit, i)
 		);
 		const invalidSequence = [0, 1, 2, 3]
 			.map((i) => this.characterStream.peek(i))
@@ -261,7 +269,7 @@ export class TokenStream {
 		let sign = 1;
 
 		// minus sign
-		if (isSameCodePoint(this.characterStream.peek(), "-")) {
+		if (this.characterStream.match("-")) {
 			this.characterStream.advance(1);
 			sign = -1;
 		}
@@ -272,15 +280,15 @@ export class TokenStream {
 	private parseNumberTokenIntegral() {
 		// integral
 		let integral = 0;
-		if (isSameCodePoint(this.characterStream.peek(), "0")) {
+		if (this.characterStream.match("0")) {
 			this.characterStream.advance(1);
-		} else if (isDecimalDigitOneToNine(this.characterStream.peek())) {
+		} else if (this.characterStream.match(isDecimalDigitOneToNine)) {
 			integral = getDecimalDigitMathematicalValue(
 				this.characterStream.peek()
 			);
 			this.characterStream.advance(1);
 
-			while (isDecimalDigit(this.characterStream.peek())) {
+			while (this.characterStream.match(isDecimalDigit)) {
 				integral =
 					integral * 10 +
 					getDecimalDigitMathematicalValue(
@@ -300,23 +308,21 @@ export class TokenStream {
 	private parseNumberTokenFraction() {
 		let fractionDigitCount = 0;
 		let fraction = 0;
-		if (isSameCodePoint(this.characterStream.peek(), ".")) {
+		if (this.characterStream.match(".")) {
 			this.characterStream.advance(1);
 
-			if (!isDecimalDigit(this.characterStream.peek())) {
+			if (!this.characterStream.match(isDecimalDigit)) {
 				this.reportInvalidToken(
 					`Number fraction part cannot contain character ${this.characterStream.peek()}, only 0 ~ 9 are allowed.`
 				);
 			}
 
-			while (isDecimalDigit(this.characterStream.peek())) {
+			while (this.characterStream.match(isDecimalDigit)) {
 				fractionDigitCount++;
-				fraction =
-					fraction +
-					Math.pow(10, -fractionDigitCount) *
-						getHexDigitMathematicalValue(
-							this.characterStream.peek()
-						);
+				const significance = Math.pow(10, -fractionDigitCount);
+				fraction +=
+					significance *
+					getHexDigitMathematicalValue(this.characterStream.peek());
 				this.characterStream.advance(1);
 			}
 		}
@@ -329,25 +335,24 @@ export class TokenStream {
 		let exponent = 0;
 		let sign = 1;
 		if (
-			isSameCodePoint(this.characterStream.peek(), "e") ||
-			isSameCodePoint(this.characterStream.peek(), "E")
+			this.characterStream.match("e") ||
+			this.characterStream.match("E")
 		) {
 			this.characterStream.advance(1);
-			if (isSameCodePoint(this.characterStream.peek(), "+")) {
-				sign = 1;
+			if (this.characterStream.match("+")) {
 				this.characterStream.advance(1);
-			} else if (isSameCodePoint(this.characterStream.peek(), "-")) {
+			} else if (this.characterStream.match("-")) {
 				sign = -1;
 				this.characterStream.advance(1);
 			}
 
-			if (!isDecimalDigit(this.characterStream.peek())) {
+			if (!this.characterStream.match(isDecimalDigit)) {
 				this.reportInvalidToken(
 					`Number exponent cannot contain character ${this.characterStream.peek()}.`
 				);
 			}
 
-			while (isDecimalDigit(this.characterStream.peek())) {
+			while (this.characterStream.match(isDecimalDigit)) {
 				exponent =
 					exponent * 10 +
 					getDecimalDigitMathematicalValue(
