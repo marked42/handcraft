@@ -21,7 +21,7 @@ export class JSONParser {
 			return object;
 		}
 
-		const consumeMember = () => {
+		const parseObjectMember = () => {
 			const nextToken = this.tokenStream.peek() as StringToken;
 			if (nextToken.type !== TokenType.String) {
 				this.reportUnexpectedToken(
@@ -36,10 +36,10 @@ export class JSONParser {
 			object[nextToken.value] = value;
 		};
 
-		consumeMember();
+		parseObjectMember();
 		while (this.tokenStream.peek().type === TokenType.Comma) {
 			this.tokenStream.eat();
-			consumeMember();
+			parseObjectMember();
 		}
 
 		this.tokenStream.eat(TokenType.RightParenthesis);
