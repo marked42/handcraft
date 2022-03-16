@@ -1,10 +1,10 @@
 import { TokenStream } from "./TokenStream";
 import {
-	TokenOld,
+	Token,
 	TokenType,
-	StringTokenOld,
-	BooleanTokenOld,
-	NumberTokenOld,
+	StringToken,
+	BooleanToken,
+	NumberToken,
 } from "./Token";
 
 export class JSONParser {
@@ -21,7 +21,7 @@ export class JSONParser {
 		}
 
 		const consumeMember = () => {
-			const nextToken = this.tokenStream.peek() as StringTokenOld;
+			const nextToken = this.tokenStream.peek() as StringToken;
 			if (nextToken.type !== TokenType.String) {
 				this.reportUnexpectedToken(
 					nextToken,
@@ -50,13 +50,13 @@ export class JSONParser {
 		const token = this.tokenStream.eat(TokenType.String);
 
 		// TODO: expectToken should narrow token to StringToken type
-		return (token as StringTokenOld).value;
+		return (token as StringToken).value;
 	}
 
 	parseBoolean() {
 		const token = this.tokenStream.eat(TokenType.Boolean);
 
-		return (token as BooleanTokenOld).value;
+		return (token as BooleanToken).value;
 	}
 
 	parseNull() {
@@ -94,7 +94,7 @@ export class JSONParser {
 
 	parseNumber() {
 		// TODO: type narrowing
-		const token = this.tokenStream.eat(TokenType.Number) as NumberTokenOld;
+		const token = this.tokenStream.eat(TokenType.Number) as NumberToken;
 
 		return token.value;
 	}
@@ -159,7 +159,7 @@ export class JSONParser {
 		return value;
 	}
 
-	reportUnexpectedToken(token: TokenOld, message: string = "") {
+	reportUnexpectedToken(token: Token, message: string = "") {
 		throw new Error(
 			`Unexpected token ${token.type} at position ${this.tokenStream.characterIndex} in JSON. ${message}`
 		);

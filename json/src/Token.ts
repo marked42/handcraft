@@ -1,4 +1,11 @@
-// TODO: use class instead of union types
+export type Token =
+	| NullToken
+	| EOFToken
+	| NumberToken
+	| StringToken
+	| PunctuatorToken
+	| BooleanToken;
+
 export enum TokenType {
 	Null,
 	Boolean,
@@ -13,33 +20,43 @@ export enum TokenType {
 	EOF,
 }
 
-export type StringTokenOld = {
+export type StringToken = {
 	type: TokenType.String;
 	value: string;
 };
 
-export type BooleanTokenOld = {
+export type BooleanToken = {
 	type: TokenType.Boolean;
 	value: boolean;
 };
 
-export type NullTokenOld = {
+export type NullToken = {
 	type: TokenType.Null;
 };
 
-export type NumberTokenOld = {
+export type NumberToken = {
 	type: TokenType.Number;
 	value: number;
 };
 
-export type EOFTokenOld = {
+export type EOFToken = {
 	type: TokenType.EOF;
 };
 
-export type TokenOld =
-	| NullTokenOld
-	| EOFTokenOld
-	| NumberTokenOld
+// TODO: pick expected token type
+// type PickToken<T extends TokenType> = TokenOld extends { type: T }
+// 	? TokenOld
+// 	: never;
+
+// TODO: type json
+// type JSONValue =
+// 	| string
+// 	| number
+// 	| null
+// 	| Array<JSONValue>
+// 	| Record<string, JSONValue>;
+
+export type PunctuatorToken =
 	| {
 			type: TokenType.LeftParenthesis;
 	  }
@@ -57,41 +74,4 @@ export type TokenOld =
 	  }
 	| {
 			type: TokenType.Comma;
-	  }
-	| StringTokenOld
-	| BooleanTokenOld;
-
-export abstract class Token {
-	constructor(protected readonly source: string) {}
-}
-
-// TODO: 如何设计Token的类关系
-export class KeywordToken extends Token {
-	constructor(source: string) {
-		super(source);
-	}
-}
-
-export class PunctuatorToken extends Token {
-	constructor(source: string) {
-		super(source);
-	}
-}
-
-export class NumberToken extends Token {
-	constructor(source: string) {
-		super(source);
-	}
-}
-
-export class StringToken extends Token {
-	constructor(source: string) {
-		super(source);
-	}
-}
-
-export class EOFToken extends Token {
-	constructor() {
-		super("");
-	}
-}
+	  };

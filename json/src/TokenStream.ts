@@ -1,4 +1,4 @@
-import { CharacterStream, StringCharacterStream } from "./CharacterStream";
+import { CharacterStream } from "./CharacterStream";
 import {
 	isControlCharacter,
 	isEOFCharacter,
@@ -10,11 +10,10 @@ import {
 	getDecimalDigitMathematicalValue,
 	getHexDigitMathematicalValue,
 } from "./codePoints";
-
-import { TokenOld, TokenType, StringTokenOld, NumberTokenOld } from "./Token";
+import { Token, TokenType, StringToken, NumberToken } from "./Token";
 
 export class TokenStream {
-	private token: TokenOld | null = null;
+	private token: Token | null = null;
 
 	constructor(private readonly characterStream: CharacterStream) {}
 
@@ -22,7 +21,7 @@ export class TokenStream {
 		return this.characterStream.codePointIndex;
 	}
 
-	peek(): TokenOld {
+	peek(): Token {
 		if (!this.token) {
 			this.token = this.doPeek();
 		}
@@ -31,7 +30,7 @@ export class TokenStream {
 	}
 
 	// TODO: narrow down token type
-	eat(type?: TokenType): TokenOld {
+	eat<T extends TokenType>(type?: T): Token {
 		const token = this.peek();
 		if (type !== void 0) {
 			this.expect(token, type);
@@ -42,7 +41,7 @@ export class TokenStream {
 		return token;
 	}
 
-	private expect(token: TokenOld, tokenType: TokenType) {
+	private expect(token: Token, tokenType: TokenType) {
 		if (tokenType !== token.type) {
 			throw new Error(
 				`Unexpected token at position ${
@@ -53,7 +52,7 @@ export class TokenStream {
 	}
 
 	// @ts-ignore last statement throws so it's not needed to return anything, ts cannot infer this.
-	private doPeek(): TokenOld {
+	private doPeek(): Token {
 		this.characterStream.skipWhitespaceCharacters();
 
 		const char = this.characterStream.peek();
@@ -64,33 +63,41 @@ export class TokenStream {
 				return {
 					type: TokenType.Null,
 				};
+
 			case "t".codePointAt(0):
 				this.characterStream.eat("true");
 				return {
 					type: TokenType.Boolean,
 					value: true,
 				};
+
 			case "f".codePointAt(0):
 				this.characterStream.eat("false");
 				return {
 					type: TokenType.Boolean,
 					value: false,
 				};
+
 			case "{".codePointAt(0):
 				this.characterStream.eat("{");
 				return { type: TokenType.LeftParenthesis };
+
 			case "}".codePointAt(0):
 				this.characterStream.eat("}");
 				return { type: TokenType.RightParenthesis };
+
 			case "[".codePointAt(0):
 				this.characterStream.eat("[");
 				return { type: TokenType.LeftSquareBracket };
+
 			case "]".codePointAt(0):
 				this.characterStream.eat("]");
 				return { type: TokenType.RightSquareBracket };
+
 			case ":".codePointAt(0):
 				this.characterStream.eat(":");
 				return { type: TokenType.Colon };
+
 			case ",".codePointAt(0):
 				this.characterStream.eat(",");
 				return { type: TokenType.Comma };
@@ -120,7 +127,7 @@ export class TokenStream {
 		);
 	}
 
-	private parseStringToken(): StringTokenOld {
+	private parseStringToken(): StringToken {
 		const codePoints: number[] = [];
 
 		if (!isSameCodePoint(this.characterStream.peek(), '"')) {
@@ -151,56 +158,8 @@ export class TokenStream {
 
 			if (isSameCodePoint(char, "\\")) {
 				this.characterStream.advance(1);
-				const validSingleEscape = [
-					['"', '"'],
-					["\\", "\\"],
-					["/", "/"],
-					["b", "\b"],
-					["f", "\f"],
-					["r", "\r"],
-					["n", "\n"],
-					["t", "\t"],
-				];
 
-				const escape = validSingleEscape.find(([c]) =>
-					isSameCodePoint(this.characterStream.peek(), c)
-				);
-
-				if (typeof escape?.[1] === "string") {
-					this.characterStream.advance(1);
-
-					codePoints.push(escape[1].codePointAt(0)!);
-				} else if (isSameCodePoint(this.characterStream.peek(), "u")) {
-					this.characterStream.advance(1);
-
-					const invalidUnicodeEscapeSequence = [0, 1, 2, 3].some(
-						(i) => !isHexDigit(this.characterStream.peek(i))
-					);
-					const invalidSequence = [0, 1, 2, 3]
-						.map((i) => this.characterStream.peek(i))
-						.join("");
-					if (invalidUnicodeEscapeSequence) {
-						this.reportInvalidToken(
-							`Invalid unicode escape sequence \\u${invalidSequence} is not allowed in string.`
-						);
-					}
-
-					const codePoint = getHexDigitsMathematicalValue(
-						this.characterStream.peek(0),
-						this.characterStream.peek(1),
-						this.characterStream.peek(2),
-						this.characterStream.peek(3)
-					);
-
-					this.characterStream.advance(4);
-					codePoints.push(codePoint);
-				} else {
-					this.reportInvalidToken(
-						`Invalid single character escape sequence \\${String.fromCodePoint(
-							this.characterStream.peek()
-						)} is not allowed in string.`
-					);
-				}
+				codePoints.push(this.parseEscapeSequence());
 			} else if (isSameCodePoint(char, '"')) {
 				break;
 			} else {
@@ -219,7 +178,86 @@ export class TokenStream {
 		};
 	}
 
-	private parseNumberToken(): NumberTokenOld {
+	private parseEscapeSequence() {
+		if (isSameCodePoint(this.characterStream.peek(), "u")) {
+			this.characterStream.advance(1);
+
+			return this.parseUnicodeEscapeSequence();
+		}
+
+		return this.parseSingleCharacterEscapeSequence();
+	}
+
+	// TODO: ts cannot infer return type correctly when last state always throw
+	// @ts-ignore
+	private parseSingleCharacterEscapeSequence(): number {
+		const validSingleEscape = [
+			['"', '"'],
+			["\\", "\\"],
+			["/", "/"],
+			["b", "\b"],
+			["f", "\f"],
+			["r", "\r"],
+			["n", "\n"],
+			["t", "\t"],
+		];
+
+		const escape = validSingleEscape.find(([c]) =>
+			isSameCodePoint(this.characterStream.peek(), c)
+		);
+
+		if (typeof escape?.[1] === "string") {
+			this.characterStream.advance(1);
+
+			return escape[1].codePointAt(0)!;
+		}
+
+		this.reportInvalidToken(
+			`Invalid single character escape sequence \\${String.fromCodePoint(
+				this.characterStream.peek()
+			)} is not allowed in string.`
+		);
+	}
+
+	private parseUnicodeEscapeSequence() {
+		const invalidUnicodeEscapeSequence = [0, 1, 2, 3].some(
+			(i) => !isHexDigit(this.characterStream.peek(i))
+		);
+		const invalidSequence = [0, 1, 2, 3]
+			.map((i) => this.characterStream.peek(i))
+			.join("");
+		if (invalidUnicodeEscapeSequence) {
+			this.reportInvalidToken(
+				`Invalid unicode escape sequence \\u${invalidSequence} is not allowed in string.`
+			);
+		}
+
+		const codePoint = getHexDigitsMathematicalValue(
+			this.characterStream.peek(0),
+			this.characterStream.peek(1),
+			this.characterStream.peek(2),
+			this.characterStream.peek(3)
+		);
+
+		this.characterStream.advance(4);
+
+		return codePoint;
+	}
+
+	private parseNumberToken(): NumberToken {
+		const sign = this.parseNumberTokenMinusSign();
+		const integral = this.parseNumberTokenIntegral();
+		const fraction = this.parseNumberTokenFraction();
+		const exponent = this.parseNumberTokenExponent();
+
+		const base = sign * (integral + fraction);
+		return {
+			type: TokenType.Number,
+			value: base * exponent,
+		};
+	}
+
+	private parseNumberTokenMinusSign() {
 		let sign = 1;
 
 		// minus sign
@@ -228,6 +266,10 @@ export class TokenStream {
 			sign = -1;
 		}
 
+		return sign;
+	}
+
+	private parseNumberTokenIntegral() {
 		// integral
 		let integral = 0;
 		if (isSameCodePoint(this.characterStream.peek(), "0")) {
@@ -252,7 +294,10 @@ export class TokenStream {
 			);
 		}
 
-		// fraction
+		return integral;
+	}
+
+	private parseNumberTokenFraction() {
 		let fractionDigitCount = 0;
 		let fraction = 0;
 		if (isSameCodePoint(this.characterStream.peek(), ".")) {
@@ -276,19 +321,23 @@ export class TokenStream {
 			}
 		}
 
+		return fraction;
+	}
+
+	private parseNumberTokenExponent() {
 		// exponent
 		let exponent = 0;
-		let exponentSign = 1;
+		let sign = 1;
 		if (
 			isSameCodePoint(this.characterStream.peek(), "e") ||
 			isSameCodePoint(this.characterStream.peek(), "E")
 		) {
 			this.characterStream.advance(1);
 			if (isSameCodePoint(this.characterStream.peek(), "+")) {
-				exponentSign = 1;
+				sign = 1;
 				this.characterStream.advance(1);
 			} else if (isSameCodePoint(this.characterStream.peek(), "-")) {
-				exponentSign = -1;
+				sign = -1;
 				this.characterStream.advance(1);
 			}
 
@@ -308,10 +357,6 @@ export class TokenStream {
 			}
 		}
 
-		const base = sign * (integral + fraction);
-		return {
-			type: TokenType.Number,
-			value: base * Math.pow(10, exponentSign * exponent),
-		};
+		return Math.pow(10, exponent * sign);
 	}
 }
