@@ -1,5 +1,5 @@
 import { StringCharacterStream } from "./CharacterStream";
-import { JSONValue } from "./JSON";
+import { JSONValue } from "./JSONValue";
 import { JSONParser } from "./JSONParser";
 import { JSONPrinter } from "./JSONPrinter";
 import { TokenStream } from "./TokenStream";

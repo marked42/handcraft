@@ -1,4 +1,4 @@
-import { JSONValue } from "./JSON";
+import { JSONValue } from "./JSONValue";
 
 export class JSONPrinter {
 	constructor() {}

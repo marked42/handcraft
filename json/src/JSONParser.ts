@@ -6,7 +6,7 @@ import {
 	BooleanToken,
 	NumberToken,
 } from "./Token";
-import { JSONArray, JSONValue } from "./JSON";
+import { JSONArray, JSONValue } from "./JSONValue";
 
 export class JSONParser {
 	constructor(private readonly tokenStream: TokenStream) {}

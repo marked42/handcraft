@@ -68,3 +68,6 @@ while (first(a)) {
 错误输入可以提前抛出异常
 
 ecma262 的 11.8.4
+
+https://github.com/v8/v8/blob/6.4.286/src/json-parser.cc
+https://github.com/v8/v8/blob/6.4.286/src/json-stringifier.cc

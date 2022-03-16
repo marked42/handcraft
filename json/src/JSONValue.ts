@@ -16,11 +16,3 @@ export type JSONNumber = number;
 export type JSONBoolean = boolean;
 
 export type JSONNull = null;
-
-// type JSONValue =
-// 	| string
-// 	| number
-// 	| boolean
-// 	| null
-// 	| Array<JSONValue>
-// 	| Record<string, JSONValue>;
