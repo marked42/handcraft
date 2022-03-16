@@ -11,23 +11,14 @@ import {
 	getHexDigitMathematicalValue,
 } from "./codePoints";
 
-import {
-	TokenOld,
-	TokenType,
-	StringTokenOld,
-	NumberTokenOld,
-	KeywordToken,
-} from "./Token";
+import { TokenOld, TokenType, StringTokenOld, NumberTokenOld } from "./Token";
 
 export class TokenStream {
 	private token: TokenOld | null = null;
-	private readonly characterStream: CharacterStream;
 
-	constructor(public readonly text: string) {
-		this.characterStream = new StringCharacterStream(text);
-	}
+	constructor(private readonly characterStream: CharacterStream) {}
 
-	public get index() {
+	public get characterIndex() {
 		return this.characterStream.codePointIndex;
 	}
 
@@ -51,7 +42,18 @@ export class TokenStream {
 		return token;
 	}
 
-	doPeek(): TokenOld {
+	private expect(token: TokenOld, tokenType: TokenType) {
+		if (tokenType !== token.type) {
+			throw new Error(
+				`Unexpected token at position ${
+					this.characterStream.codePointIndex
+				} in JSON. Expect ${tokenType} but get ${JSON.stringify(token)}`
+			);
+		}
+	}
+
+	// @ts-ignore last statement throws so it's not needed to return anything, ts cannot infer this.
+	private doPeek(): TokenOld {
 		this.characterStream.skipWhitespaceCharacters();
 
 		const char = this.characterStream.peek();
@@ -109,16 +111,16 @@ export class TokenStream {
 			return { type: TokenType.EOF };
 		}
 
-		throw new Error(`unexpected input ${this.text}`);
+		this.reportInvalidToken();
 	}
 
-	reportInvalidToken(message: string) {
+	private reportInvalidToken(message: string = "") {
 		throw new Error(
 			`Invalid token character at position ${this.characterStream.codePointIndex} in JSON. ${message}`
 		);
 	}
 
-	parseStringToken(): StringTokenOld {
+	private parseStringToken(): StringTokenOld {
 		const codePoints: number[] = [];
 
 		if (!isSameCodePoint(this.characterStream.peek(), '"')) {
@@ -217,7 +219,7 @@ export class TokenStream {
 		};
 	}
 
-	parseNumberToken(): NumberTokenOld {
+	private parseNumberToken(): NumberTokenOld {
 		let sign = 1;
 
 		// minus sign
@@ -311,15 +313,5 @@ export class TokenStream {
 			type: TokenType.Number,
 			value: base * Math.pow(10, exponentSign * exponent),
 		};
-	}
-
-	private expect(token: TokenOld, tokenType: TokenType) {
-		if (tokenType !== token.type) {
-			throw new Error(
-				`Unexpected token at position ${
-					this.characterStream.codePointIndex
-				} in JSON. Expect ${tokenType} but get ${JSON.stringify(token)}`
-			);
-		}
 	}
 }

@@ -1,5 +1,6 @@
 import { TokenStream } from "./TokenStream";
 import {
+	TokenOld,
 	TokenType,
 	StringTokenOld,
 	BooleanTokenOld,
@@ -7,11 +8,7 @@ import {
 } from "./Token";
 
 export class JSONParser {
-	readonly tokenStream: TokenStream;
-
-	constructor(private readonly text: string) {
-		this.tokenStream = new TokenStream(text);
-	}
+	constructor(private readonly tokenStream: TokenStream) {}
 
 	parseObject() {
 		const object: Record<string, any> = {};
@@ -24,10 +21,11 @@ export class JSONParser {
 		}
 
 		const consumeMember = () => {
-			const nextToken = this.tokenStream.peek();
+			const nextToken = this.tokenStream.peek() as StringTokenOld;
 			if (nextToken.type !== TokenType.String) {
-				throw new Error(
-					`unexpected token ${nextToken.type} at index ${this.tokenStream.index} from input ${this.text}, object member should start with string.`
+				this.reportUnexpectedToken(
+					nextToken,
+					"Object member should start with string."
 				);
 			}
 			this.tokenStream.eat();
@@ -116,10 +114,9 @@ export class JSONParser {
 	parse() {
 		const value = this.parseValue();
 
-		if (this.tokenStream.peek().type !== TokenType.EOF) {
-			throw new Error(
-				`unexpected token at index ${this.tokenStream.index}, input should end here`
-			);
+		const token = this.tokenStream.peek();
+		if (token.type !== TokenType.EOF) {
+			this.reportUnexpectedToken(token, "Input should end here.");
 		}
 
 		return value;
@@ -156,11 +153,15 @@ export class JSONParser {
 				break;
 
 			default:
-				throw new Error(
-					`unexpected input ${this.text} at index ${this.tokenStream.index}`
-				);
+				this.reportUnexpectedToken(token);
 		}
 
 		return value;
+	}
+
+	reportUnexpectedToken(token: TokenOld, message: string = "") {
+		throw new Error(
+			`Unexpected token ${token.type} at position ${this.tokenStream.characterIndex} in JSON. ${message}`
+		);
 	}
 }
