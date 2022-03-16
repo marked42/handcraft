@@ -16,66 +16,64 @@ export class JSONParser {
 	parseObject() {
 		const object: Record<string, any> = {};
 
-		this.tokenStream.consumeToken(TokenType.LeftParenthesis);
+		this.tokenStream.eat(TokenType.LeftParenthesis);
 
-		if (this.tokenStream.peekToken().type === TokenType.RightParenthesis) {
-			this.tokenStream.consumeToken();
+		if (this.tokenStream.peek().type === TokenType.RightParenthesis) {
+			this.tokenStream.eat();
 			return object;
 		}
 
 		const consumeMember = () => {
-			const nextToken = this.tokenStream.peekToken();
+			const nextToken = this.tokenStream.peek();
 			if (nextToken.type !== TokenType.String) {
 				throw new Error(
 					`unexpected token ${nextToken.type} at index ${this.tokenStream.index} from input ${this.text}, object member should start with string.`
 				);
 			}
-			this.tokenStream.consumeToken();
-			this.tokenStream.consumeToken(TokenType.Colon);
+			this.tokenStream.eat();
+			this.tokenStream.eat(TokenType.Colon);
 			const value = this.parseValue();
 
 			object[nextToken.value] = value;
 		};
 
 		consumeMember();
-		while (this.tokenStream.peekToken().type === TokenType.Comma) {
-			this.tokenStream.consumeToken();
+		while (this.tokenStream.peek().type === TokenType.Comma) {
+			this.tokenStream.eat();
 			consumeMember();
 		}
 
-		this.tokenStream.consumeToken(TokenType.RightParenthesis);
+		this.tokenStream.eat(TokenType.RightParenthesis);
 
 		return object;
 	}
 
 	parseString() {
-		const token = this.tokenStream.consumeToken(TokenType.String);
+		const token = this.tokenStream.eat(TokenType.String);
 
 		// TODO: expectToken should narrow token to StringToken type
 		return (token as StringTokenOld).value;
 	}
 
 	parseBoolean() {
-		const token = this.tokenStream.consumeToken(TokenType.Boolean);
+		const token = this.tokenStream.eat(TokenType.Boolean);
 
 		return (token as BooleanTokenOld).value;
 	}
 
 	parseNull() {
-		this.tokenStream.consumeToken(TokenType.Null);
+		this.tokenStream.eat(TokenType.Null);
 
 		return null;
 	}
 
 	parseArray() {
-		this.tokenStream.consumeToken(TokenType.LeftSquareBracket);
+		this.tokenStream.eat(TokenType.LeftSquareBracket);
 		// TODO: json value typing
 		const result: any[] = [];
 
-		if (
-			this.tokenStream.peekToken().type === TokenType.RightSquareBracket
-		) {
-			this.tokenStream.consumeToken();
+		if (this.tokenStream.peek().type === TokenType.RightSquareBracket) {
+			this.tokenStream.eat();
 			return result;
 		}
 
@@ -85,22 +83,20 @@ export class JSONParser {
 		};
 		consumeElement();
 
-		while (this.tokenStream.peekToken().type === TokenType.Comma) {
-			this.tokenStream.consumeToken();
+		while (this.tokenStream.peek().type === TokenType.Comma) {
+			this.tokenStream.eat();
 
 			consumeElement();
 		}
 
-		this.tokenStream.consumeToken(TokenType.RightSquareBracket);
+		this.tokenStream.eat(TokenType.RightSquareBracket);
 
 		return result;
 	}
 
 	parseNumber() {
 		// TODO: type narrowing
-		const token = this.tokenStream.consumeToken(
-			TokenType.Number
-		) as NumberTokenOld;
+		const token = this.tokenStream.eat(TokenType.Number) as NumberTokenOld;
 
 		return token.value;
 	}
@@ -120,7 +116,7 @@ export class JSONParser {
 	parse() {
 		const value = this.parseValue();
 
-		if (this.tokenStream.peekToken().type !== TokenType.EOF) {
+		if (this.tokenStream.peek().type !== TokenType.EOF) {
 			throw new Error(
 				`unexpected token at index ${this.tokenStream.index}, input should end here`
 			);
@@ -130,7 +126,7 @@ export class JSONParser {
 	}
 
 	parseValue() {
-		const token = this.tokenStream.peekToken();
+		const token = this.tokenStream.peek();
 
 		// TODO: typing JSON
 		let value: any;
