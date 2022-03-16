@@ -48,14 +48,6 @@ export type EOFToken = {
 // 	? TokenOld
 // 	: never;
 
-// TODO: type json
-// type JSONValue =
-// 	| string
-// 	| number
-// 	| null
-// 	| Array<JSONValue>
-// 	| Record<string, JSONValue>;
-
 export type PunctuatorToken =
 	| {
 			type: TokenType.LeftParenthesis;

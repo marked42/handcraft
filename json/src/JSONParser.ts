@@ -6,6 +6,7 @@ import {
 	BooleanToken,
 	NumberToken,
 } from "./Token";
+import { JSONArray, JSONValue } from "./JSON";
 
 export class JSONParser {
 	constructor(private readonly tokenStream: TokenStream) {}
@@ -67,8 +68,7 @@ export class JSONParser {
 
 	parseArray() {
 		this.tokenStream.eat(TokenType.LeftSquareBracket);
-		// TODO: json value typing
-		const result: any[] = [];
+		const result: JSONArray = [];
 
 		if (this.tokenStream.peek().type === TokenType.RightSquareBracket) {
 			this.tokenStream.eat();
@@ -122,10 +122,9 @@ export class JSONParser {
 		return value;
 	}
 
-	parseValue() {
+	parseValue(): JSONValue {
 		const token = this.tokenStream.peek();
 
-		// TODO: typing JSON
 		let value: any;
 		switch (token.type) {
 			case TokenType.Boolean:
