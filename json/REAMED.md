@@ -4,6 +4,8 @@
 1. [如何编写一个 JSON 解析器](https://www.liaoxuefeng.com/article/994977272296736)
 1. [写一个 JSON、XML 或 YAML 的 Parser 的思路是什么？](https://www.zhihu.com/question/24640264)
 1. [从一个 JSON.parse 错误深入研究 JavaScript 的转义字符](https://zhuanlan.zhihu.com/p/31030352)
+1. [V8 json-parser](https://github.com/v8/v8/blob/6.4.286/src/json-parser.cc)
+1. [V8 json-stringifier](https://github.com/v8/v8/blob/6.4.286/src/json-stringifier.cc)
 
 支持的值类型
 
@@ -71,3 +73,29 @@ ecma262 的 11.8.4
 
 https://github.com/v8/v8/blob/6.4.286/src/json-parser.cc
 https://github.com/v8/v8/blob/6.4.286/src/json-stringifier.cc
+
+## 类型推断问题
+
+```ts
+// number
+function getNumber(val: number) {
+	if (val === 1) {
+		return 1;
+	}
+
+	throw new Error("invalid");
+}
+
+const error = () => {
+	throw new Error("invalid");
+};
+
+// number | undefined
+function getNumber1(val: number) {
+	if (val === 1) {
+		return 1;
+	}
+
+	error();
+}
+```
