@@ -1,8 +1,6 @@
 import { JSONValue } from "./JSONValue";
 
 export class JSONPrinter {
-	constructor() {}
-
 	print(value: JSONValue): string {
 		if (value === null) {
 			return "null";
@@ -24,6 +22,6 @@ export class JSONPrinter {
 			return `{${pairs}}`;
 		}
 
-		throw new Error(`invalid json value ${value}`);
+		throw new Error(`invalid json value`);
 	}
 }
