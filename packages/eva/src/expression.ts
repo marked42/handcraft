@@ -12,4 +12,4 @@ export type AtomicExpressionValue = string | number | boolean | null;
 
 export type ExpressionValue =
 	| AtomicExpressionValue
-	| ((...args: ExpressionValue[]) => AtomicExpressionValue);
+	| ((...args: ExpressionValue[]) => ExpressionValue);

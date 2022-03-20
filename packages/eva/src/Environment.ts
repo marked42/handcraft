@@ -1,4 +1,4 @@
-import { AtomicExpressionValue, ExpressionValue } from "./expression";
+import { ExpressionValue } from "./expression";
 
 interface EnvironmentRecord {
 	[x: string]: ExpressionValue;
@@ -69,9 +69,103 @@ export class Environment {
 	static createGlobalEnvironment() {
 		return new Environment({
 			PI: 3.1415926,
-			print(...msg: ExpressionValue[]) {
+			print(...msg: ExpressionValue[]): ExpressionValue {
 				console.log(...msg);
 				return null;
+			},
+			"+"(op1: ExpressionValue, op2: ExpressionValue): ExpressionValue {
+				if (typeof op1 === "number" && typeof op2 === "number") {
+					return op1 + op2;
+				}
+
+				throw new Error(
+					`plus unsupported for operators ${JSON.stringify(
+						op1
+					)} and ${JSON.stringify(op2)}`
+				);
+			},
+			"-"(op1: ExpressionValue, op2: ExpressionValue): ExpressionValue {
+				if (typeof op1 === "number" && typeof op2 === "number") {
+					return op1 - op2;
+				}
+
+				throw new Error(
+					`plus unsupported for operators ${JSON.stringify(
+						op1
+					)} and ${JSON.stringify(op2)}`
+				);
+			},
+			"*"(op1: ExpressionValue, op2: ExpressionValue): ExpressionValue {
+				if (typeof op1 === "number" && typeof op2 === "number") {
+					return op1 * op2;
+				}
+
+				throw new Error(
+					`plus unsupported for operators ${JSON.stringify(
+						op1
+					)} and ${JSON.stringify(op2)}`
+				);
+			},
+			"/"(op1: ExpressionValue, op2: ExpressionValue): ExpressionValue {
+				if (typeof op1 === "number" && typeof op2 === "number") {
+					return op1 / op2;
+				}
+
+				throw new Error(
+					`plus unsupported for operators ${JSON.stringify(
+						op1
+					)} and ${JSON.stringify(op2)}`
+				);
+			},
+			"=="(op1: ExpressionValue, op2: ExpressionValue): ExpressionValue {
+				return op1 === op2;
+			},
+			"!="(op1: ExpressionValue, op2: ExpressionValue): ExpressionValue {
+				return op1 !== op2;
+			},
+			">"(op1: ExpressionValue, op2: ExpressionValue): ExpressionValue {
+				if (typeof op1 === "number" && typeof op2 === "number") {
+					return op1 > op2;
+				}
+
+				throw new Error(
+					`plus unsupported for operators ${JSON.stringify(
+						op1
+					)} and ${JSON.stringify(op2)}`
+				);
+			},
+			">="(op1: ExpressionValue, op2: ExpressionValue): ExpressionValue {
+				if (typeof op1 === "number" && typeof op2 === "number") {
+					return op1 >= op2;
+				}
+
+				throw new Error(
+					`plus unsupported for operators ${JSON.stringify(
+						op1
+					)} and ${JSON.stringify(op2)}`
+				);
+			},
+			"<"(op1: ExpressionValue, op2: ExpressionValue): ExpressionValue {
+				if (typeof op1 === "number" && typeof op2 === "number") {
+					return op1 < op2;
+				}
+
+				throw new Error(
+					`plus unsupported for operators ${JSON.stringify(
+						op1
+					)} and ${JSON.stringify(op2)}`
+				);
+			},
+			"<="(op1: ExpressionValue, op2: ExpressionValue): ExpressionValue {
+				if (typeof op1 === "number" && typeof op2 === "number") {
+					return op1 <= op2;
+				}
+
+				throw new Error(
+					`plus unsupported for operators ${JSON.stringify(
+						op1
+					)} and ${JSON.stringify(op2)}`
+				);
 			},
 		});
 	}
