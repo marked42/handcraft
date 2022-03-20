@@ -1,14 +1,18 @@
 import { defaultGlobalEnvironment } from "./Environment";
-import { Expression } from "./expression";
+import { BooleanExpression, Expression, ExpressionValue } from "./expression";
 
 export class Eva {
 	constructor(
 		private readonly globalEnvironment = defaultGlobalEnvironment
 	) {}
 
-	eval(expr: Expression): string | number {
+	eval(expr: Expression): ExpressionValue {
 		if (this.isNumberExpression(expr)) {
 			return this.evalNumber(expr);
+		}
+
+		if (this.isBooleanExpression(expr)) {
+			return this.evalBoolean(expr);
 		}
 
 		if (this.isStringExpression(expr)) {
@@ -42,6 +46,14 @@ export class Eva {
 		}
 
 		throw "Unimplemented";
+	}
+
+	isBooleanExpression(expr: Expression): expr is boolean {
+		return typeof expr === "boolean";
+	}
+
+	evalBoolean(expr: BooleanExpression) {
+		return expr;
 	}
 
 	evalVariable(name: string, env = this.globalEnvironment) {

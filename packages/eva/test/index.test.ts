@@ -9,6 +9,11 @@ describe("should evaluate expressions", () => {
 		expect(interpret('"hello"')).toEqual("hello");
 	});
 
+	it("boolean", () => {
+		expect(interpret(true)).toEqual(true);
+		expect(interpret(false)).toEqual(false);
+	});
+
 	it("arithmetic", () => {
 		expect(interpret(["+", 1, 2])).toEqual(3);
 		expect(interpret(["+", ["+", 1, 2], 3])).toEqual(6);
@@ -27,5 +32,6 @@ describe("variable", () => {
 
 	it("declares a variable", () => {
 		expect(interpret(["var", "a", 1])).toEqual(1);
+		expect(interpret(["var", "hasMore", false])).toEqual(false);
 	});
 });
