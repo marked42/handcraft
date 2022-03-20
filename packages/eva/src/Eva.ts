@@ -30,6 +30,14 @@ export class Eva {
 					this.extractBinaryArithmeticExpression(expr);
 
 				return left * right;
+			} else if (expr[0] === "var") {
+				const [, name, initializer] = expr;
+
+				this.assertsVariableName(name);
+				const initialValue = this.eval(initializer);
+				this.globalEnvironment.define(name, initialValue);
+
+				return initialValue;
 			}
 		}
 
@@ -40,12 +48,18 @@ export class Eva {
 		return env.get(name);
 	}
 
+	assertsVariableName(name: Expression): asserts name is string {
+		if (!this.isVariableName(name)) {
+			throw new Error(`${JSON.stringify(name)}不是变量名称`);
+		}
+	}
+
 	isVariableName(name: Expression): name is string {
 		if (typeof name !== "string") {
 			return false;
 		}
 
-		const namePattern = /[a-zA-Z][a-zA-Z0-9]*/;
+		const namePattern = /^[a-zA-Z][a-zA-Z0-9]*$/;
 		return namePattern.test(name);
 	}
 

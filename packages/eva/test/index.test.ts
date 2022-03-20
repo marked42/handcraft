@@ -14,8 +14,14 @@ describe("should evaluate expressions", () => {
 		expect(interpret(["+", ["+", 1, 2], 3])).toEqual(6);
 		expect(interpret(["*", ["+", 1, 2], 3])).toEqual(9);
 	});
+});
 
-	it("variable", () => {
+describe("variable", () => {
+	it("read global variable", () => {
 		expect(interpret("PI")).toMatchInlineSnapshot(`3.1415926`);
+	});
+
+	it("declares a variable", () => {
+		expect(interpret(["var", "a", 1])).toEqual(1);
 	});
 });
