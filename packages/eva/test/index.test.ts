@@ -21,6 +21,10 @@ describe("variable", () => {
 		expect(interpret("PI")).toMatchInlineSnapshot(`3.1415926`);
 	});
 
+	it("throws when reading non-exist variable", () => {
+		expect(() => interpret("Math")).toThrowError();
+	});
+
 	it("declares a variable", () => {
 		expect(interpret(["var", "a", 1])).toEqual(1);
 	});
