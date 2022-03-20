@@ -43,11 +43,6 @@ export type EOFToken = {
 	type: TokenType.EOF;
 };
 
-// TODO: pick expected token type
-// type PickToken<T extends TokenType> = TokenOld extends { type: T }
-// 	? TokenOld
-// 	: never;
-
 export type PunctuatorToken =
 	| {
 			type: TokenType.LeftParenthesis;

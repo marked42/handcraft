@@ -54,11 +54,12 @@ export class TokenStream {
 
 	public throwUnexpectedTokenError(message?: string) {
 		throw new Error(
-			`Unexpected token at position ${this.characterStream.codePointIndex} in JSON. ${message}`
+			`Unexpected token at position ${
+				this.characterStream.codePointIndex
+			} in JSON. ${message || ""}`
 		);
 	}
 
-	// @ts-ignore last statement throws so it's not needed to return anything, ts cannot infer this.
 	private doPeek(): Token {
 		this.characterStream.skipWhitespaceCharacters();
 
@@ -128,7 +129,7 @@ export class TokenStream {
 		this.reportInvalidToken();
 	}
 
-	private reportInvalidToken(message: string = "") {
+	private reportInvalidToken(message = ""): never {
 		throw new Error(
 			`Invalid token character at position ${this.characterStream.codePointIndex} in JSON. ${message}`
 		);
@@ -143,7 +144,7 @@ export class TokenStream {
 		);
 		this.characterStream.advance(1);
 
-		while (true) {
+		for (;;) {
 			const char = this.characterStream.peek();
 
 			if (isControlCharacter(char)) {
@@ -196,8 +197,6 @@ export class TokenStream {
 		return this.parseSingleCharacterEscapeSequence();
 	}
 
-	// TODO: ts cannot infer return type correctly when last state always throw
-	// @ts-ignore
 	private parseSingleCharacterEscapeSequence(): number {
 		const validSingleEscape = [
 			['"', '"'],
@@ -214,10 +213,11 @@ export class TokenStream {
 			this.characterStream.match(c)
 		);
 
-		if (typeof escape?.[1] === "string") {
+		const cp = escape?.[1]?.codePointAt(0);
+		if (typeof cp === "number") {
 			this.characterStream.advance(1);
 
-			return escape[1].codePointAt(0)!;
+			return cp;
 		}
 
 		this.reportInvalidToken(

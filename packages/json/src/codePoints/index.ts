@@ -8,11 +8,7 @@ export interface CodePointPredicate {
 	(cp: number): boolean;
 }
 
-export function isSameCodePoint(
-	codePoint: number,
-	str: string,
-	index: number = 0
-) {
+export function isSameCodePoint(codePoint: number, str: string, index = 0) {
 	const char = str.codePointAt(index);
 	if (char === void 0) {
 		throw new Error(`string ${str} has no code point at index ${index}`);

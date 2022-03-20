@@ -1,18 +1,19 @@
+import * as charcodes from "charcodes";
 import { createRangeCheckUtil } from "./base";
 
 export const isDecimalDigit = createRangeCheckUtil({
-	min: "0".codePointAt(0)!,
-	max: "9".codePointAt(0)!,
+	min: charcodes.digit0,
+	max: charcodes.digit9,
 });
 
 export const isDecimalDigitOneToNine = createRangeCheckUtil({
-	min: "1".codePointAt(0)!,
-	max: "9".codePointAt(0)!,
+	min: charcodes.digit1,
+	max: charcodes.digit9,
 });
 
 export function getDecimalDigitMathematicalValue(codePoint: number) {
 	if (isDecimalDigit(codePoint)) {
-		return codePoint - "0".codePointAt(0)!;
+		return codePoint - charcodes.digit0;
 	}
 
 	throw new Error(

@@ -1,3 +1,4 @@
+import * as charcodes from "charcodes";
 import { CodePointRange } from "./CodePointRange";
 
 export const createRangeCheckUtil =
@@ -5,13 +6,13 @@ export const createRangeCheckUtil =
 		CodePointRange.of(options).contains(codePoint);
 
 export const isUpperCaseAToF = createRangeCheckUtil({
-	min: "A".codePointAt(0)!,
-	max: "F".codePointAt(0)!,
+	min: charcodes.uppercaseA,
+	max: charcodes.uppercaseF,
 });
 
 export const isLowerCaseAToF = createRangeCheckUtil({
-	min: "a".codePointAt(0)!,
-	max: "f".codePointAt(0)!,
+	min: charcodes.lowercaseA,
+	max: charcodes.lowercaseF,
 });
 
 export const isControlCharacter = createRangeCheckUtil({

@@ -1,3 +1,4 @@
+import * as charcodes from "charcodes";
 import { isLowerCaseAToF, isUpperCaseAToF } from "./base";
 import { getDecimalDigitMathematicalValue, isDecimalDigit } from "./decimal";
 
@@ -14,12 +15,14 @@ export function getHexDigitMathematicalValue(codePoint: number) {
 		return getDecimalDigitMathematicalValue(codePoint);
 	}
 
+	const DECIMAL_RADIX = 10;
+
 	if (isLowerCaseAToF(codePoint)) {
-		return codePoint - "a".codePointAt(0)! + 10;
+		return codePoint - charcodes.lowercaseA + DECIMAL_RADIX;
 	}
 
 	if (isUpperCaseAToF(codePoint)) {
-		return codePoint - "A".codePointAt(0)! + 10;
+		return codePoint - charcodes.uppercaseA + DECIMAL_RADIX;
 	}
 
 	throw new Error(

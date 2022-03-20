@@ -76,6 +76,9 @@ https://github.com/v8/v8/blob/6.4.286/src/json-stringifier.cc
 
 ## 类型推断问题
 
+1. use never to specify a function throws error
+1. assert function
+
 ```ts
 // number
 function getNumber(val: number) {
