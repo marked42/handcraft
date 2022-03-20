@@ -1,10 +1,16 @@
-import { Environment } from "./Environment";
+import { Environment, EnvironmentRecord } from "./Environment";
 import {
 	BooleanExpression,
 	CompoundExpression,
 	Expression,
 	ExpressionValue,
+	StringExpression,
 } from "./expression";
+import {
+	CallableObject,
+	createCallableObject,
+	isCallableObject,
+} from "./callable";
 
 export class Eva {
 	constructor(
@@ -31,7 +37,7 @@ export class Eva {
 			return this.evalString(expr);
 		}
 
-		if (this.isVariableName(expr)) {
+		if (this.isSymbolName(expr)) {
 			return this.evalVariable(expr, environment);
 		}
 
@@ -65,16 +71,35 @@ export class Eva {
 				return this.evalIfExpression(expr, environment);
 			} else if (expr[0] === "while") {
 				return this.evalWhileExpression(expr, environment);
+			} else if (expr[0] === "def") {
+				const [, fnName, parameters, body] = expr;
+
+				this.assertsSymbol(fnName);
+				this.assertsSymbolArray(parameters);
+
+				const fn = createCallableObject({
+					fnName,
+					parameters,
+					body,
+					environment,
+				});
+
+				environment.define(fnName, fn);
+				return fn;
 			} else {
 				const [symbol, ...parameters] = expr;
 				const fn = this.evalInEnvironment(symbol, environment);
 
-				if (typeof fn === "function") {
-					const args = parameters.map((p) =>
-						this.evalInEnvironment(p, environment)
-					);
+				const actualParameters = parameters.map((p) =>
+					this.evalInEnvironment(p, environment)
+				);
 
-					return fn(...args);
+				if (isCallableObject(fn)) {
+					return this.evalCallableObject(fn, actualParameters);
+				}
+
+				if (typeof fn === "function") {
+					return fn(...actualParameters);
 				}
 			}
 		}
@@ -82,12 +107,29 @@ export class Eva {
 		throw "Unimplemented";
 	}
 
+	evalCallableObject(
+		fn: CallableObject,
+		actualParameters: ExpressionValue[]
+	) {
+		const { parameters, body, environment } = fn;
+
+		const activationRecord = parameters.reduce((acc, name, i) => {
+			acc[name] = actualParameters[i];
+
+			return acc;
+		}, {} as EnvironmentRecord);
+
+		const fnEnv = new Environment(activationRecord, environment);
+
+		return this.evalInEnvironment(body, fnEnv);
+	}
+
 	isExpression(expr: Expression) {
 		const predicates = [
 			this.isStringExpression,
 			this.isBooleanExpression,
 			this.isStringExpression,
-			this.isVariableName,
+			this.isSymbolName,
 			Array.isArray,
 		];
 		return predicates.some((p) => p(expr));
@@ -175,12 +217,15 @@ export class Eva {
 	}
 
 	assertsVariableName(name: Expression): asserts name is string {
-		if (!this.isVariableName(name)) {
+		if (!this.isSymbolName(name)) {
 			throw new Error(`${JSON.stringify(name)}不是变量名称`);
 		}
 	}
 
-	isVariableName(this: void, name: Expression): name is string {
+	/**
+	 * symbol includes comparison and arithmetic operation characters < <= ...
+	 */
+	isSymbolName(this: void, name: Expression): name is string {
 		if (typeof name !== "string") {
 			return false;
 		}
@@ -204,6 +249,20 @@ export class Eva {
 	assertStringExpression(expr: Expression): asserts expr is string {
 		if (!this.isStringExpression(expr)) {
 			throw new Error(`表达式${JSON.stringify(expr)}的参数必须是字符串`);
+		}
+	}
+
+	assertsSymbol(expr: Expression): asserts expr is StringExpression {
+		if (!this.isSymbolName(expr)) {
+			throw new Error(`${JSON.stringify(expr)}不是合法的符号`);
+		}
+	}
+
+	assertsSymbolArray(expr: Expression): asserts expr is StringExpression[] {
+		if (!Array.isArray(expr) || expr.some((e) => !this.isSymbolName(e))) {
+			throw new Error(
+				`函数参数形式${JSON.stringify(expr)}不合法，必须是符号数组`
+			);
 		}
 	}
 

@@ -12,6 +12,7 @@
     "prebuild": "npm run build:parser",
     "build": "scripty",
     "clean": "rimraf ./dist *.tsbuildinfo",
+    "debug": "jest",
     "test": "scripty",
     "test:watch": "jest --watch",
     "lint": "scripty",

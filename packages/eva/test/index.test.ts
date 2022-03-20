@@ -116,4 +116,64 @@ describe("function", () => {
 	it("native functions", () => {
 		expect(interpret(`(print "hello world")`)).toEqual(null);
 	});
+
+	it("user defined pure function", () => {
+		expect(
+			interpret(`
+			(begin
+				(def square (x) (* x x))
+				(square 2)
+			)
+		`)
+		).toEqual(4);
+	});
+
+	it("function uses outer variable", () => {
+		expect(
+			interpret(`
+			(begin
+				(var x 10)
+				(def foo () x)
+				(def bar ()
+					(begin
+						(var x 20)
+						(+ (foo) x)
+					)
+				)
+				(bar)
+			)
+		`)
+		).toEqual(30);
+
+		expect(
+			interpret(`
+			(begin
+				(def calc (x y) (begin
+					(var z 30)
+					(+ (* x y) z)
+				))
+				(calc 10 20)
+			)
+		`)
+		).toEqual(230);
+	});
+
+	it("closure function ", () => {
+		expect(
+			interpret(`
+			(begin
+				(var value 100)
+				(def calc (x y) (begin
+					(var z (+ x y))
+
+					(def inner (foo) (+ (+ foo z) value))
+
+					inner
+				))
+				(var fn (calc 10 20))
+				(fn 30)
+			)
+		`)
+		);
+	});
 });

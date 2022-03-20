@@ -1,6 +1,6 @@
 import { ExpressionValue } from "./expression";
 
-interface EnvironmentRecord {
+export interface EnvironmentRecord {
 	[x: string]: ExpressionValue;
 }
 
