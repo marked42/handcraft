@@ -117,10 +117,53 @@ export class Eva {
 				environment.set(name, initialValue);
 
 				return initialValue;
+			} else if (expr[0] === "if") {
+				return this.evalIfExpression(expr, environment);
 			}
 		}
 
 		throw "Unimplemented";
+	}
+
+	isExpression(expr: Expression) {
+		const predicates = [
+			this.isStringExpression,
+			this.isBooleanExpression,
+			this.isStringExpression,
+			this.isVariableName,
+			Array.isArray,
+		];
+		return predicates.some((p) => p(expr));
+	}
+
+	assertsIfExpression(expr: Expression) {
+		if (Array.isArray(expr)) {
+			const [key, condition, consequent, alternate] = expr;
+
+			if (
+				key === "if" &&
+				[condition, consequent, alternate].every((expr) =>
+					this.isExpression(expr)
+				)
+			) {
+				return;
+			}
+		}
+
+		throw new Error(
+			`语法错误，${JSON.stringify(expr)}不是合法的if表达式。`
+		);
+	}
+
+	evalIfExpression(expr: CompoundExpression, environment: Environment) {
+		const [, condition, consequent, alternate] = expr;
+
+		this.assertsIfExpression(expr);
+
+		if (this.evalInEnvironment(condition, environment)) {
+			return this.evalInEnvironment(consequent, environment);
+		}
+		return this.evalInEnvironment(alternate, environment);
 	}
 
 	isBlockExpression(expr: Expression) {
@@ -136,7 +179,7 @@ export class Eva {
 		return values[values.length - 1] || null;
 	}
 
-	isBooleanExpression(expr: Expression): expr is boolean {
+	isBooleanExpression(this: void, expr: Expression): expr is boolean {
 		return typeof expr === "boolean";
 	}
 
@@ -150,7 +193,7 @@ export class Eva {
 		}
 	}
 
-	isVariableName(name: Expression): name is string {
+	isVariableName(this: void, name: Expression): name is string {
 		if (typeof name !== "string") {
 			return false;
 		}
@@ -182,7 +225,7 @@ export class Eva {
 		return { left, right };
 	}
 
-	isStringExpression(expr: Expression): expr is string {
+	isStringExpression(this: void, expr: Expression): expr is string {
 		return (
 			typeof expr === "string" &&
 			expr[0] === '"' &&
@@ -206,7 +249,7 @@ export class Eva {
 		return expr;
 	}
 
-	isNumberExpression(expr: Expression): expr is number {
+	isNumberExpression(this: void, expr: Expression): expr is number {
 		return typeof expr === "number";
 	}
 
