@@ -119,6 +119,8 @@ export class Eva {
 				return initialValue;
 			} else if (expr[0] === "if") {
 				return this.evalIfExpression(expr, environment);
+			} else if (expr[0] === "while") {
+				return this.evalWhileExpression(expr, environment);
 			}
 		}
 
@@ -164,6 +166,36 @@ export class Eva {
 			return this.evalInEnvironment(consequent, environment);
 		}
 		return this.evalInEnvironment(alternate, environment);
+	}
+
+	assertsWhileExpression(expr: Expression) {
+		if (Array.isArray(expr)) {
+			const [key, condition, body] = expr;
+			if (
+				key === "while" &&
+				this.isExpression(condition) &&
+				this.isExpression(body)
+			) {
+				return true;
+			}
+		}
+
+		throw new Error(
+			`语法错误，${JSON.stringify(expr)}不是合法的while表达式。`
+		);
+	}
+
+	evalWhileExpression(expr: CompoundExpression, environment: Environment) {
+		const [, condition, body] = expr;
+
+		this.assertsWhileExpression(expr);
+
+		let result: ExpressionValue = null;
+		while (this.evalInEnvironment(condition, environment)) {
+			result = this.evalInEnvironment(body, environment);
+		}
+
+		return result;
 	}
 
 	isBlockExpression(expr: Expression) {
