@@ -8,4 +8,8 @@ export type AtomicExpression =
 export type CompoundExpression = Array<AtomicExpression | CompoundExpression>;
 export type Expression = AtomicExpression | CompoundExpression;
 
-export type ExpressionValue = string | number | boolean | null;
+export type AtomicExpressionValue = string | number | boolean | null;
+
+export type ExpressionValue =
+	| AtomicExpressionValue
+	| ((...args: ExpressionValue[]) => AtomicExpressionValue);

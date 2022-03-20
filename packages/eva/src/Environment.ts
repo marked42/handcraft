@@ -1,4 +1,4 @@
-import { ExpressionValue } from "./expression";
+import { AtomicExpressionValue, ExpressionValue } from "./expression";
 
 interface EnvironmentRecord {
 	[x: string]: ExpressionValue;
@@ -69,6 +69,10 @@ export class Environment {
 	static createGlobalEnvironment() {
 		return new Environment({
 			PI: 3.1415926,
+			print(...msg: ExpressionValue[]) {
+				console.log(...msg);
+				return null;
+			},
 		});
 	}
 }

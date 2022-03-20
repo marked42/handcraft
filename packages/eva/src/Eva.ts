@@ -121,6 +121,17 @@ export class Eva {
 				return this.evalIfExpression(expr, environment);
 			} else if (expr[0] === "while") {
 				return this.evalWhileExpression(expr, environment);
+			} else {
+				const [symbol, ...parameters] = expr;
+				const fn = this.evalInEnvironment(symbol, environment);
+
+				if (typeof fn === "function") {
+					const args = parameters.map((p) =>
+						this.evalInEnvironment(p, environment)
+					);
+
+					return fn(...args) as ExpressionValue;
+				}
 			}
 		}
 

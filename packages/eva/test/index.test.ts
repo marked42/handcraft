@@ -111,3 +111,9 @@ it("while expression", () => {
 		)`)
 	).toEqual(20);
 });
+
+describe("function", () => {
+	it("native functions", () => {
+		expect(interpret(`(print "hello world")`)).toEqual(null);
+	});
+});
