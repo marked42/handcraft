@@ -9,8 +9,9 @@ describe("should evaluate expressions", () => {
 		expect(interpret('"hello"')).toEqual("hello");
 	});
 
-	it("+", () => {
+	it("arithmetic", () => {
 		expect(interpret(["+", 1, 2])).toEqual(3);
 		expect(interpret(["+", ["+", 1, 2], 3])).toEqual(6);
+		expect(interpret(["*", ["+", 1, 2], 3])).toEqual(9);
 	});
 });

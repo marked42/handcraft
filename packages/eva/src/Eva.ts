@@ -10,19 +10,37 @@ export class Eva {
 			return this.evalString(expr);
 		}
 
-		if (Array.isArray(expr) && expr[0] === "+") {
-			const [, left, right] = expr;
+		if (Array.isArray(expr)) {
+			if (expr[0] === "+") {
+				const { left, right } =
+					this.extractBinaryArithmeticExpression(expr);
 
-			const leftNumber = this.eval(left);
-			const rightNumber = this.eval(right);
+				return left + right;
+			} else if (expr[0] === "*") {
+				const { left, right } =
+					this.extractBinaryArithmeticExpression(expr);
 
-			this.assertNumberExpression(leftNumber);
-			this.assertNumberExpression(rightNumber);
-
-			return leftNumber + rightNumber;
+				return left * right;
+			}
 		}
 
 		throw "Unimplemented";
+	}
+
+	extractBinaryArithmeticExpression(expr: Expression) {
+		if (!Array.isArray(expr)) {
+			throw new Error(`算数运算表达式必须是数组${JSON.stringify(expr)}`);
+		}
+
+		const [, leftOp, rightOp] = expr;
+
+		const left = this.eval(leftOp);
+		const right = this.eval(rightOp);
+
+		this.assertNumberExpression(left);
+		this.assertNumberExpression(right);
+
+		return { left, right };
 	}
 
 	evalString(expr: string) {
