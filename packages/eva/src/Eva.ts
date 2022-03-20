@@ -1,4 +1,4 @@
-import { defaultGlobalEnvironment, Environment } from "./Environment";
+import { Environment } from "./Environment";
 import {
 	BooleanExpression,
 	CompoundExpression,
@@ -8,12 +8,16 @@ import {
 
 export class Eva {
 	constructor(
-		private readonly globalEnvironment = defaultGlobalEnvironment
+		private readonly globalEnvironment = Environment.createGlobalEnvironment()
 	) {}
 
-	eval(
+	eval(expr: Expression) {
+		return this.evalInEnvironment(expr, this.globalEnvironment);
+	}
+
+	evalInEnvironment(
 		expr: Expression,
-		environment = this.globalEnvironment
+		environment: Environment
 	): ExpressionValue {
 		if (this.isNumberExpression(expr)) {
 			return this.evalNumber(expr);
@@ -33,20 +37,27 @@ export class Eva {
 
 		if (Array.isArray(expr)) {
 			if (expr[0] === "+") {
-				const { left, right } =
-					this.extractBinaryArithmeticExpression(expr);
+				const { left, right } = this.extractBinaryArithmeticExpression(
+					expr,
+					environment
+				);
 
 				return left + right;
 			} else if (expr[0] === "*") {
-				const { left, right } =
-					this.extractBinaryArithmeticExpression(expr);
+				const { left, right } = this.extractBinaryArithmeticExpression(
+					expr,
+					environment
+				);
 
 				return left * right;
 			} else if (expr[0] === "var") {
 				const [, name, initializer] = expr;
 
 				this.assertsVariableName(name);
-				const initialValue = this.eval(initializer, environment);
+				const initialValue = this.evalInEnvironment(
+					initializer,
+					environment
+				);
 				environment.define(name, initialValue);
 
 				return initialValue;
@@ -64,7 +75,9 @@ export class Eva {
 
 	evalBlock(expr: CompoundExpression, parent: Environment) {
 		const blockEnv = new Environment({}, parent);
-		const values = expr.slice(1).map((e) => this.eval(e, blockEnv));
+		const values = expr
+			.slice(1)
+			.map((e) => this.evalInEnvironment(e, blockEnv));
 
 		return values[values.length - 1] || null;
 	}
@@ -96,15 +109,18 @@ export class Eva {
 		return environment.lookup(name);
 	}
 
-	extractBinaryArithmeticExpression(expr: Expression) {
+	extractBinaryArithmeticExpression(
+		expr: Expression,
+		environment: Environment
+	) {
 		if (!Array.isArray(expr)) {
 			throw new Error(`算数运算表达式必须是数组${JSON.stringify(expr)}`);
 		}
 
 		const [, leftOp, rightOp] = expr;
 
-		const left = this.eval(leftOp);
-		const right = this.eval(rightOp);
+		const left = this.evalInEnvironment(leftOp, environment);
+		const right = this.evalInEnvironment(rightOp, environment);
 
 		this.assertNumberExpression(left);
 		this.assertNumberExpression(right);

@@ -37,7 +37,7 @@ describe("variable", () => {
 });
 
 describe("block", () => {
-	it("should create a local environment", () => {
+	it("can declare variable in block", () => {
 		expect(
 			interpret([
 				"begin",
@@ -48,7 +48,7 @@ describe("block", () => {
 		).toEqual(230);
 	});
 
-	it.skip("should support nested block", () => {
+	it("can read outer variable", () => {
 		expect(
 			interpret([
 				"begin",

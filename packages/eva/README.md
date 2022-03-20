@@ -15,6 +15,7 @@ Eva 是课程[Building an Interpreter from scratch](https://www.bilibili.com/vid
     1. 包含多条语句
     1. 返回值是最后一条语句
     1. 嵌套作用域
-        1. 在内层可以访问到外层变量
+        1. 在内层可以读写外层变量
+        1. 内层变量可以定义与外层变量同名的变量
         1. 内层变量覆盖同名外层变量
 1. 函数

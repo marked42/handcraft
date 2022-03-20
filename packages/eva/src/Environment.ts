@@ -28,15 +28,21 @@ export class Environment {
 		this.record[name] = value;
 	}
 
-	lookup(name: string) {
-		if (!this.has(name)) {
-			throw new Error(`变量${name}不存在!`);
+	lookup(name: string): ExpressionValue {
+		if (this.has(name)) {
+			return this.record[name];
 		}
 
-		return this.record[name];
+		if (this.parent) {
+			return this.parent.lookup(name);
+		}
+
+		throw new Error(`变量${name}不存在!`);
+	}
+
+	static createGlobalEnvironment() {
+		return new Environment({
+			PI: 3.1415926,
+		});
 	}
 }
-
-export const defaultGlobalEnvironment = new Environment({
-	PI: 3.1415926,
-});
