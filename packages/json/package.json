@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "scripty",
-    "clean": "rimraf ./dist",
+    "clean": "rimraf ./dist *.tsbuildinfo",
     "test": "scripty",
     "test:watch": "jest --watch",
     "lint": "scripty",
