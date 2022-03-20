@@ -1,12 +1,20 @@
-import { defaultGlobalEnvironment } from "./Environment";
-import { BooleanExpression, Expression, ExpressionValue } from "./expression";
+import { defaultGlobalEnvironment, Environment } from "./Environment";
+import {
+	BooleanExpression,
+	CompoundExpression,
+	Expression,
+	ExpressionValue,
+} from "./expression";
 
 export class Eva {
 	constructor(
 		private readonly globalEnvironment = defaultGlobalEnvironment
 	) {}
 
-	eval(expr: Expression): ExpressionValue {
+	eval(
+		expr: Expression,
+		environment = this.globalEnvironment
+	): ExpressionValue {
 		if (this.isNumberExpression(expr)) {
 			return this.evalNumber(expr);
 		}
@@ -20,7 +28,7 @@ export class Eva {
 		}
 
 		if (this.isVariableName(expr)) {
-			return this.evalVariable(expr);
+			return this.evalVariable(expr, environment);
 		}
 
 		if (Array.isArray(expr)) {
@@ -38,14 +46,27 @@ export class Eva {
 				const [, name, initializer] = expr;
 
 				this.assertsVariableName(name);
-				const initialValue = this.eval(initializer);
-				this.globalEnvironment.define(name, initialValue);
+				const initialValue = this.eval(initializer, environment);
+				environment.define(name, initialValue);
 
 				return initialValue;
+			} else if (this.isBlockExpression(expr)) {
+				return this.evalBlock(expr, environment);
 			}
 		}
 
 		throw "Unimplemented";
+	}
+
+	isBlockExpression(expr: Expression) {
+		return Array.isArray(expr) && expr[0] === "begin";
+	}
+
+	evalBlock(expr: CompoundExpression, parent: Environment) {
+		const blockEnv = new Environment({}, parent);
+		const values = expr.slice(1).map((e) => this.eval(e, blockEnv));
+
+		return values[values.length - 1] || null;
 	}
 
 	isBooleanExpression(expr: Expression): expr is boolean {
@@ -54,10 +75,6 @@ export class Eva {
 
 	evalBoolean(expr: BooleanExpression) {
 		return expr;
-	}
-
-	evalVariable(name: string, env = this.globalEnvironment) {
-		return env.lookup(name);
 	}
 
 	assertsVariableName(name: Expression): asserts name is string {
@@ -73,6 +90,10 @@ export class Eva {
 
 		const namePattern = /^[a-zA-Z][a-zA-Z0-9]*$/;
 		return namePattern.test(name);
+	}
+
+	evalVariable(name: string, environment: Environment) {
+		return environment.lookup(name);
 	}
 
 	extractBinaryArithmeticExpression(expr: Expression) {
@@ -91,16 +112,6 @@ export class Eva {
 		return { left, right };
 	}
 
-	evalString(expr: string) {
-		this.assertStringExpression(expr);
-		return expr.slice(1, -1);
-	}
-
-	evalNumber(expr: number) {
-		this.assertNumberExpression(expr);
-		return expr;
-	}
-
 	isStringExpression(expr: Expression): expr is string {
 		return (
 			typeof expr === "string" &&
@@ -113,6 +124,16 @@ export class Eva {
 		if (!this.isStringExpression(expr)) {
 			throw new Error(`表达式${JSON.stringify(expr)}的参数必须是字符串`);
 		}
+	}
+
+	evalString(expr: string) {
+		this.assertStringExpression(expr);
+		return expr.slice(1, -1);
+	}
+
+	evalNumber(expr: number) {
+		this.assertNumberExpression(expr);
+		return expr;
 	}
 
 	isNumberExpression(expr: Expression): expr is number {

@@ -35,3 +35,27 @@ describe("variable", () => {
 		expect(interpret(["var", "hasMore", false])).toEqual(false);
 	});
 });
+
+describe("block", () => {
+	it("should create a local environment", () => {
+		expect(
+			interpret([
+				"begin",
+				["var", "x", 10],
+				["var", "y", 20],
+				["+", ["*", "x", "y"], 30],
+			])
+		).toEqual(230);
+	});
+
+	it.skip("should support nested block", () => {
+		expect(
+			interpret([
+				"begin",
+				["var", "value", 10],
+				["var", "result", ["begin", ["var", "x", ["+", "value", 10]]]],
+				"result",
+			])
+		);
+	});
+});
