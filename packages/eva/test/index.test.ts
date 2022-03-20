@@ -19,6 +19,15 @@ describe("should evaluate expressions", () => {
 		expect(interpret(["+", ["+", 1, 2], 3])).toEqual(6);
 		expect(interpret(["*", ["+", 1, 2], 3])).toEqual(9);
 	});
+
+	it("comparison", () => {
+		expect(interpret([">", 1, 2])).toBe(false);
+		expect(interpret([">=", 1, 2])).toBe(false);
+		expect(interpret(["<", 1, 2])).toBe(true);
+		expect(interpret(["<=", 1, 2])).toBe(true);
+		expect(interpret(["==", 1, 2])).toBe(false);
+		expect(interpret(["!=", 1, 2])).toBe(true);
+	});
 });
 
 describe("variable", () => {
@@ -70,3 +79,17 @@ describe("block", () => {
 		).toEqual(100);
 	});
 });
+
+// describe("if expression", () => {
+// 	it("should be correct", () => {
+// 		expect(
+// 			interpret([
+// 				"begin",
+// 				["var", "x", 10],
+// 				["var", "y", 0],
+// 				["if", [">", "x", 10], ["set", "y", 20], ["set", "y", 30]],
+// 				"y",
+// 			])
+// 		).toEqual(30);
+// 	});
+// });

@@ -50,6 +50,48 @@ export class Eva {
 				);
 
 				return left * right;
+			} else if (expr[0] === ">") {
+				const { left, right } = this.extractBinaryArithmeticExpression(
+					expr,
+					environment
+				);
+
+				return left > right;
+			} else if (expr[0] === "<") {
+				const { left, right } = this.extractBinaryArithmeticExpression(
+					expr,
+					environment
+				);
+
+				return left < right;
+			} else if (expr[0] === ">=") {
+				const { left, right } = this.extractBinaryArithmeticExpression(
+					expr,
+					environment
+				);
+
+				return left >= right;
+			} else if (expr[0] === "<=") {
+				const { left, right } = this.extractBinaryArithmeticExpression(
+					expr,
+					environment
+				);
+
+				return left <= right;
+			} else if (expr[0] === "==") {
+				const { left, right } = this.extractBinaryArithmeticExpression(
+					expr,
+					environment
+				);
+
+				return left == right;
+			} else if (expr[0] === "!=") {
+				const { left, right } = this.extractBinaryArithmeticExpression(
+					expr,
+					environment
+				);
+
+				return left != right;
 			} else if (expr[0] === "var") {
 				const [, name, initializer] = expr;
 
