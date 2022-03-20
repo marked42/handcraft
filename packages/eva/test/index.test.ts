@@ -58,4 +58,15 @@ describe("block", () => {
 			])
 		);
 	});
+
+	it("can write outer variable", () => {
+		expect(
+			interpret([
+				"begin",
+				["var", "value", 10],
+				["begin", ["set", "value", 100]],
+				"value",
+			])
+		).toEqual(100);
+	});
 });

@@ -63,6 +63,18 @@ export class Eva {
 				return initialValue;
 			} else if (this.isBlockExpression(expr)) {
 				return this.evalBlock(expr, environment);
+			} else if (expr[0] === "set") {
+				const [, name, initializer] = expr;
+
+				this.assertsVariableName(name);
+
+				const initialValue = this.evalInEnvironment(
+					initializer,
+					environment
+				);
+				environment.set(name, initialValue);
+
+				return initialValue;
 			}
 		}
 

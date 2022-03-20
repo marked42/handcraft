@@ -43,14 +43,27 @@ export class Environment {
 	}
 
 	lookup(name: string): ExpressionValue {
-		/* eslint-disable-next-line */
-		let env: Environment | null = this.resolve(name);
+		const env: Environment | null = this.resolve(name);
 
 		if (!env) {
-			throw new Error(`变量${name}不存在!`);
+			this.throwOnUndefinedVariable(name);
 		}
 
 		return env.record[name];
+	}
+
+	set(name: string, value: ExpressionValue) {
+		const env: Environment | null = this.resolve(name);
+
+		if (!env) {
+			this.throwOnUndefinedVariable(name);
+		}
+
+		return (env.record[name] = value);
+	}
+
+	throwOnUndefinedVariable(name: string): never {
+		throw new ReferenceError(`变量${name}不存在!`);
 	}
 
 	static createGlobalEnvironment() {
