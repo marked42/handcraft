@@ -8,6 +8,8 @@
     "access": "public"
   },
   "scripts": {
+    "build:parser": "./scripts/build-parser.sh",
+    "prebuild": "npm run build:parser",
     "build": "scripty",
     "clean": "rimraf ./dist *.tsbuildinfo",
     "test": "scripty",
@@ -28,5 +30,8 @@
   ],
   "author": "penghui",
   "license": "MIT",
-  "private": false
+  "private": false,
+  "dependencies": {
+    "syntax-cli": "^0.1.22"
+  }
 }
