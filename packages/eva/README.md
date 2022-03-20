@@ -19,3 +19,7 @@ Eva 是课程[Building an Interpreter from scratch](https://www.bilibili.com/vid
         1. 内层变量可以定义与外层变量同名的变量
         1. 内层变量覆盖同名外层变量
 1. 函数
+
+Typescript
+
+1. import from an auto generate ES5 commonjs file
