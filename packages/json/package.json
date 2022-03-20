@@ -1,5 +1,5 @@
 {
-  "name": "@hf/json",
+  "name": "@handcraft/json",
   "version": "1.0.0",
   "description": "A JSON parser and stringifier",
   "main": "dist/index.js",
