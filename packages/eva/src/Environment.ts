@@ -28,16 +28,29 @@ export class Environment {
 		this.record[name] = value;
 	}
 
+	resolve(name: string) {
+		/* eslint-disable-next-line */
+		let env: Environment | null = this;
+
+		while (env) {
+			if (env.has(name)) {
+				return env;
+			}
+			env = env.parent;
+		}
+
+		return null;
+	}
+
 	lookup(name: string): ExpressionValue {
-		if (this.has(name)) {
-			return this.record[name];
+		/* eslint-disable-next-line */
+		let env: Environment | null = this.resolve(name);
+
+		if (!env) {
+			throw new Error(`变量${name}不存在!`);
 		}
 
-		if (this.parent) {
-			return this.parent.lookup(name);
-		}
-
-		throw new Error(`变量${name}不存在!`);
+		return env.record[name];
 	}
 
 	static createGlobalEnvironment() {
