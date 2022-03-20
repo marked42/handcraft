@@ -11,5 +11,6 @@ describe("should evaluate expressions", () => {
 
 	it("+", () => {
 		expect(interpret(["+", 1, 2])).toEqual(3);
+		expect(interpret(["+", ["+", 1, 2], 3])).toEqual(6);
 	});
 });

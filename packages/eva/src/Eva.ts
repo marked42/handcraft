@@ -13,10 +13,13 @@ export class Eva {
 		if (Array.isArray(expr) && expr[0] === "+") {
 			const [, left, right] = expr;
 
-			this.assertNumberExpression(left);
-			this.assertNumberExpression(right);
+			const leftNumber = this.eval(left);
+			const rightNumber = this.eval(right);
 
-			return this.evalNumber(left) + this.evalNumber(right);
+			this.assertNumberExpression(leftNumber);
+			this.assertNumberExpression(rightNumber);
+
+			return leftNumber + rightNumber;
 		}
 
 		throw "Unimplemented";
