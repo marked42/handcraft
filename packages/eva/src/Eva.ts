@@ -57,7 +57,7 @@ export class Eva {
 	}
 
 	evalVariable(name: string, env = this.globalEnvironment) {
-		return env.get(name);
+		return env.lookup(name);
 	}
 
 	assertsVariableName(name: Expression): asserts name is string {

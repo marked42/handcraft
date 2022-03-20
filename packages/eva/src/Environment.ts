@@ -28,7 +28,7 @@ export class Environment {
 		this.record[name] = value;
 	}
 
-	get(name: string) {
+	lookup(name: string) {
 		if (!this.has(name)) {
 			throw new Error(`变量${name}不存在!`);
 		}
