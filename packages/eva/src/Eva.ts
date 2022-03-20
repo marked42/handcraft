@@ -1,6 +1,11 @@
+import { defaultGlobalEnvironment } from "./Environment";
 import { Expression } from "./expression";
 
 export class Eva {
+	constructor(
+		private readonly globalEnvironment = defaultGlobalEnvironment
+	) {}
+
 	eval(expr: Expression): string | number {
 		if (this.isNumberExpression(expr)) {
 			return this.evalNumber(expr);
@@ -8,6 +13,10 @@ export class Eva {
 
 		if (this.isStringExpression(expr)) {
 			return this.evalString(expr);
+		}
+
+		if (this.isVariableName(expr)) {
+			return this.evalVariable(expr);
 		}
 
 		if (Array.isArray(expr)) {
@@ -25,6 +34,19 @@ export class Eva {
 		}
 
 		throw "Unimplemented";
+	}
+
+	evalVariable(name: string, env = this.globalEnvironment) {
+		return env.get(name);
+	}
+
+	isVariableName(name: Expression): name is string {
+		if (typeof name !== "string") {
+			return false;
+		}
+
+		const namePattern = /[a-zA-Z][a-zA-Z0-9]*/;
+		return namePattern.test(name);
 	}
 
 	extractBinaryArithmeticExpression(expr: Expression) {

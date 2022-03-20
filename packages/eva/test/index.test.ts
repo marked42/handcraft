@@ -14,4 +14,8 @@ describe("should evaluate expressions", () => {
 		expect(interpret(["+", ["+", 1, 2], 3])).toEqual(6);
 		expect(interpret(["*", ["+", 1, 2], 3])).toEqual(9);
 	});
+
+	it("variable", () => {
+		expect(interpret("PI")).toMatchInlineSnapshot(`3.1415926`);
+	});
 });
