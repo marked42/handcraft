@@ -11,8 +11,10 @@ import {
 	createCallableObject,
 	isCallableObject,
 } from "./callable";
+import { JITTransformer } from "./JITTransformer";
 
 export class Eva {
+	private readonly transformer = new JITTransformer();
 	constructor(
 		private readonly globalEnvironment = Environment.createGlobalEnvironment()
 	) {}
@@ -72,20 +74,11 @@ export class Eva {
 			} else if (expr[0] === "while") {
 				return this.evalWhileExpression(expr, environment);
 			} else if (expr[0] === "def") {
-				const [, fnName, parameters, body] = expr;
+				// JIT transpile function declaration to variable declaration
+				const variableDeclaration =
+					this.transformer.transformFunctionDeclaration(expr);
 
-				this.assertsSymbol(fnName);
-				this.assertsSymbolArray(parameters);
-
-				const fn = createCallableObject({
-					fnName,
-					parameters,
-					body,
-					environment,
-				});
-
-				environment.define(fnName, fn);
-				return fn;
+				return this.evalInEnvironment(variableDeclaration, environment);
 			} else if (expr[0] === "lambda") {
 				const [, parameters, body] = expr;
 
