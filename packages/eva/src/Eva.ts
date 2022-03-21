@@ -92,6 +92,8 @@ export class Eva {
 				});
 
 				return fn;
+			} else if (expr[0] === "switch") {
+				return this.evalSwitch(expr, environment);
 			} else {
 				const [symbol, ...parameters] = expr;
 				const fn = this.evalInEnvironment(symbol, environment);
@@ -111,6 +113,27 @@ export class Eva {
 		}
 
 		throw "Unimplemented";
+	}
+
+	evalSwitch(expr: CompoundExpression, environment: Environment) {
+		const [, ...cases] = expr;
+
+		for (const e of cases) {
+			if (!Array.isArray(e)) {
+				throw new Error(
+					"invalid switch case branch, must be an array."
+				);
+			}
+			const [condition, value] = e;
+			if (
+				condition === "else" ||
+				this.evalInEnvironment(condition, environment)
+			) {
+				return this.evalInEnvironment(value, environment);
+			}
+		}
+
+		throw new Error("invalid switch case, must have else branch");
 	}
 
 	evalCallableObject(

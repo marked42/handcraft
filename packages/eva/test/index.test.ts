@@ -214,3 +214,14 @@ describe("lambda", () => {
 		).toEqual(4);
 	});
 });
+
+it("switch", () => {
+	expect(
+		interpret(`
+		(begin
+			(var x 1)
+			(switch ((> x 1) 100) ((== x 1 ) 200) (else 0))
+		)
+	`)
+	).toEqual(200);
+});
