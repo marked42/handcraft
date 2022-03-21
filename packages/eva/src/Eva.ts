@@ -87,7 +87,10 @@ export class Eva {
 					environment
 				);
 			} else if (expr[0] === "--") {
-				return this.evalDecrementDirectly(expr, environment);
+				return this.evalInEnvironment(
+					this.transformer.transformDecrement(expr),
+					environment
+				);
 			} else if (expr[0] === "+=") {
 				return this.evalPlusAssignmentDirectly(expr, environment);
 			} else if (expr[0] === "-=") {

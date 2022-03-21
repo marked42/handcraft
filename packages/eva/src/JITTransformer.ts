@@ -77,4 +77,10 @@ export class JITTransformer {
 
 		return ["set", symbol, ["+", symbol, 1]];
 	}
+
+	transformDecrement(expr: CompoundExpression) {
+		const [, symbol] = expr;
+
+		return ["set", symbol, ["-", symbol, 1]];
+	}
 }
