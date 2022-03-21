@@ -225,3 +225,15 @@ it("switch", () => {
 	`)
 	).toEqual(200);
 });
+
+it("for", () => {
+	expect(
+		interpret(`
+		(begin
+			(var counter 0)
+			(for (var x 0) (< x 10) (set x (+ x 1)) (set counter (+ counter 2)))
+			counter
+		)
+	`)
+	).toEqual(20);
+});

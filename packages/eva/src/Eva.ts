@@ -73,6 +73,8 @@ export class Eva {
 				return this.evalIfExpression(expr, environment);
 			} else if (expr[0] === "while") {
 				return this.evalWhileExpression(expr, environment);
+			} else if (expr[0] === "for") {
+				return this.evalFor(expr, environment);
 			} else if (expr[0] === "def") {
 				// JIT transpile function declaration to variable declaration
 				const variableDeclaration =
@@ -113,6 +115,22 @@ export class Eva {
 		}
 
 		throw "Unimplemented";
+	}
+
+	evalFor(expr: CompoundExpression, environment: Environment) {
+		return this.evalForDirectly(expr, environment);
+	}
+
+	evalForDirectly(expr: CompoundExpression, environment: Environment) {
+		const [, initializer, condition, modifier, body] = expr;
+
+		this.evalInEnvironment(initializer, environment);
+		let result = null;
+		while (this.evalInEnvironment(condition, environment)) {
+			result = this.evalInEnvironment(body, environment);
+			this.evalInEnvironment(modifier, environment);
+		}
+		return result;
 	}
 
 	evalSwitch(expr: CompoundExpression, environment: Environment) {
