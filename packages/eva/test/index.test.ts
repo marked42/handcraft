@@ -249,3 +249,15 @@ it("increment", () => {
 	`)
 	).toEqual(1);
 });
+
+it("decrement", () => {
+	expect(
+		interpret(`
+		(begin
+			(var x 0)
+			(-- x 1)
+			x
+		)
+	`)
+	).toEqual(-1);
+});
