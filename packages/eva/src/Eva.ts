@@ -92,7 +92,10 @@ export class Eva {
 					environment
 				);
 			} else if (expr[0] === "+=") {
-				return this.evalPlusAssignmentDirectly(expr, environment);
+				return this.evalInEnvironment(
+					this.transformer.transformPlusAssignment(expr),
+					environment
+				);
 			} else if (expr[0] === "-=") {
 				return this.evalMinusAssignmentDirectly(expr, environment);
 			} else if (expr[0] === "lambda") {

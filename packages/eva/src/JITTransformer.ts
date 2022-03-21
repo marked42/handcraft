@@ -83,4 +83,10 @@ export class JITTransformer {
 
 		return ["set", symbol, ["-", symbol, 1]];
 	}
+
+	transformPlusAssignment(expr: CompoundExpression) {
+		const [, symbol, step] = expr;
+
+		return ["set", symbol, ["+", symbol, step]];
+	}
 }
