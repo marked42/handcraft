@@ -88,6 +88,10 @@ export class Eva {
 				);
 			} else if (expr[0] === "--") {
 				return this.evalDecrementDirectly(expr, environment);
+			} else if (expr[0] === "+=") {
+				return this.evalPlusAssignmentDirectly(expr, environment);
+			} else if (expr[0] === "-=") {
+				return this.evalMinusAssignmentDirectly(expr, environment);
 			} else if (expr[0] === "lambda") {
 				const [, parameters, body] = expr;
 
@@ -122,6 +126,50 @@ export class Eva {
 		}
 
 		throw "Unimplemented";
+	}
+
+	evalMinusAssignmentDirectly(
+		expr: CompoundExpression,
+		environment: Environment
+	) {
+		const [, variable, step] = expr;
+
+		this.assertsSymbol(variable);
+
+		const currentValue = this.evalInEnvironment(variable, environment);
+		// @ts-expect-error ignore checking
+		this.assertNumberExpression(currentValue);
+		const incrementedValue = this.evalInEnvironment(step, environment);
+		// @ts-expect-error ignore checking
+		this.assertNumberExpression(incrementedValue);
+
+		const value = currentValue - incrementedValue;
+
+		environment.set(variable, value);
+
+		return value;
+	}
+
+	evalPlusAssignmentDirectly(
+		expr: CompoundExpression,
+		environment: Environment
+	) {
+		const [, variable, step] = expr;
+
+		this.assertsSymbol(variable);
+
+		const currentValue = this.evalInEnvironment(variable, environment);
+		// @ts-expect-error ignore checking
+		this.assertNumberExpression(currentValue);
+		const incrementedValue = this.evalInEnvironment(step, environment);
+		// @ts-expect-error ignore checking
+		this.assertNumberExpression(incrementedValue);
+
+		const value = currentValue + incrementedValue;
+
+		environment.set(variable, value);
+
+		return value;
 	}
 
 	evalDecrementDirectly(expr: CompoundExpression, environment: Environment) {

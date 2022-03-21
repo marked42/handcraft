@@ -261,3 +261,27 @@ it("decrement", () => {
 	`)
 	).toEqual(-1);
 });
+
+it("plus assignment", () => {
+	expect(
+		interpret(`
+		(begin
+			(var x 0)
+			(+= x 1)
+			x
+		)
+	`)
+	).toEqual(1);
+});
+
+it("minus assignment", () => {
+	expect(
+		interpret(`
+		(begin
+			(var x 0)
+			(-= x 1)
+			x
+		)
+	`)
+	).toEqual(-1);
+});
