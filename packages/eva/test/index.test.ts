@@ -237,3 +237,15 @@ it("for", () => {
 	`)
 	).toEqual(20);
 });
+
+it("increment", () => {
+	expect(
+		interpret(`
+		(begin
+			(var x 0)
+			(++ x 1)
+			x
+		)
+	`)
+	).toEqual(1);
+});
