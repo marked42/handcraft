@@ -86,6 +86,19 @@ export class Eva {
 
 				environment.define(fnName, fn);
 				return fn;
+			} else if (expr[0] === "lambda") {
+				const [, parameters, body] = expr;
+
+				this.assertsSymbolArray(parameters);
+
+				const fn = createCallableObject({
+					fnName: "anonymous",
+					parameters,
+					body,
+					environment,
+				});
+
+				return fn;
 			} else {
 				const [symbol, ...parameters] = expr;
 				const fn = this.evalInEnvironment(symbol, environment);

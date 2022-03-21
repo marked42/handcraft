@@ -177,3 +177,40 @@ describe("function", () => {
 		);
 	});
 });
+
+describe("lambda", () => {
+	it("should support lambda expression", () => {
+		expect(
+			interpret(`
+			(begin
+				(def onClick (callback) (begin
+					(var x 10)
+					(var y 20)
+					(callback (+ x y))
+				))
+
+				(onClick (lambda (data) (* data 10)))
+			)
+		`)
+		).toEqual(300);
+	});
+
+	it("immediately invoked lambda expression", () => {
+		expect(
+			interpret(`
+			((lambda (x) (* x x)) 2)
+		`)
+		).toEqual(4);
+	});
+
+	it("save lambda function to variable", () => {
+		expect(
+			interpret(`
+			(begin
+				(var square (lambda (x) (* x x)))
+				(square 2)
+			)
+		`)
+		).toEqual(4);
+	});
+});
