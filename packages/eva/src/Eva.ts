@@ -116,6 +116,12 @@ export class Eva {
 	}
 
 	evalSwitch(expr: CompoundExpression, environment: Environment) {
+		const transformed = this.transformer.transformSwitchCase(expr);
+
+		return this.evalInEnvironment(transformed, environment);
+	}
+
+	directEvalSwitch(expr: CompoundExpression, environment: Environment) {
 		const [, ...cases] = expr;
 
 		for (const e of cases) {
@@ -157,7 +163,7 @@ export class Eva {
 		const predicates = [
 			this.isStringExpression,
 			this.isBooleanExpression,
-			this.isStringExpression,
+			this.isNumberExpression,
 			this.isSymbolName,
 			Array.isArray,
 		];
