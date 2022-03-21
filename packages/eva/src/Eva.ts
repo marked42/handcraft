@@ -82,7 +82,10 @@ export class Eva {
 
 				return this.evalInEnvironment(variableDeclaration, environment);
 			} else if (expr[0] === "++") {
-				return this.evalIncrementDirectly(expr, environment);
+				return this.evalInEnvironment(
+					this.transformer.transformIncrement(expr),
+					environment
+				);
 			} else if (expr[0] === "lambda") {
 				const [, parameters, body] = expr;
 

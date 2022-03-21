@@ -71,4 +71,10 @@ export class JITTransformer {
 
 		return whileExpr;
 	}
+
+	transformIncrement(expr: CompoundExpression) {
+		const [, symbol, step] = expr;
+
+		return ["set", symbol, ["+", symbol, step]];
+	}
 }
