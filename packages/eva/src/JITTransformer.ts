@@ -73,8 +73,8 @@ export class JITTransformer {
 	}
 
 	transformIncrement(expr: CompoundExpression) {
-		const [, symbol, step] = expr;
+		const [, symbol] = expr;
 
-		return ["set", symbol, ["+", symbol, step]];
+		return ["set", symbol, ["+", symbol, 1]];
 	}
 }

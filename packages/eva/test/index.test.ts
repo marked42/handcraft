@@ -243,7 +243,7 @@ it("increment", () => {
 		interpret(`
 		(begin
 			(var x 0)
-			(++ x 1)
+			(++ x)
 			x
 		)
 	`)
@@ -255,7 +255,7 @@ it("decrement", () => {
 		interpret(`
 		(begin
 			(var x 0)
-			(-- x 1)
+			(-- x)
 			x
 		)
 	`)

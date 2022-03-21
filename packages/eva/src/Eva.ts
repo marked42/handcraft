@@ -125,15 +125,14 @@ export class Eva {
 	}
 
 	evalDecrementDirectly(expr: CompoundExpression, environment: Environment) {
-		const [, variable, step] = expr;
+		const [, variable] = expr;
 
 		this.assertsSymbol(variable);
 
 		const currentValue = this.evalInEnvironment(variable, environment);
 		// @ts-expect-error ignore checking
 		this.assertNumberExpression(currentValue);
-		const incrementedValue = this.evalInEnvironment(step, environment);
-		// @ts-expect-error ignore checking
+		const incrementedValue = 1;
 		this.assertNumberExpression(incrementedValue);
 
 		const value = currentValue - incrementedValue;
@@ -144,15 +143,14 @@ export class Eva {
 	}
 
 	evalIncrementDirectly(expr: CompoundExpression, environment: Environment) {
-		const [, variable, step] = expr;
+		const [, variable] = expr;
 
 		this.assertsSymbol(variable);
 
 		const currentValue = this.evalInEnvironment(variable, environment);
 		// @ts-expect-error ignore checking
 		this.assertNumberExpression(currentValue);
-		const incrementedValue = this.evalInEnvironment(step, environment);
-		// @ts-expect-error ignore checking
+		const incrementedValue = 1;
 		this.assertNumberExpression(incrementedValue);
 
 		const value = currentValue + incrementedValue;
