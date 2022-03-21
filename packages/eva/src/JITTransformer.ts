@@ -89,4 +89,10 @@ export class JITTransformer {
 
 		return ["set", symbol, ["+", symbol, step]];
 	}
+
+	transformMinusAssignment(expr: CompoundExpression) {
+		const [, symbol, step] = expr;
+
+		return ["set", symbol, ["-", symbol, step]];
+	}
 }
