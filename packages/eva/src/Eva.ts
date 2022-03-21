@@ -118,7 +118,8 @@ export class Eva {
 	}
 
 	evalFor(expr: CompoundExpression, environment: Environment) {
-		return this.evalForDirectly(expr, environment);
+		const whileExpr = this.transformer.transformForToWhile(expr);
+		return this.evalInEnvironment(whileExpr, environment);
 	}
 
 	evalForDirectly(expr: CompoundExpression, environment: Environment) {

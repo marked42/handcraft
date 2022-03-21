@@ -59,4 +59,16 @@ export class JITTransformer {
 
 		return ifExpr;
 	}
+
+	transformForToWhile(expr: CompoundExpression) {
+		const [, initializer, condition, modifier, body] = expr;
+
+		const whileExpr = [
+			"begin",
+			initializer,
+			["while", condition, ["begin", body, modifier]],
+		];
+
+		return whileExpr;
+	}
 }
