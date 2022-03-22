@@ -22,6 +22,9 @@ describe("should evaluate expressions", () => {
 		expect(interpret(`(+ 1 2)`)).toEqual(3);
 		expect(interpret(`(+ (+ 1 2) 3)`)).toEqual(6);
 		expect(interpret(`(* (+ 1 2) 3)`)).toEqual(9);
+		expect(interpret(`(- 1 2)`)).toEqual(-1);
+		expect(interpret(`(- 2)`)).toEqual(-2);
+		expect(interpret(`(+ 2)`)).toEqual(2);
 	});
 
 	it("comparison", () => {

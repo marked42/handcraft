@@ -76,6 +76,10 @@ export class Environment {
 				return null;
 			},
 			"+"(op1: ExpressionValue, op2: ExpressionValue): ExpressionValue {
+				if (typeof op1 === "number" && op2 === void 0) {
+					return op1;
+				}
+
 				if (typeof op1 === "number" && typeof op2 === "number") {
 					return op1 + op2;
 				}
@@ -87,12 +91,16 @@ export class Environment {
 				);
 			},
 			"-"(op1: ExpressionValue, op2: ExpressionValue): ExpressionValue {
+				if (typeof op1 === "number" && op2 === void 0) {
+					return -op1;
+				}
+
 				if (typeof op1 === "number" && typeof op2 === "number") {
 					return op1 - op2;
 				}
 
 				throw new Error(
-					`plus unsupported for operators ${JSON.stringify(
+					`minus unsupported for operators ${JSON.stringify(
 						op1
 					)} and ${JSON.stringify(op2)}`
 				);
@@ -103,7 +111,7 @@ export class Environment {
 				}
 
 				throw new Error(
-					`plus unsupported for operators ${JSON.stringify(
+					`* unsupported for operators ${JSON.stringify(
 						op1
 					)} and ${JSON.stringify(op2)}`
 				);
@@ -114,7 +122,7 @@ export class Environment {
 				}
 
 				throw new Error(
-					`plus unsupported for operators ${JSON.stringify(
+					`/ unsupported for operators ${JSON.stringify(
 						op1
 					)} and ${JSON.stringify(op2)}`
 				);
@@ -131,7 +139,7 @@ export class Environment {
 				}
 
 				throw new Error(
-					`plus unsupported for operators ${JSON.stringify(
+					`> unsupported for operators ${JSON.stringify(
 						op1
 					)} and ${JSON.stringify(op2)}`
 				);
@@ -142,7 +150,7 @@ export class Environment {
 				}
 
 				throw new Error(
-					`plus unsupported for operators ${JSON.stringify(
+					`>= unsupported for operators ${JSON.stringify(
 						op1
 					)} and ${JSON.stringify(op2)}`
 				);
@@ -153,7 +161,7 @@ export class Environment {
 				}
 
 				throw new Error(
-					`plus unsupported for operators ${JSON.stringify(
+					`< unsupported for operators ${JSON.stringify(
 						op1
 					)} and ${JSON.stringify(op2)}`
 				);
@@ -164,7 +172,7 @@ export class Environment {
 				}
 
 				throw new Error(
-					`plus unsupported for operators ${JSON.stringify(
+					`<= unsupported for operators ${JSON.stringify(
 						op1
 					)} and ${JSON.stringify(op2)}`
 				);
