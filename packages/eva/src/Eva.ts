@@ -171,12 +171,15 @@ export class Eva {
 	evalProp(expr: CompoundExpression, environment: Environment) {
 		const [, instance, name] = expr;
 
-		this.assertsSymbol(instance);
+		// this.assertsSymbol(instance);
 		this.assertsSymbol(name);
 
-		const instanceEnv = environment.lookup(instance) as Environment;
+		const instanceEnv = this.evalInEnvironment(
+			instance,
+			environment
+		) as Environment;
 
-		const prop = instanceEnv.lookup(name);
+		const prop = this.evalInEnvironment(name, instanceEnv);
 		return prop;
 	}
 
