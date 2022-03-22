@@ -141,6 +141,8 @@ export class Eva {
 				return this.evalProp(expr, environment);
 			} else if (expr[0] === "super") {
 				return this.evalSuper(expr, environment);
+			} else if (expr[0] === "module") {
+				return this.evalModule(expr, environment);
 			} else {
 				const [symbol, ...parameters] = expr;
 				const fn = this.evalInEnvironment(symbol, environment);
@@ -167,6 +169,20 @@ export class Eva {
 		if (!isCallableObject(expr)) {
 			throw new Error(`${JSON.stringify(expr)}不是callable`);
 		}
+	}
+
+	evalModule(expr: CompoundExpression, environment: Environment) {
+		const [, name, body] = expr;
+
+		this.assertsSymbol(name);
+		this.assertsBlockExpression(body);
+
+		const moduleEnv = new Environment({}, environment);
+		this.evalBlock(body, environment, moduleEnv);
+
+		environment.define(name, moduleEnv);
+
+		return moduleEnv;
 	}
 
 	evalSuper(expr: CompoundExpression, environment: Environment) {
@@ -505,7 +521,7 @@ export class Eva {
 			return false;
 		}
 
-		const namePattern = /^[a-zA-Z+\-*\/><=!][a-zA-Z0-9+\-*\/><=!]*$/;
+		const namePattern = /^[a-zA-Z+\-*\/><=!][a-zA-Z0-9+\-*\/><=!_]*$/;
 		return namePattern.test(name);
 	}
 

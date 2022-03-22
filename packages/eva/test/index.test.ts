@@ -354,3 +354,66 @@ describe("class", () => {
 		).toEqual(60);
 	});
 });
+
+describe("module", () => {
+	it("definition", () => {
+		expect(
+			interpret(`
+			(begin
+				(module Math
+					(begin
+						(def abs (value)
+							(if (< value 0) (- value) value)
+						)
+						(def square (x) (* x x))
+						(var MAX_VALUE 1000)
+					)
+				)
+				((prop Math abs) (- 10))
+
+				(var abs (prop Math abs))
+				(abs (- 10))
+			)
+		`)
+		).toEqual(10);
+	});
+
+	it("module property read", () => {
+		expect(
+			interpret(`
+			(begin
+				(module Math
+					(begin
+						(def abs (value)
+							(if (< value 0) (- value) value)
+						)
+						(def square (x) (* x x))
+						(var MAX_VALUE 1000)
+					)
+				)
+				((prop Math abs) (- 10))
+			)
+		`)
+		).toEqual(10);
+	});
+
+	it("module property read and save", () => {
+		expect(
+			interpret(`
+			(begin
+				(module Math
+					(begin
+						(def abs (value)
+							(if (< value 0) (- value) value)
+						)
+						(def square (x) (* x x))
+						(var MAX_VALUE 1000)
+					)
+				)
+				(var abs (prop Math abs))
+				(abs (- 10))
+			)
+		`)
+		).toEqual(10);
+	});
+});
