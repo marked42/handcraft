@@ -40,6 +40,9 @@ export class Eva {
 		}
 
 		if (this.isSymbolName(expr)) {
+			if (expr === "null") {
+				return null;
+			}
 			return this.evalVariable(expr, environment);
 		}
 
@@ -58,15 +61,29 @@ export class Eva {
 			} else if (this.isBlockExpression(expr)) {
 				return this.evalBlock(expr, environment);
 			} else if (expr[0] === "set") {
-				const [, name, initializer] = expr;
-
-				this.assertsVariableName(name);
+				const [, ref, initializer] = expr;
 
 				const initialValue = this.evalInEnvironment(
 					initializer,
 					environment
 				);
-				environment.set(name, initialValue);
+
+				if (Array.isArray(ref) && ref[0] === "prop") {
+					const [, instance, prop] = ref;
+					this.assertsSymbol(instance);
+					this.assertsSymbol(prop);
+					const classEnv = this.evalInEnvironment(
+						instance,
+						environment
+					) as Environment;
+
+					classEnv.set(prop, initialValue);
+					return initialValue;
+				}
+
+				this.assertsVariableName(ref);
+
+				environment.set(ref, initialValue);
 
 				return initialValue;
 			} else if (expr[0] === "if") {
@@ -116,6 +133,12 @@ export class Eva {
 				return fn;
 			} else if (expr[0] === "switch") {
 				return this.evalSwitch(expr, environment);
+			} else if (expr[0] === "class") {
+				return this.evalClass(expr, environment);
+			} else if (expr[0] === "new") {
+				return this.evalNew(expr, environment);
+			} else if (expr[0] === "prop") {
+				return this.evalProp(expr, environment);
 			} else {
 				const [symbol, ...parameters] = expr;
 				const fn = this.evalInEnvironment(symbol, environment);
@@ -135,6 +158,69 @@ export class Eva {
 		}
 
 		throw "Unimplemented";
+	}
+
+	// @ts-expect-error ignore
+	assertsCallableObject(expr: Expression): asserts expr is CallableObject {
+		if (!isCallableObject(expr)) {
+			throw new Error(`${JSON.stringify(expr)}不是callable`);
+		}
+	}
+
+	// property read
+	evalProp(expr: CompoundExpression, environment: Environment) {
+		const [, instance, name] = expr;
+
+		this.assertsSymbol(instance);
+		this.assertsSymbol(name);
+
+		const instanceEnv = environment.lookup(instance) as Environment;
+
+		const prop = instanceEnv.lookup(name);
+		return prop;
+	}
+
+	evalNew(expr: CompoundExpression, environment: Environment) {
+		const [, name, ...parameters] = expr;
+
+		const classEnv = this.evalInEnvironment(
+			name,
+			environment
+		) as Environment;
+
+		const constructor = classEnv.lookup("constructor") as CallableObject;
+
+		// 特殊处理，类实例也用Environment表示，父节点是classEnv
+		const instance = new Environment({}, classEnv);
+		const actualParameters = parameters.map((p) =>
+			this.evalInEnvironment(p, environment)
+		);
+		this.evalCallableObject(constructor, [instance, ...actualParameters]);
+
+		return instance;
+	}
+
+	evalClass(expr: CompoundExpression, environment: Environment) {
+		const [, name, parent, body] = expr;
+
+		this.assertsSymbol(name);
+		this.assertsSymbol(parent);
+		// 必须保证全局变量被找到
+		const parentEnv =
+			this.evalInEnvironment(parent, environment) || environment;
+		const classEnv = new Environment(
+			{},
+			// @ts-expect-error ignore for now
+			parentEnv
+		);
+		this.assertsBlockExpression(body);
+		this.evalBlock(body, environment, classEnv);
+
+		this.evalInEnvironment(body, classEnv);
+
+		environment.define(name, classEnv);
+
+		return classEnv;
 	}
 
 	evalMinusAssignmentDirectly(
@@ -353,8 +439,19 @@ export class Eva {
 		return Array.isArray(expr) && expr[0] === "begin";
 	}
 
-	evalBlock(expr: CompoundExpression, parent: Environment) {
-		const blockEnv = new Environment({}, parent);
+	assertsBlockExpression(
+		expr: Expression
+	): asserts expr is CompoundExpression {
+		if (!this.isBlockExpression(expr)) {
+			throw new Error(`${JSON.stringify(expr)}必须是block`);
+		}
+	}
+
+	evalBlock(
+		expr: CompoundExpression,
+		parent: Environment,
+		blockEnv: Environment = new Environment({}, parent)
+	) {
 		const values = expr
 			.slice(1)
 			.map((e) => this.evalInEnvironment(e, blockEnv));

@@ -19,6 +19,17 @@ Eva 是课程[Building an Interpreter from scratch](https://www.bilibili.com/vid
         1. 内层变量可以定义与外层变量同名的变量
         1. 内层变量覆盖同名外层变量
 1. 函数
+1. lambda 函数，定义，直接调用形式（Immediately Invoked）和赋值
+1. 语法糖转换
+    1. switch -> if
+    1. for -> while
+    1. ++/--/+=/-=
+1. 面向对象，类支持
+    1. 类定义 构造函数，普通函数 构造函数初始化的过程中，类实例的成员数据需要调用 set 或者 define 语意，区分变量的定义还是设置。
+    1. new 操作符生成类实例
+    1. 属性读写，区分类属性的读写和普通变量的读写，也可以可以用统一的 Reference 概念表示
+    1. 父类
+1. 模块支持
 
 Typescript
 

@@ -1,4 +1,5 @@
 import { CallableObject } from "./callable";
+import { Environment } from "./Environment";
 
 export type NumberExpression = number;
 export type BooleanExpression = boolean;
@@ -10,7 +11,7 @@ export type AtomicExpression =
 export type CompoundExpression = Array<AtomicExpression | CompoundExpression>;
 export type Expression = AtomicExpression | CompoundExpression;
 
-export type InternalValue = CallableObject;
+export type InternalValue = CallableObject | Environment;
 
 export type AtomicExpressionValue =
 	| string

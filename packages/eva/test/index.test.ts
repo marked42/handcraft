@@ -14,6 +14,10 @@ describe("should evaluate expressions", () => {
 		expect(interpret(`false`)).toEqual(false);
 	});
 
+	it("null", () => {
+		expect(interpret(`null`)).toEqual(null);
+	});
+
 	it("arithmetic", () => {
 		expect(interpret(`(+ 1 2)`)).toEqual(3);
 		expect(interpret(`(+ (+ 1 2) 3)`)).toEqual(6);
@@ -284,4 +288,28 @@ it("minus assignment", () => {
 		)
 	`)
 	).toEqual(-1);
+});
+
+it("class", () => {
+	expect(
+		interpret(`
+		(begin
+			(class Point null
+				(begin
+					(def constructor (this x y)
+						(begin
+							(set (prop this x) x)
+							(set (prop this y) y)
+						))
+
+					(def calc (this)
+						(+ (prop this x) (prop this y)))
+				)
+			)
+			(var p (new Point 10 20))
+			(print p)
+			((prop p calc) p)
+		)
+	`)
+	).toEqual(30);
 });

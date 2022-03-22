@@ -56,7 +56,9 @@ export class Environment {
 		const env: Environment | null = this.resolve(name);
 
 		if (!env) {
-			this.throwOnUndefinedVariable(name);
+			// implicitly create variable
+			this.define(name, value);
+			return value;
 		}
 
 		return (env.record[name] = value);
