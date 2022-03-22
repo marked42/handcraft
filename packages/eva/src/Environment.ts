@@ -6,7 +6,7 @@ export interface EnvironmentRecord {
 
 export class Environment {
 	private readonly record: EnvironmentRecord;
-	private readonly parent: Environment | null;
+	public readonly parent: Environment | null;
 
 	constructor(
 		record: EnvironmentRecord = {},

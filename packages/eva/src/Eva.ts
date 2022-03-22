@@ -139,6 +139,8 @@ export class Eva {
 				return this.evalNew(expr, environment);
 			} else if (expr[0] === "prop") {
 				return this.evalProp(expr, environment);
+			} else if (expr[0] === "super") {
+				return this.evalSuper(expr, environment);
 			} else {
 				const [symbol, ...parameters] = expr;
 				const fn = this.evalInEnvironment(symbol, environment);
@@ -164,6 +166,25 @@ export class Eva {
 	assertsCallableObject(expr: Expression): asserts expr is CallableObject {
 		if (!isCallableObject(expr)) {
 			throw new Error(`${JSON.stringify(expr)}不是callable`);
+		}
+	}
+
+	evalSuper(expr: CompoundExpression, environment: Environment) {
+		const [, name] = expr;
+
+		this.assertsSymbol(name);
+		const classEnv = this.evalInEnvironment(name, environment);
+		this.assertsEnvironment(classEnv);
+
+		const parentClass = classEnv.parent;
+		this.assertsEnvironment(parentClass);
+
+		return parentClass;
+	}
+
+	assertsEnvironment(expr: ExpressionValue): asserts expr is Environment {
+		if (!(expr instanceof Environment)) {
+			throw new Error(`${JSON.stringify(expr)} must be environment. `);
 		}
 	}
 
