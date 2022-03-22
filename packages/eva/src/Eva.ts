@@ -1,4 +1,6 @@
 import { Environment, EnvironmentRecord } from "./Environment";
+import fs from "fs";
+import path from "path";
 import {
 	BooleanExpression,
 	CompoundExpression,
@@ -15,9 +17,15 @@ import { JITTransformer } from "./JITTransformer";
 
 export class Eva {
 	private readonly transformer = new JITTransformer();
+	private moduleFolder: string = process.cwd();
+
 	constructor(
 		private readonly globalEnvironment = Environment.createGlobalEnvironment()
 	) {}
+
+	setModuleFolder(path: string) {
+		this.moduleFolder = path;
+	}
 
 	eval(expr: Expression) {
 		return this.evalInEnvironment(expr, this.globalEnvironment);
@@ -143,6 +151,8 @@ export class Eva {
 				return this.evalSuper(expr, environment);
 			} else if (expr[0] === "module") {
 				return this.evalModule(expr, environment);
+			} else if (expr[0] === "import") {
+				return this.evalImport(expr, environment);
 			} else {
 				const [symbol, ...parameters] = expr;
 				const fn = this.evalInEnvironment(symbol, environment);
@@ -169,6 +179,24 @@ export class Eva {
 		if (!isCallableObject(expr)) {
 			throw new Error(`${JSON.stringify(expr)}不是callable`);
 		}
+	}
+
+	evalImport(expr: CompoundExpression, environment: Environment) {
+		const [, name] = expr;
+		this.assertsSymbol(name);
+
+		const moduleFilePath = path.join(this.moduleFolder, `${name}.eva`);
+		const moduleFileContent: string = fs.readFileSync(moduleFilePath, {
+			encoding: "utf-8",
+		});
+		/* eslint-disable-next-line */
+		const EvaParser = require("./parser");
+		const moduleExpr = EvaParser.parse(
+			`(begin ${moduleFileContent})`
+		) as Expression;
+		const wrapper = ["module", name, moduleExpr];
+
+		return this.evalModule(wrapper, this.globalEnvironment);
 	}
 
 	evalModule(expr: CompoundExpression, environment: Environment) {

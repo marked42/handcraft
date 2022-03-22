@@ -416,4 +416,19 @@ describe("module", () => {
 		`)
 		).toEqual(10);
 	});
+
+	it("import external module", () => {
+		expect(
+			interpret(
+				`
+			(begin
+				(import Math)
+				(var abs (prop Math abs))
+				(abs (- 10))
+			)
+		`,
+				__dirname
+			)
+		).toEqual(10);
+	});
 });
