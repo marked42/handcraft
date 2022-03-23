@@ -196,7 +196,7 @@ export class Eva {
 		) as Expression;
 		const wrapper = ["module", name, moduleExpr];
 
-		return this.evalModule(wrapper, this.globalEnvironment);
+		return this.evalModule(wrapper, environment);
 	}
 
 	evalModule(expr: CompoundExpression, environment: Environment) {
