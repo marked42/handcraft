@@ -1,7 +1,6 @@
 import { Eva } from "./Eva";
 import { Expression } from "./expression";
-/* eslint-disable-next-line */
-const EvaParser = require("./parser");
+import { EvaParser } from "./parser";
 
 export function interpret(source: string, moduleFolder?: string) {
 	const eva = new Eva();

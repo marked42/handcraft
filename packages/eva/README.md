@@ -33,4 +33,4 @@ Eva 是课程[Building an Interpreter from scratch](https://www.bilibili.com/vid
 
 Typescript
 
-1. import from an auto generate ES5 commonjs file
+1. import from an auto generate ES5 commonjs file, how to ignore type check

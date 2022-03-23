@@ -3,6 +3,7 @@ import fs from "fs";
 import { Environment } from "../Environment";
 import { CompoundExpression, Expression, ExpressionValue } from "../expression";
 import { Eva } from "../Eva";
+import { EvaParser } from "../parser";
 
 export abstract class ModuleEvaluator {
 	constructor(
@@ -140,8 +141,6 @@ export abstract class ExternalModuleEvaluator extends ModuleEvaluator {
 		const moduleFileContent: string = fs.readFileSync(moduleFilePath, {
 			encoding: "utf-8",
 		});
-		/* eslint-disable-next-line */
-		const EvaParser = require("../parser");
 		const moduleExpr = EvaParser.parse(
 			`(begin ${moduleFileContent})`
 		) as Expression;
