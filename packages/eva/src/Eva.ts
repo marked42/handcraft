@@ -150,7 +150,7 @@ export class Eva {
 			} else if (expr[0] === "super") {
 				return this.evalSuper(expr, environment);
 			} else if (expr[0] === "module") {
-				return this.evalModule(expr, environment);
+				return this.evalInlineModule(expr, environment);
 			} else if (expr[0] === "import") {
 				return this.evalImport(expr, environment);
 			} else {
@@ -181,11 +181,47 @@ export class Eva {
 		}
 	}
 
-	evalImport(expr: CompoundExpression, environment: Environment) {
-		const [, name] = expr;
-		this.assertsSymbol(name);
+	// assertsSymbolArray(names: CompoundExpression): asserts names is string[] {
+	// 	if (!names.every((name) => this.isStringExpression(name))) {
+	// 		throw new Error(`names 不是字符串数组 ${JSON.stringify(names)}`);
+	// 	}
+	// }
 
-		const moduleFilePath = path.join(this.moduleFolder, `${name}.eva`);
+	evalImport(expr: CompoundExpression, environment: Environment) {
+		const [, moduleName, ...importedNames] = expr;
+		this.assertsSymbol(moduleName);
+		this.assertsSymbolArray(importedNames);
+
+		if (importedNames.length === 0) {
+			return this.evalNamespaceImport(moduleName, environment);
+		}
+
+		return this.evalNamedImport(moduleName, importedNames, environment);
+	}
+
+	evalNamedImport(
+		moduleName: string,
+		importedNames: string[],
+		environment: Environment
+	) {
+		const wrapper = this.loadModule(moduleName);
+		const modEnv = this.evalModule(wrapper, environment);
+		environment.define(moduleName, modEnv);
+
+		importedNames.forEach((name) => {
+			environment.define(name, modEnv.lookup(name));
+		});
+
+		const lastName = importedNames[importedNames.length - 1];
+
+		return environment.lookup(lastName);
+	}
+
+	loadModule(moduleName: string) {
+		const moduleFilePath = path.join(
+			this.moduleFolder,
+			`${moduleName}.eva`
+		);
 		const moduleFileContent: string = fs.readFileSync(moduleFilePath, {
 			encoding: "utf-8",
 		});
@@ -194,9 +230,34 @@ export class Eva {
 		const moduleExpr = EvaParser.parse(
 			`(begin ${moduleFileContent})`
 		) as Expression;
-		const wrapper = ["module", name, moduleExpr];
+		const wrapper = ["module", moduleName, moduleExpr];
 
-		return this.evalModule(wrapper, environment);
+		return wrapper;
+	}
+
+	evalNamespaceImport(moduleName: string, environment: Environment) {
+		const wrapper = this.loadModule(moduleName);
+
+		return this.installModule(moduleName, wrapper, environment);
+	}
+
+	installModule(
+		moduleName: string,
+		wrapper: Expression[],
+		environment: Environment
+	) {
+		const modEnv = this.evalModule(wrapper, environment);
+		environment.define(moduleName, modEnv);
+
+		return modEnv;
+	}
+
+	evalInlineModule(expr: CompoundExpression, environment: Environment) {
+		const [, name, body] = expr;
+		this.assertsSymbol(name);
+		this.assertsBlockExpression(body);
+
+		return this.installModule(name, expr, environment);
 	}
 
 	evalModule(expr: CompoundExpression, environment: Environment) {
@@ -207,8 +268,6 @@ export class Eva {
 
 		const moduleEnv = new Environment({}, environment);
 		this.evalBlock(body, environment, moduleEnv);
-
-		environment.define(name, moduleEnv);
 
 		return moduleEnv;
 	}

@@ -431,4 +431,18 @@ describe("module", () => {
 			)
 		).toEqual(10);
 	});
+
+	it("named import external module", () => {
+		expect(
+			interpret(
+				`
+			(begin
+				(import Math abs)
+				(abs (- 10))
+			)
+		`,
+				__dirname
+			)
+		).toEqual(10);
+	});
 });
