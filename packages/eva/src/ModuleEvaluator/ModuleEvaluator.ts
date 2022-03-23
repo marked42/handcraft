@@ -44,7 +44,7 @@ export function createModuleEvaluator(
 	environment: Environment,
 	moduleFolder: string,
 	interpreter: Eva
-) {
+): ModuleEvaluator {
 	const [tag, name, ...importedNames] = expr;
 	interpreter.assertsSymbol(name);
 
@@ -129,7 +129,6 @@ export abstract class ExternalModuleEvaluator extends ModuleEvaluator {
 	}
 
 	loadModule(): CompoundExpression {
-		// load module
 		const [, moduleName, ...importedNames] = this.expr;
 		this.interpreter.assertsSymbol(moduleName);
 		this.interpreter.assertsSymbolArray(importedNames);

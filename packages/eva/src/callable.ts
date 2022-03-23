@@ -1,5 +1,5 @@
 import { Environment } from "./Environment";
-import { Expression, StringExpression } from "./expression";
+import { Expression, ExpressionValue, StringExpression } from "./expression";
 
 export interface CallableObject {
 	fnName: string;
@@ -19,6 +19,13 @@ export const createCallableObject = (options: CallableObject) => {
 	return callable;
 };
 
-export function isCallableObject(obj: any): obj is CallableObject {
-	return obj["__fn__"] === internalId;
+export function isCallableObject(
+	obj: Expression | ExpressionValue
+): obj is CallableObject {
+	return (
+		typeof obj === "object" &&
+		obj !== null &&
+		// @ts-expect-error allow
+		obj?.["__fn__"] === internalId
+	);
 }

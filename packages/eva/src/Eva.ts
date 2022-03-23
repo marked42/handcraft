@@ -1,6 +1,4 @@
 import { Environment, EnvironmentRecord } from "./Environment";
-import fs from "fs";
-import path from "path";
 import {
 	BooleanExpression,
 	CompoundExpression,
@@ -14,7 +12,7 @@ import {
 	isCallableObject,
 } from "./callable";
 import { JITTransformer } from "./JITTransformer";
-import { createModuleEvaluator, ModuleEvaluator } from "./ModuleEvaluator";
+import { createModuleEvaluator } from "./ModuleEvaluator";
 
 export class Eva {
 	private readonly transformer = new JITTransformer();
@@ -533,7 +531,7 @@ export class Eva {
 			return false;
 		}
 
-		const namePattern = /^[a-zA-Z+\-*\/><=!][a-zA-Z0-9+\-*\/><=!_]*$/;
+		const namePattern = /^[a-zA-Z+\-*/><=!][a-zA-Z0-9+\-*/><=!_]*$/;
 		return namePattern.test(name);
 	}
 
