@@ -1,0 +1,41 @@
+{
+  "name": "eva",
+  "version": "0.0.1",
+  "description": "A lisp like script language",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "eva": "dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build:parser": "./scripts/build-parser.sh",
+    "prebuild": "npm run build:parser",
+    "build": "scripty",
+    "clean": "rimraf ./dist *.tsbuildinfo",
+    "debug": "jest",
+    "test": "scripty",
+    "test:watch": "jest --watch",
+    "lint": "scripty",
+    "last": "echo 'last'"
+  },
+  "scripty": {
+    "path": "../../scripts/packages"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marked42/handcraft.git"
+  },
+  "keywords": [
+    "eva",
+    "interpreter"
+  ],
+  "author": "penghui",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "syntax-cli": "^0.1.22"
+  }
+}

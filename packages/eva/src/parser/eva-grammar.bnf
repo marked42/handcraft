@@ -1,0 +1,42 @@
+/* lexical grammar */
+%lex
+
+%%
+
+\s+ /* skip whitespaces */
+
+\"[^\"]*\" return 'STRING'
+
+\d+         return 'NUMBER'
+
+(true|false) return 'BOOLEAN'
+
+[\w-+*/!=<>/]+ return 'SYMBOL'
+
+/lex
+
+
+// syntactic grammar
+
+%%
+
+Exp
+    : Atom
+    | List
+    ;
+
+Atom
+    : NUMBER { $$ = Number($1) }
+    | BOOLEAN { $$ = $1 === 'true' ? true : false }
+    | STRING
+    | SYMBOL
+    ;
+
+List
+    : '(' ListEntries ')' { $$ = $2 }
+    ;
+
+ListEntries
+    : ListEntries Exp { $1.push($2); $$ = $1 }
+    | /* empty */ { $$ = [] }
+    ;
