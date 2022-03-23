@@ -4,6 +4,9 @@
   "description": "A lisp like script language",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "eva": "dist/cli.js"
+  },
   "publishConfig": {
     "access": "public"
   },

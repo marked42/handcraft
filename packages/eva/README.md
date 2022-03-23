@@ -31,6 +31,24 @@ Eva 是课程[Building an Interpreter from scratch](https://www.bilibili.com/vid
     1. 父类
 1. 模块支持
 
+# 命令行工具
+
+`-f`参数 执行 eva 文件脚本
+
+```bash
+ts-node src/cli.ts -f test/test.eva
+ts-node src/cli.ts -f test/math-test.eva
+```
+
+或者`-e`参数执行命令行输入脚本
+
+```bash
+ts-node src/cli.ts -e '(var x 10) (print (* x 15))'
+ts-node src/cli.ts -e '(print ((lambda (x) (* x x)) 2))'
+```
+
+# 问题
+
 Typescript
 
 1. import from an auto generate ES5 commonjs file, how to ignore type check

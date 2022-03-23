@@ -8,7 +8,9 @@ export function interpret(source: string, moduleFolder?: string) {
 		eva.setModuleFolder(moduleFolder);
 	}
 
-	const expr = EvaParser.parse(source) as Expression;
+	const wrapInBlock = `(begin ${source})`;
+	const expr = EvaParser.parse(wrapInBlock) as Expression;
 
-	return eva.eval(expr);
+	const value = eva.eval(expr);
+	return value;
 }
