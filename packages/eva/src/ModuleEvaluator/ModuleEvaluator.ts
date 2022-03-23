@@ -1,18 +1,134 @@
 import path from "path";
 import fs from "fs";
 import { Environment } from "../Environment";
-import { CompoundExpression, Expression } from "../expression";
+import { CompoundExpression, Expression, ExpressionValue } from "../expression";
 import { Eva } from "../Eva";
 
-export class ModuleEvaluator {
+export abstract class ModuleEvaluator {
 	constructor(
-		private readonly expr: CompoundExpression,
-		private readonly environment: Environment,
-		private readonly moduleFolder: string,
-		private readonly interpreter: Eva
+		protected readonly name: string,
+		protected readonly expr: CompoundExpression,
+		protected readonly environment: Environment,
+		protected readonly moduleFolder: string,
+		protected readonly interpreter: Eva
 	) {}
 
-	loadExternalModule() {
+	evalModuleBody(expr: CompoundExpression) {
+		const { environment } = this;
+		const [, name, body] = expr;
+
+		this.interpreter.assertsSymbol(name);
+		this.interpreter.assertsBlockExpression(body);
+
+		const moduleEnv = new Environment({}, environment);
+		this.interpreter.evalBlock(body, environment, moduleEnv);
+
+		return moduleEnv;
+	}
+
+	abstract loadModule(): CompoundExpression;
+
+	abstract installModule(environment: Environment): ExpressionValue;
+
+	evalModuleDefinition() {
+		const moduleExpression = this.loadModule();
+
+		const modEnv = this.evalModuleBody(moduleExpression);
+
+		return this.installModule(modEnv);
+	}
+}
+
+export function createModuleEvaluator(
+	expr: CompoundExpression,
+	environment: Environment,
+	moduleFolder: string,
+	interpreter: Eva
+) {
+	const [tag, name, ...importedNames] = expr;
+	interpreter.assertsSymbol(name);
+
+	const isInlineModule = tag === "module";
+	if (isInlineModule) {
+		return new InlineModuleEvaluator(
+			name,
+			expr,
+			environment,
+			moduleFolder,
+			interpreter
+		);
+	}
+
+	const isNamespaceImportModule =
+		tag === "import" && importedNames.length === 0;
+	if (isNamespaceImportModule) {
+		return new NamespaceModuleEvaluator(
+			name,
+			expr,
+			environment,
+			moduleFolder,
+			interpreter
+		);
+	}
+
+	const isNamedImportModule = tag === "import" && importedNames.length > 0;
+	if (isNamedImportModule) {
+		interpreter.assertsSymbolArray(importedNames);
+		return new NamedModuleEvaluator(
+			name,
+			expr,
+			environment,
+			moduleFolder,
+			interpreter,
+			importedNames
+		);
+	}
+
+	throw new Error("invalid module definition");
+}
+
+export class InlineModuleEvaluator extends ModuleEvaluator {
+	constructor(
+		protected readonly name: string,
+		protected readonly expr: CompoundExpression,
+		protected readonly environment: Environment,
+		protected readonly moduleFolder: string,
+		protected readonly interpreter: Eva
+	) {
+		super(name, expr, environment, moduleFolder, interpreter);
+	}
+
+	loadModule(): CompoundExpression {
+		const { expr } = this;
+		// load module
+		const [, name, body] = expr;
+		this.interpreter.assertsSymbol(name);
+		this.interpreter.assertsBlockExpression(body);
+
+		return expr;
+	}
+
+	// 重复的情况，使用函数式组合更合适
+	installModule(modEnv: Environment): ExpressionValue {
+		// install
+		this.environment.define(this.name, modEnv);
+
+		return modEnv;
+	}
+}
+
+export abstract class ExternalModuleEvaluator extends ModuleEvaluator {
+	constructor(
+		protected readonly name: string,
+		protected readonly expr: CompoundExpression,
+		protected readonly environment: Environment,
+		protected readonly moduleFolder: string,
+		protected readonly interpreter: Eva
+	) {
+		super(name, expr, environment, moduleFolder, interpreter);
+	}
+
+	loadModule(): CompoundExpression {
 		// load module
 		const [, moduleName, ...importedNames] = this.expr;
 		this.interpreter.assertsSymbol(moduleName);
@@ -34,95 +150,45 @@ export class ModuleEvaluator {
 
 		return wrapper;
 	}
+}
 
-	evalModuleBody(expr: CompoundExpression) {
-		const { environment } = this;
-		const [, name, body] = expr;
-
-		this.interpreter.assertsSymbol(name);
-		this.interpreter.assertsBlockExpression(body);
-
-		const moduleEnv = new Environment({}, environment);
-		this.interpreter.evalBlock(body, environment, moduleEnv);
-
-		return moduleEnv;
+export class NamespaceModuleEvaluator extends ExternalModuleEvaluator {
+	constructor(
+		protected readonly name: string,
+		protected readonly expr: CompoundExpression,
+		protected readonly environment: Environment,
+		protected readonly moduleFolder: string,
+		protected readonly interpreter: Eva
+	) {
+		super(name, expr, environment, moduleFolder, interpreter);
 	}
 
-	isInlineModule() {
-		return this.expr[0] === "module";
+	installModule(modEnv: Environment): ExpressionValue {
+		this.environment.define(this.name, modEnv);
+
+		return modEnv;
+	}
+}
+
+export class NamedModuleEvaluator extends ExternalModuleEvaluator {
+	constructor(
+		protected readonly name: string,
+		protected readonly expr: CompoundExpression,
+		protected readonly environment: Environment,
+		protected readonly moduleFolder: string,
+		protected readonly interpreter: Eva,
+		private readonly importNames: string[]
+	) {
+		super(name, expr, environment, moduleFolder, interpreter);
 	}
 
-	isNamespaceImportModule() {
-		const [tag, , ...importedNames] = this.expr;
-		return tag === "import" && importedNames.length === 0;
-	}
+	installModule(modEnv: Environment): ExpressionValue {
+		this.importNames.forEach((name) => {
+			this.environment.define(name, modEnv.lookup(name));
+		});
 
-	isNamedImportModule() {
-		const [tag, , ...importedNames] = this.expr;
-		return tag === "import" && importedNames.length > 0;
-	}
+		const lastName = this.importNames[this.importNames.length - 1];
 
-	get importedNames() {
-		const [, , ...importedNames] = this.expr;
-		this.interpreter.assertsSymbolArray(importedNames);
-
-		return importedNames;
-	}
-
-	loadModule() {
-		const { expr } = this;
-
-		if (this.isInlineModule()) {
-			// load module
-			const [, name, body] = expr;
-			this.interpreter.assertsSymbol(name);
-			this.interpreter.assertsBlockExpression(body);
-
-			return expr;
-		} else if (this.isNamespaceImportModule()) {
-			const wrapper = this.loadExternalModule();
-			return wrapper;
-		} else if (this.isNamedImportModule()) {
-			const wrapper = this.loadExternalModule();
-			return wrapper;
-		}
-
-		throw new Error("no way");
-	}
-
-	get name() {
-		const [, name] = this.expr;
-		this.interpreter.assertsSymbol(name);
-		return name;
-	}
-
-	installModule(modEnv: Environment) {
-		if (this.isInlineModule()) {
-			// install
-			this.environment.define(this.name, modEnv);
-
-			return modEnv;
-		} else if (this.isNamespaceImportModule()) {
-			this.environment.define(this.name, modEnv);
-
-			return modEnv;
-		} else if (this.isNamedImportModule()) {
-			// install
-			this.importedNames.forEach((name) => {
-				this.environment.define(name, modEnv.lookup(name));
-			});
-
-			const lastName = this.importedNames[this.importedNames.length - 1];
-
-			return this.environment.lookup(lastName);
-		}
-
-		throw new Error("never");
-	}
-
-	evalImport() {
-		const moduleExpression = this.loadModule();
-		const modEnv = this.evalModuleBody(moduleExpression);
-		return this.installModule(modEnv);
+		return this.environment.lookup(lastName);
 	}
 }

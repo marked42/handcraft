@@ -14,7 +14,7 @@ import {
 	isCallableObject,
 } from "./callable";
 import { JITTransformer } from "./JITTransformer";
-import { ModuleEvaluator } from "./ModuleEvaluator";
+import { createModuleEvaluator, ModuleEvaluator } from "./ModuleEvaluator";
 
 export class Eva {
 	private readonly transformer = new JITTransformer();
@@ -187,14 +187,14 @@ export class Eva {
 	// }
 
 	evalImport(expr: CompoundExpression, environment: Environment) {
-		const moduleEvaluator = new ModuleEvaluator(
+		const moduleEvaluator = createModuleEvaluator(
 			expr,
 			environment,
 			this.moduleFolder,
 			this
 		);
 
-		return moduleEvaluator.evalImport();
+		return moduleEvaluator.evalModuleDefinition();
 	}
 
 	evalSuper(expr: CompoundExpression, environment: Environment) {
