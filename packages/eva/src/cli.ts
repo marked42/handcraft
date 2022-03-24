@@ -17,7 +17,7 @@ function main(argv: string[]) {
 
 	if (mode === "-f") {
 		const file: string = fs.readFileSync(exp, "utf8");
-		return interpret(file, path.dirname(path.resolve(exp)) as string);
+		return interpret(file, path.dirname(path.resolve(exp)));
 	}
 
 	// REPL

@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import { Environment } from "../Environment";
-import { CompoundExpression, Expression, ExpressionValue } from "../expression";
+import { CompoundExpression, ExpressionValue } from "../expression";
 import { Eva } from "../Eva";
 import { EvaParser } from "../parser";
 
@@ -141,9 +141,7 @@ export abstract class ExternalModuleEvaluator extends ModuleEvaluator {
 		const moduleFileContent: string = fs.readFileSync(moduleFilePath, {
 			encoding: "utf-8",
 		});
-		const moduleExpr = EvaParser.parse(
-			`(begin ${moduleFileContent})`
-		) as Expression;
+		const moduleExpr = EvaParser.parse(`(begin ${moduleFileContent})`);
 		const wrapper = ["module", moduleName, moduleExpr];
 
 		return wrapper;
