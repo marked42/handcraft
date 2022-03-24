@@ -506,7 +506,7 @@ export class Eva {
 			.slice(1)
 			.map((e) => this.evalInEnvironment(e, blockEnv));
 
-		return values[values.length - 1] || null;
+		return values[values.length - 1];
 	}
 
 	isBooleanExpression(this: void, expr: Expression): expr is boolean {
