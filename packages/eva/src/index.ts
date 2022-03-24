@@ -1,5 +1,4 @@
 import { Eva } from "./Eva";
-import { Expression } from "./expression";
 import { EvaParser } from "./parser";
 
 export function interpret(source: string, moduleFolder?: string) {
@@ -9,8 +8,7 @@ export function interpret(source: string, moduleFolder?: string) {
 	}
 
 	const wrapInBlock = `(begin ${source})`;
-	const expr = EvaParser.parse(wrapInBlock) as Expression;
+	const expr = EvaParser.parse(wrapInBlock);
 
-	const value = eva.eval(expr);
-	return value;
+	return eva.eval(expr);
 }
