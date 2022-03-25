@@ -1,4 +1,4 @@
-# 介绍
+# Eva
 
 Eva is the mini language in course [Building an Interpreter from scratch](https://www.udemy.com/course/essentials-of-interpretation/), and this is a version implemented in typescript.
 
