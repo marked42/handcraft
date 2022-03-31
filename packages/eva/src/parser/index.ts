@@ -1,7 +1,7 @@
 import { Expression } from "../expression";
 
 interface EvaParser {
-	parse(input: string): Expression;
+    parse(input: string): Expression;
 }
 
 /* eslint-disable-next-line */
