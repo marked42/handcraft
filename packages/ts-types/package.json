@@ -1,5 +1,5 @@
 {
-  "name": "@handcraft/template",
+  "name": "@handcraft/ts-types",
   "version": "0.0.1",
   "description": "",
   "main": "dist/index.js",
@@ -25,5 +25,8 @@
   "keywords": [],
   "author": "penghui",
   "license": "MIT",
-  "private": false
+  "private": false,
+  "dependencies": {
+    "@type-challenges/utils": "^0.1.1"
+  }
 }
