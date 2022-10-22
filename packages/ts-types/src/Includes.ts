@@ -14,8 +14,6 @@ type Includes<T extends readonly any[], U> = true extends {
 /* _____________ Test Cases _____________ */
 import type { Equal, Expect } from "@type-challenges/utils";
 
-type v = Includes<[false, 2, 3, 5, 6, 7], false>;
-
 type cases = [
     Expect<
         Equal<Includes<["Kars", "Esidisi", "Wamuu", "Santana"], "Kars">, true>
