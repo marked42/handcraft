@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import fs from "fs";
-import path from "path";
+import * as fs from "fs";
+import * as path from "path";
 
 import { interpret } from "./index";
 import { EvaParser } from "./parser";
@@ -12,12 +12,14 @@ function main(argv: string[]) {
 	const [, , mode, exp] = argv;
 
 	if (mode === "-e") {
-		return interpret(exp);
+		interpret(exp);
+		return;
 	}
 
 	if (mode === "-f") {
 		const file: string = fs.readFileSync(exp, "utf8");
-		return interpret(file, path.dirname(path.resolve(exp)));
+		interpret(file, path.dirname(path.resolve(exp)));
+		return;
 	}
 
 	// REPL
