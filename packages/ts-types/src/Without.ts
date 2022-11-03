@@ -6,6 +6,12 @@ type Without<T extends unknown[], U> = T extends [infer First, ...infer Rest]
         : [First, ...Without<Rest, U>]
     : T;
 
+// type Without<T, U, R extends unknown[] = []> = T extends [infer F, ...infer Rest]
+//   ?  F extends (U extends unknown[] ? U[number] : U)
+//     ? Without<Rest, U, R>
+//     : Without<Rest, U, [...R, F]>
+//   : R
+
 /* _____________ Test Cases _____________ */
 import type { Equal, Expect } from "@type-challenges/utils";
 
