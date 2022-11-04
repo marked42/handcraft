@@ -5,15 +5,19 @@ import { JSONPrinter } from "./JSONPrinter";
 import { TokenStream } from "./TokenStream";
 
 export function parseJSON(text: string) {
-	const characterStream = new StringCharacterStream(text);
-	const tokenStream = new TokenStream(characterStream);
-	const parser = new JSONParser(tokenStream);
+    const characterStream = new StringCharacterStream(text);
+    const tokenStream = new TokenStream(characterStream);
+    const parser = new JSONParser(tokenStream);
 
-	return parser.parse();
+    return parser.parse();
 }
 
 export function printJSON(value: JSONValue) {
-	const printer = new JSONPrinter();
+    const printer = new JSONPrinter();
 
-	return printer.print(value);
+    return printer.print(value);
 }
+
+describe("test", () => {
+    // fuck
+});
