@@ -10,10 +10,11 @@
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
+        "sourceType": "module",
         "project": "tsconfig.json",
         "ecmaVersion": 12
     },
-    "plugins": ["@typescript-eslint"],
+    "plugins": ["@typescript-eslint", "jest"],
     "rules": {
         "prefer-const": "error",
         "@typescript-eslint/no-unsafe-member-access": "off",
