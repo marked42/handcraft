@@ -27,11 +27,34 @@ function main() {
     // snapshot for incremental rectangle
     let snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
+    const colorButtons = document.querySelectorAll(".colors .option");
+    let selectedColor = "#000";
+    colorButtons?.forEach((button) => {
+        button.addEventListener("click", () => {
+            document.querySelectorAll(".colors .option").forEach((button) => {
+                button.classList.remove("selected");
+            });
+
+            button.classList.add("selected");
+            const selected = document.querySelector<HTMLElement>(".selected");
+            if (selected) {
+                // 直接使用element.style.backgroundColor 拿不到背景颜色
+                selectedColor = window
+                    .getComputedStyle(selected)
+                    .getPropertyValue("background-color");
+            }
+        });
+    });
+
     const startDraw = (e: MouseEvent) => {
         isDrawing = true;
         ctx.beginPath();
         startEvent = e;
         ctx.lineWidth = brushWidth;
+
+        ctx.fillStyle = selectedColor;
+        ctx.strokeStyle = selectedColor;
+
         snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
     };
     const stopDraw = () => {
