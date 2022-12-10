@@ -46,6 +46,19 @@ function main() {
         });
     });
 
+    const colorPicker =
+        document.querySelector<HTMLInputElement>("#color-picker");
+    if (colorPicker) {
+        colorPicker.addEventListener("change", () => {
+            const parentElement = colorPicker.parentElement;
+            if (parentElement) {
+                parentElement.style.backgroundColor = colorPicker.value;
+                // 触发点击生效
+                parentElement.click();
+            }
+        });
+    }
+
     const startDraw = (e: MouseEvent) => {
         isDrawing = true;
         ctx.beginPath();
