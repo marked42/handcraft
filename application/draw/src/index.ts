@@ -16,7 +16,7 @@ function main() {
         return;
     }
 
-    const brushWidth = 5;
+    const brushWidth = 1;
 
     const fillColor = document.querySelector<HTMLInputElement>("#fill-color");
     let selectedTool = "brush";
@@ -52,6 +52,35 @@ function main() {
         }
     };
 
+    const drawCircle = (e: MouseEvent) => {
+        if (startEvent) {
+            ctx.beginPath();
+            const center = [startEvent.offsetX, startEvent.offsetY] as const;
+            const pointOnCircle = [e.offsetX, e.offsetY] as const;
+            const radius = Math.sqrt(
+                Math.pow(pointOnCircle[0] - center[0], 2) +
+                    Math.pow(pointOnCircle[1] - center[1], 2)
+            );
+            ctx.arc(...center, radius, 0, 2 * Math.PI);
+
+            fillColor?.checked ? ctx.fill() : ctx.stroke();
+        }
+    };
+
+    const drawTriangle = (e: MouseEvent) => {
+        if (!startEvent) {
+            return;
+        }
+        const { offsetX: prevX, offsetY: prevY } = startEvent;
+
+        ctx.beginPath();
+        ctx.moveTo(prevX, prevY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.lineTo(prevX * 2 - e.offsetX, e.offsetY);
+        ctx.closePath();
+        fillColor?.checked ? ctx.fill() : ctx.stroke();
+    };
+
     const drawing = (e: MouseEvent) => {
         if (!isDrawing) {
             return;
@@ -66,6 +95,10 @@ function main() {
             ctx.stroke();
         } else if (selectedTool === "rectangle") {
             drawRectangle(e);
+        } else if (selectedTool === "circle") {
+            drawCircle(e);
+        } else if (selectedTool === "triangle") {
+            drawTriangle(e);
         }
     };
 
