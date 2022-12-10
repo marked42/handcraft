@@ -162,6 +162,14 @@ function main() {
     clearButton?.addEventListener("click", () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
+
+    const saveImageButton = document.querySelector(".save-img");
+    saveImageButton?.addEventListener("click", () => {
+        const link = document.createElement("a");
+        link.download = `${Date.now()}.jpg`;
+        link.href = canvas.toDataURL();
+        link.click();
+    });
 }
 
 main();
