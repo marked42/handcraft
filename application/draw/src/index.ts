@@ -157,6 +157,11 @@ function main() {
             selectedTool = button.id;
         });
     });
+
+    const clearButton = document.querySelector(".clear-canvas");
+    clearButton?.addEventListener("click", () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
 }
 
 main();
