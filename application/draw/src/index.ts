@@ -4,13 +4,19 @@ function main() {
         return;
     }
 
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) {
         return;
     }
+
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    const initializeCanvas = () => {
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = selectedColor;
+    };
+    initializeCanvas();
 
     let brushWidth = 1;
     const sizeSlider = document.querySelector<HTMLInputElement>("#size-slider");
@@ -161,6 +167,8 @@ function main() {
     const clearButton = document.querySelector(".clear-canvas");
     clearButton?.addEventListener("click", () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        initializeCanvas();
     });
 
     const saveImageButton = document.querySelector(".save-img");
