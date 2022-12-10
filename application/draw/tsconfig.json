@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "dist",
+    "lib": ["ES2021", "DOM"],
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}
