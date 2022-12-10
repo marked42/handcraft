@@ -6,17 +6,18 @@ function main() {
 
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    // window.addEventListener("load", () => {
-    //     canvas.width = canvas.offsetWidth;
-    //     canvas.height = canvas.offsetHeight;
-    // });
 
     const ctx = canvas.getContext("2d");
     if (!ctx) {
         return;
     }
 
-    const brushWidth = 1;
+    let brushWidth = 1;
+    const sizeSlider = document.querySelector<HTMLInputElement>("#size-slider");
+    sizeSlider?.addEventListener(
+        "change",
+        () => (brushWidth = +sizeSlider.value)
+    );
 
     const fillColor = document.querySelector<HTMLInputElement>("#fill-color");
     let selectedTool = "brush";
