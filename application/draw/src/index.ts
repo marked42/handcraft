@@ -125,9 +125,10 @@ function main() {
         // retore
         ctx.putImageData(snapshot, 0, 0);
 
-        console.log("tool: ", selectedTool);
-        if (selectedTool === "brush") {
-            console.log("mouse e: ", e);
+        if (selectedTool === "brush" || selectedTool === "eraser") {
+            ctx.strokeStyle =
+                selectedTool === "eraser" ? "#fff" : selectedColor;
+
             ctx.lineTo(e.offsetX, e.offsetY);
             ctx.stroke();
         } else if (selectedTool === "rectangle") {
