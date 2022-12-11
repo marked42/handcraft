@@ -1,41 +1,42 @@
 {
-  "name": "@handcraft/json",
-  "version": "1.0.0",
-  "description": "A JSON parser and stringifier",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "build": "scripty",
-    "clean": "rimraf ./dist *.tsbuildinfo",
-    "test": "scripty",
-    "test:watch": "jest --watch",
-    "lint": "scripty",
-    "prepublishOnly": "yarn lint && yarn test && yarn build",
-    "last": "echo 'last'"
-  },
-  "scripty": {
-    "path": "../../scripts/packages"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/marked42/handcraft.git"
-  },
-  "keywords": [
-    "JSON"
-  ],
-  "author": "penghui",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/marked42/handcraft/issues"
-  },
-  "homepage": "https://github.com/marked42/handcraft#readme",
-  "devDependencies": {
-    "@types/charcodes": "^0.2.0"
-  },
-  "dependencies": {
-    "charcodes": "^0.2.0"
-  }
+    "name": "@handcraft/json",
+    "version": "1.0.0",
+    "description": "A JSON parser and stringifier",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "build": "scripty",
+        "clean": "rimraf ./dist *.tsbuildinfo",
+        "test": "scripty",
+        "test:coverage": "jest --coverage",
+        "test:watch": "jest --watch",
+        "lint": "scripty",
+        "prepublishOnly": "yarn lint && yarn test && yarn build",
+        "last": "echo 'last'"
+    },
+    "scripty": {
+        "path": "../../scripts/packages"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/marked42/handcraft.git"
+    },
+    "keywords": [
+        "JSON"
+    ],
+    "author": "penghui",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/marked42/handcraft/issues"
+    },
+    "homepage": "https://github.com/marked42/handcraft#readme",
+    "devDependencies": {
+        "@types/charcodes": "^0.2.0"
+    },
+    "dependencies": {
+        "charcodes": "^0.2.0"
+    }
 }
