@@ -1,4 +1,4 @@
-import { tokenize } from "../src";
+import { tokenize, parse, interpret } from "../src";
 
 describe("tokenize", () => {
     test("single token", () => {
@@ -45,5 +45,44 @@ Array [
             { type: "punctuator", value: ")" },
             { type: "punctuator", value: ")" },
         ]);
+    });
+});
+
+describe("parse", () => {
+    test("parse single expression", () => {
+        expect(parse("a")).toEqual([{ type: "id", value: "a" }]);
+        expect(parse("(a)")).toEqual([[{ type: "id", value: "a" }]]);
+    });
+
+    test("parse multiple expressions", () => {
+        expect(parse("a b")).toEqual([
+            { type: "id", value: "a" },
+            { type: "id", value: "b" },
+        ]);
+
+        expect(parse("(a b)")).toEqual([
+            [
+                { type: "id", value: "a" },
+                { type: "id", value: "b" },
+            ],
+        ]);
+
+        expect(parse("(a b (c d))")).toEqual([
+            [
+                { type: "id", value: "a" },
+                { type: "id", value: "b" },
+                [
+                    { type: "id", value: "c" },
+                    { type: "id", value: "d" },
+                ],
+            ],
+        ]);
+    });
+});
+
+describe("interpreter", () => {
+    test("interpret atom", () => {
+        expect(interpret("1")).toEqual(1);
+        expect(interpret('"a"')).toEqual("a");
     });
 });
