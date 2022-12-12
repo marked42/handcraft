@@ -1,5 +1,4 @@
 {
-    "cSpell.words": [
-        "charcodes"
-    ]
+    "cSpell.words": ["charcodes"],
+    "jest.autoRun": "off"
 }

@@ -1,0 +1,21 @@
+{
+  "name": "mini-lisp",
+  "version": "1.0.0",
+  "description": "A mini lisp like language in Javascript",
+  "main": "jest.config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "Lisp",
+    "Language",
+    "Interpreter"
+  ],
+  "author": "kosmo42",
+  "license": "ISC"
+}
