@@ -1,4 +1,4 @@
-import { tokenize, parse, interpret, Context } from "../src";
+import { tokenize, parse, interpret, Context, ExprValue } from "../src";
 
 describe("tokenize", () => {
     test("single token", () => {
@@ -89,5 +89,31 @@ describe("interpreter", () => {
     test("interpret variable", () => {
         expect(() => interpret("a")).toThrowError();
         expect(interpret("a", new Context({ a: 1 }))).toEqual(1);
+    });
+
+    test("call expression", () => {
+        expect(
+            interpret(
+                "(add 1 2)",
+                new Context({
+                    add: (left: ExprValue, right: ExprValue) => {
+                        if (
+                            typeof left === "number" &&
+                            typeof right === "number"
+                        ) {
+                            return left + right;
+                        }
+                        if (
+                            typeof left === "string" &&
+                            typeof right === "string"
+                        ) {
+                            return left + right;
+                        }
+
+                        throw new Error("add only valid on string/number");
+                    },
+                })
+            )
+        ).toEqual(3);
     });
 });
