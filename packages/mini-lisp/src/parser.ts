@@ -15,6 +15,7 @@ function parseImpl(tokens: Token[], list: List = []): List {
         return list;
     }
 
+    // FIXME: violation of OCP
     if (nextToken.type === "punctuator" && nextToken.value === "(") {
         list.push(parseImpl(tokens));
         return parseImpl(tokens, list);

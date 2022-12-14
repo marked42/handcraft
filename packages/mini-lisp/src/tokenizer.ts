@@ -23,12 +23,18 @@ export interface TokenString {
     value: string;
 }
 
+export interface TokenOther {
+    type: "other";
+    value: string;
+}
+
 // FIXME: 增加Token类型需要修改这里，如何使用开闭原则？
 export type Token =
     | TokenIdentifier
     | TokenString
     | TokenNumber
     | TokenUnknown
+    | TokenOther
     | TokenPunctuator;
 
 export function tokenize(input: string): Token[] {
