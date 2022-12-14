@@ -1,4 +1,4 @@
-import { tokenize, parse, interpret } from "../src";
+import { tokenize, parse, interpret, Context } from "../src";
 
 describe("tokenize", () => {
     test("single token", () => {
@@ -84,5 +84,10 @@ describe("interpreter", () => {
     test("interpret atom", () => {
         expect(interpret("1")).toEqual(1);
         expect(interpret('"a"')).toEqual("a");
+    });
+
+    test("interpret variable", () => {
+        expect(() => interpret("a")).toThrowError();
+        expect(interpret("a", new Context({ a: 1 }))).toEqual(1);
     });
 });
