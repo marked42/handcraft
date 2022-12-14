@@ -118,6 +118,7 @@ describe("interpreter", () => {
 
     test("call expression", () => {
         expect(interpret("(add 1 2)", new Context(library))).toEqual(3);
+        expect(interpret("(first (1 2))", new Context(library))).toEqual(1);
     });
 
     test("lambda expression", () => {
