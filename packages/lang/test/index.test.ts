@@ -1,4 +1,4 @@
-import { tokenize, parse, interpret, Context, ExprValue } from "../src";
+import { tokenize, parse, interpret, Context, ExprValue, Scope } from "../src";
 
 describe("tokenize", () => {
     test("single token", () => {
@@ -80,6 +80,27 @@ describe("parse", () => {
     });
 });
 
+const library: Scope = {
+    add: (left: ExprValue, right: ExprValue) => {
+        if (typeof left === "number" && typeof right === "number") {
+            return left + right;
+        }
+        if (typeof left === "string" && typeof right === "string") {
+            return left + right;
+        }
+
+        throw new Error("add only valid on string/number");
+    },
+    first: (value: ExprValue) => {
+        if (!Array.isArray(value)) {
+            throw new Error(
+                `first applied to invalid value ${value.toString()}`
+            );
+        }
+        return value[0];
+    },
+};
+
 describe("interpreter", () => {
     test("interpret atom", () => {
         expect(interpret("1")).toEqual(1);
@@ -92,54 +113,12 @@ describe("interpreter", () => {
     });
 
     test("call expression", () => {
-        expect(
-            interpret(
-                "(add 1 2)",
-                new Context({
-                    add: (left: ExprValue, right: ExprValue) => {
-                        if (
-                            typeof left === "number" &&
-                            typeof right === "number"
-                        ) {
-                            return left + right;
-                        }
-                        if (
-                            typeof left === "string" &&
-                            typeof right === "string"
-                        ) {
-                            return left + right;
-                        }
-
-                        throw new Error("add only valid on string/number");
-                    },
-                })
-            )
-        ).toEqual(3);
+        expect(interpret("(add 1 2)", new Context(library))).toEqual(3);
     });
 
     test("lambda expression", () => {
         expect(
-            interpret(
-                "((lambda (x) (add x x)) 1)",
-                new Context({
-                    add: (left: ExprValue, right: ExprValue) => {
-                        if (
-                            typeof left === "number" &&
-                            typeof right === "number"
-                        ) {
-                            return left + right;
-                        }
-                        if (
-                            typeof left === "string" &&
-                            typeof right === "string"
-                        ) {
-                            return left + right;
-                        }
-
-                        throw new Error("add only valid on string/number");
-                    },
-                })
-            )
+            interpret("((lambda (x) (add x x)) 1)", new Context(library))
         ).toEqual(2);
     });
 });
