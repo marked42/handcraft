@@ -3,7 +3,7 @@ import { Token, TokenIdentifier } from "./tokenizer";
 
 export type Primitive = string | number;
 export type Callable = (...args: ExprValue[]) => ExprValue;
-export type ExprValue = Primitive | Callable | Primitive[];
+export type ExprValue = Primitive | Callable | ExprValue[];
 export type Scope = Record<string, ExprValue>;
 
 export class Context {
@@ -88,7 +88,7 @@ export function interpretListExpression(
         return first(...rest);
     }
 
-    throw new Error(`Unsupported list expression ${list.join(" ")}.`);
+    return values;
 }
 
 function assertLambdaParameters(

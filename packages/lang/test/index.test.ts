@@ -106,6 +106,9 @@ describe("interpreter", () => {
         expect(interpret("1")).toEqual(1);
         expect(interpret('"a"')).toEqual("a");
         expect(interpret("()")).toEqual([]);
+        expect(interpret("(1)")).toEqual([1]);
+        expect(interpret("(1 2)")).toEqual([1, 2]);
+        expect(interpret("(1 (1 2))")).toEqual([1, [1, 2]]);
     });
 
     test("interpret variable", () => {
