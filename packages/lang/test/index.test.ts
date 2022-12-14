@@ -105,6 +105,7 @@ describe("interpreter", () => {
     test("interpret atom", () => {
         expect(interpret("1")).toEqual(1);
         expect(interpret('"a"')).toEqual("a");
+        expect(interpret("()")).toEqual([]);
     });
 
     test("interpret variable", () => {

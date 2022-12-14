@@ -58,6 +58,10 @@ export function interpretListExpression(
     list: List,
     context: Context
 ): ExprValue {
+    if (list.length === 0) {
+        return [];
+    }
+
     if (
         !Array.isArray(list[0]) &&
         list[0].type === "id" &&
