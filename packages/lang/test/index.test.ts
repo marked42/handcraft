@@ -125,5 +125,15 @@ describe("interpreter", () => {
         expect(
             interpret("((lambda (x) (add x x)) 1)", new Context(library))
         ).toEqual(2);
+        expect(
+            interpret('((lambda (x) x) "Lisp")', new Context(library))
+        ).toEqual("Lisp");
+
+        expect(
+            interpret(
+                '((lambda (a) ((lambda (b) (b a)) "b")) "a")',
+                new Context(library)
+            )
+        ).toEqual(["b", "a"]);
     });
 });
