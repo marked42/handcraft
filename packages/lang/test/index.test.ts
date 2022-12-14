@@ -116,4 +116,30 @@ describe("interpreter", () => {
             )
         ).toEqual(3);
     });
+
+    test("lambda expression", () => {
+        expect(
+            interpret(
+                "((lambda (x) (add x x)) 1)",
+                new Context({
+                    add: (left: ExprValue, right: ExprValue) => {
+                        if (
+                            typeof left === "number" &&
+                            typeof right === "number"
+                        ) {
+                            return left + right;
+                        }
+                        if (
+                            typeof left === "string" &&
+                            typeof right === "string"
+                        ) {
+                            return left + right;
+                        }
+
+                        throw new Error("add only valid on string/number");
+                    },
+                })
+            )
+        ).toEqual(2);
+    });
 });
