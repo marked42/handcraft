@@ -2,3 +2,4 @@
 export * from "./tokenizer";
 export * from "./parser";
 export * from "./interpreter";
+export * from "./library";

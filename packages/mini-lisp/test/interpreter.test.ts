@@ -1,25 +1,4 @@
-import { interpret, Context, ExprValue, Scope } from "../src";
-
-const library: Scope = {
-    add: (left: ExprValue, right: ExprValue) => {
-        if (typeof left === "number" && typeof right === "number") {
-            return left + right;
-        }
-        if (typeof left === "string" && typeof right === "string") {
-            return left + right;
-        }
-
-        throw new Error("add only valid on string/number");
-    },
-    first: (value: ExprValue) => {
-        if (!Array.isArray(value)) {
-            throw new Error(
-                `first applied to invalid value ${value.toString()}`
-            );
-        }
-        return value[0];
-    },
-};
+import { interpret, Context } from "../src";
 
 test("literal atom", () => {
     expect(interpret("1")).toEqual(1);
@@ -41,34 +20,27 @@ describe("variable", () => {
 });
 
 describe("call expression", () => {
-    test("add", () => {
-        expect(interpret("(add 1 2)", new Context(library))).toEqual(3);
+    test("+", () => {
+        expect(interpret("(+ 1 2)")).toEqual(3);
     });
 
     test("first", () => {
-        expect(interpret("(first (1 2))", new Context(library))).toEqual(1);
+        expect(interpret("(first (1 2))")).toEqual(1);
     });
 });
 
 describe("lambda", () => {
     test("single parameter", () => {
-        expect(
-            interpret('((lambda (x) x) "Lisp")', new Context(library))
-        ).toEqual("Lisp");
+        expect(interpret('((lambda (x) x) "Lisp")')).toEqual("Lisp");
     });
 
     test("use built-in function", () => {
-        expect(
-            interpret("((lambda (x) (add x x)) 1)", new Context(library))
-        ).toEqual(2);
+        expect(interpret("((lambda (x) (+ x x)) 1)")).toEqual(2);
     });
 
     test("closure", () => {
         expect(
-            interpret(
-                '((lambda (a) ((lambda (b) (b a)) "b")) "a")',
-                new Context(library)
-            )
+            interpret('((lambda (a) ((lambda (b) (b a)) "b")) "a")')
         ).toEqual(["b", "a"]);
     });
 });

@@ -1,3 +1,4 @@
+import { StandardLibrary } from "./library";
 import { type Atom, parse, type List } from "./parser";
 import { Token, TokenSymbol, TokenType } from "./tokenizer";
 
@@ -26,7 +27,10 @@ export class Context {
     }
 }
 
-export function interpret(input: string, rootContext = new Context()) {
+export function interpret(
+    input: string,
+    rootContext = new Context(StandardLibrary)
+) {
     const expressions = parse(input);
     if (expressions.length === 1) {
         return interpretExpression(expressions[0], rootContext);
@@ -35,7 +39,7 @@ export function interpret(input: string, rootContext = new Context()) {
     throw new Error("invalid case, support only single expression.");
 }
 
-export function interpretExpression(
+function interpretExpression(
     expr: Atom | List,
     context = new Context()
 ): ExprValue {
@@ -51,13 +55,10 @@ export function interpretExpression(
         return context.get(expr.name);
     }
 
-    throw new Error(`unsupported expr ${String(expr)}`);
+    throw new Error(`unsupported expr ${expr.source}`);
 }
 
-export function interpretListExpression(
-    list: List,
-    context: Context
-): ExprValue {
+function interpretListExpression(list: List, context: Context): ExprValue {
     if (list.length === 0) {
         return [];
     }
