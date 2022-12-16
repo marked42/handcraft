@@ -1,4 +1,4 @@
-import { type Token, tokenize } from "./tokenizer";
+import { type Token, tokenize, TokenType } from "./tokenizer";
 
 export type Atom = Token;
 export type List = Array<List | Atom>;
@@ -16,10 +16,13 @@ function parseImpl(tokens: Token[], list: List = []): List {
     }
 
     // FIXME: violation of OCP
-    if (nextToken.type === "punctuator" && nextToken.value === "(") {
+    if (nextToken.type === TokenType.Punctuator && nextToken.source === "(") {
         list.push(parseImpl(tokens));
         return parseImpl(tokens, list);
-    } else if (nextToken.type === "punctuator" && nextToken.value === ")") {
+    } else if (
+        nextToken.type === TokenType.Punctuator &&
+        nextToken.source === ")"
+    ) {
         return list;
     }
 

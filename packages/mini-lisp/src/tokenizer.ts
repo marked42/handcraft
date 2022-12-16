@@ -1,40 +1,45 @@
-export interface TokenIdentifier {
-    type: "id";
-    value: string;
+export enum TokenType {
+    Symbol,
+    Number,
+    String,
+    Punctuator,
+    Unknown,
 }
 
-export interface TokenNumber {
-    type: "number";
+export interface TokenBase {
+    type: TokenType;
+    source: string;
+}
+
+export interface TokenSymbol extends TokenBase {
+    type: TokenType.Symbol;
+    name: string;
+}
+
+export interface TokenNumber extends TokenBase {
+    type: TokenType.Number;
     value: number;
 }
 
-export interface TokenPunctuator {
-    type: "punctuator";
-    value: string;
-}
-
-export interface TokenUnknown {
-    type: "unknown";
-    value: string;
-}
-
 export interface TokenString {
-    type: "string";
+    type: TokenType.String;
     value: string;
 }
 
-export interface TokenOther {
-    type: "other";
-    value: string;
+export interface TokenPunctuator extends TokenBase {
+    type: TokenType.Punctuator;
+}
+
+export interface TokenUnknown extends TokenBase {
+    type: TokenType.Unknown;
 }
 
 // FIXME: 增加Token类型需要修改这里，如何使用开闭原则？
 export type Token =
-    | TokenIdentifier
+    | TokenSymbol
     | TokenString
     | TokenNumber
     | TokenUnknown
-    | TokenOther
     | TokenPunctuator;
 
 export function tokenize(input: string): Token[] {
@@ -44,24 +49,28 @@ export function tokenize(input: string): Token[] {
         .trim()
         .split(/\s+/);
 
-    return segments.map((text) => {
-        if (/^[a-zA-Z][a-zA-Z0-9]*$/.test(text)) {
-            return { type: "id", value: text };
+    return segments.map((source) => {
+        if (/^[a-zA-Z][a-zA-Z0-9]*$/.test(source)) {
+            return { type: TokenType.Symbol, source, name: source };
         }
 
-        if (/^"[^"]*"$/.test(text)) {
-            return { type: "string", value: text.slice(1, -1) };
+        if (/^"[^"]*"$/.test(source)) {
+            return {
+                type: TokenType.String,
+                source,
+                value: source.slice(1, -1),
+            };
         }
 
-        const number = Number.parseFloat(text);
+        const number = Number.parseFloat(source);
         if (!Number.isNaN(number)) {
-            return { type: "number", value: number };
+            return { type: TokenType.Number, source, value: number };
         }
 
-        if (["(", ")"].includes(text)) {
-            return { type: "punctuator", value: text };
+        if (["(", ")"].includes(source)) {
+            return { type: TokenType.Punctuator, source };
         }
 
-        return { type: "unknown", value: text };
+        return { type: TokenType.Unknown, source, value: source };
     });
 }

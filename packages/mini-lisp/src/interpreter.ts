@@ -1,5 +1,5 @@
 import { type Atom, parse, type List } from "./parser";
-import { Token, TokenIdentifier } from "./tokenizer";
+import { Token, TokenSymbol, TokenType } from "./tokenizer";
 
 export type Primitive = string | number;
 export type Callable = (...args: ExprValue[]) => ExprValue;
@@ -43,12 +43,12 @@ export function interpretExpression(
         return interpretListExpression(expr, context);
     }
 
-    if (expr.type === "string" || expr.type === "number") {
+    if (expr.type === TokenType.String || expr.type === TokenType.Number) {
         return expr.value;
     }
 
-    if (expr.type === "id") {
-        return context.get(expr.value);
+    if (expr.type === TokenType.Symbol) {
+        return context.get(expr.name);
     }
 
     throw new Error(`unsupported expr ${String(expr)}`);
@@ -64,8 +64,8 @@ export function interpretListExpression(
 
     if (
         !Array.isArray(list[0]) &&
-        list[0].type === "id" &&
-        list[0].value === "lambda"
+        list[0].type === TokenType.Symbol &&
+        list[0].name === "lambda"
     ) {
         const [, formalArgs, body] = list;
 
@@ -73,7 +73,7 @@ export function interpretListExpression(
 
         return function lambda(...args: ExprValue[]) {
             const scope: Scope = formalArgs.reduce((acc, formalArg, index) => {
-                acc[formalArg.value] = args[index];
+                acc[formalArg.name] = args[index];
                 return acc;
             }, {} as Scope);
             const lambdaScope = new Context(scope, context);
@@ -93,10 +93,12 @@ export function interpretListExpression(
 
 function assertLambdaParameters(
     list: List | Token
-): asserts list is TokenIdentifier[] {
+): asserts list is TokenSymbol[] {
     if (
         !Array.isArray(list) ||
-        list.some((item) => Array.isArray(item) || item.type !== "id")
+        list.some(
+            (item) => Array.isArray(item) || item.type !== TokenType.Symbol
+        )
     ) {
         throw new Error(`invalid parameters ${list.toString()}`);
     }
