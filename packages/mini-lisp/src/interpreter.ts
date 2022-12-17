@@ -76,6 +76,17 @@ function interpretListExpression(list: List, context: Context): ExprValue {
             context.define(symbol.name, interpretExpression(value));
             return;
         }
+
+        if (name === "if") {
+            const [, test, consequent, alternation] = list;
+
+            const expr = interpretExpression(test)
+                ? interpretExpression(consequent)
+                : interpretExpression(alternation);
+
+            // macro expansion
+            return expr;
+        }
     }
 
     const values = list.map((item) => interpretExpression(item, context));

@@ -89,6 +89,11 @@ describe("variable", () => {
     });
 });
 
+test("if", () => {
+    expect(interpret("(if 1 2 3)")).toEqual(2);
+    expect(interpret("(if 0 2 3)")).toEqual(3);
+});
+
 describe("call expression", () => {
     test("car", () => {
         expect(interpret("(car (1 2 3))")).toEqual(1);
