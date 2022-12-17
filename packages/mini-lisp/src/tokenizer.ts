@@ -42,6 +42,8 @@ export type Token =
     | TokenUnknown
     | TokenPunctuator;
 
+const Operators = ["+", "-", "*", "/", "=", ">", "<", ">=", "<="];
+
 export function tokenize(input: string): Token[] {
     const segments = input
         .replaceAll("(", " ( ")
@@ -50,7 +52,10 @@ export function tokenize(input: string): Token[] {
         .split(/\s+/);
 
     return segments.map((source) => {
-        if (/^[a-zA-Z+\-*/=?][a-zA-Z0-9+\-*/=?]*$/.test(source)) {
+        if (
+            Operators.includes(source) ||
+            /^[a-zA-Z][a-zA-Z0-9?]*$/.test(source)
+        ) {
             return { type: TokenType.Symbol, source, name: source };
         }
 

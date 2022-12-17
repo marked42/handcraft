@@ -2,7 +2,7 @@ import { StandardLibrary } from "./library";
 import { type Atom, parse, type List } from "./parser";
 import { Token, TokenSymbol, TokenType } from "./tokenizer";
 
-export type Primitive = string | number;
+export type Primitive = string | number | boolean;
 export type Callable = (...args: ExprValue[]) => ExprValue;
 export type ExprValue = Primitive | Callable | ExprValue[];
 export type Scope = Record<string, ExprValue>;

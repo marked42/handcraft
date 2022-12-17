@@ -1,11 +1,14 @@
 import { tokenize, TokenType } from "../src";
 
 describe("atoms", () => {
-    test("symbol", () => {
-        expect(tokenize("a")).toEqual([
-            { type: TokenType.Symbol, source: "a", name: "a" },
-        ]);
-    });
+    test.each(["a", "+", "-", "*", "/", "=", ">", "<", ">=", "<="])(
+        "symbol",
+        (symbol) => {
+            expect(tokenize(symbol)).toEqual([
+                { type: TokenType.Symbol, source: symbol, name: symbol },
+            ]);
+        }
+    );
 
     test("string literal", () => {
         expect(tokenize('"hello-world"')).toEqual([

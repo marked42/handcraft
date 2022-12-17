@@ -2,6 +2,8 @@ import { ExprValue, Scope } from "../src";
 
 export const StandardLibrary: Scope = {
     "+": (left: ExprValue, right: ExprValue) => {
+        // TODO: duplication
+        // ts function supports only single predicate
         if (typeof left === "number" && typeof right === "number") {
             return left + right;
         }
@@ -9,7 +11,63 @@ export const StandardLibrary: Scope = {
             return left + right;
         }
 
-        throw new Error("add only valid on string/number");
+        throwInvalidOperandsError("+", ["string", "number"], [left, right]);
+    },
+    "-": (left: ExprValue, right: ExprValue) => {
+        if (typeof left === "number" && typeof right === "number") {
+            return left - right;
+        }
+
+        throwInvalidOperandsError("-", ["number"], [left, right]);
+    },
+    "*": (left: ExprValue, right: ExprValue) => {
+        if (typeof left === "number" && typeof right === "number") {
+            return left * right;
+        }
+
+        throwInvalidOperandsError("*", ["number"], [left, right]);
+    },
+    "/": (left: ExprValue, right: ExprValue) => {
+        if (typeof left === "number" && typeof right === "number") {
+            return left / right;
+        }
+
+        throwInvalidOperandsError("/", ["number"], [left, right]);
+    },
+    "=": (left: ExprValue, right: ExprValue) => {
+        if (typeof left === "number" && typeof right === "number") {
+            return left === right;
+        }
+
+        throwInvalidOperandsError(">", ["number"], [left, right]);
+    },
+    ">": (left: ExprValue, right: ExprValue) => {
+        if (typeof left === "number" && typeof right === "number") {
+            return left > right;
+        }
+
+        throwInvalidOperandsError(">", ["number"], [left, right]);
+    },
+    ">=": (left: ExprValue, right: ExprValue) => {
+        if (typeof left === "number" && typeof right === "number") {
+            return left >= right;
+        }
+
+        throwInvalidOperandsError(">=", ["number"], [left, right]);
+    },
+    "<": (left: ExprValue, right: ExprValue) => {
+        if (typeof left === "number" && typeof right === "number") {
+            return left < right;
+        }
+
+        throwInvalidOperandsError("<", ["number"], [left, right]);
+    },
+    "<=": (left: ExprValue, right: ExprValue) => {
+        if (typeof left === "number" && typeof right === "number") {
+            return left <= right;
+        }
+
+        throwInvalidOperandsError(">", ["number"], [left, right]);
     },
     first: (value: ExprValue) => {
         if (!Array.isArray(value)) {
@@ -20,3 +78,17 @@ export const StandardLibrary: Scope = {
         return value[0];
     },
 };
+
+function throwInvalidOperandsError(
+    op: string,
+    validOperands: string[],
+    actualOperands: ExprValue[]
+): never {
+    throw new Error(
+        `operator '${op}' is valid only for ${validOperands.join(
+            "/"
+        )}, received (${op} ${actualOperands
+            .map((e) => e.toString())
+            .join(" ")})`
+    );
+}
