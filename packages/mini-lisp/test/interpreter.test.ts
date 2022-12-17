@@ -66,6 +66,27 @@ describe("variable", () => {
     test("read variable", () => {
         expect(interpret("a", new Context({ a: 1 }))).toEqual(1);
     });
+
+    test("define variable", () => {
+        expect(interpret("(begin (define r 10) r)")).toEqual(10);
+        expect(interpret("(begin (define r 10) (* 2 (* r r)))")).toEqual(200);
+    });
+
+    test("cannot redefine existed variable", () => {
+        expect(() =>
+            interpret("(begin (define r 10) (define r 11))")
+        ).toThrowError();
+    });
+
+    test("cannot redefine builtin variable", () => {
+        expect(() => interpret("(define + 10)")).toThrowError();
+    });
+
+    test("cannot redefine builtin variable", () => {
+        expect(() =>
+            interpret("(begin (define a 10) ((lambda () (define a 1))))")
+        ).toThrowError();
+    });
 });
 
 describe("call expression", () => {

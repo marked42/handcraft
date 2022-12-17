@@ -1,4 +1,4 @@
-import { StandardLibrary } from "./library";
+import { getStandardLibrary } from "./library";
 import { type Atom, parse, type List } from "./parser";
 import { Token, TokenSymbol, TokenType } from "./tokenizer";
 import { Context, type Scope } from "./context";
@@ -6,7 +6,7 @@ import { ExprValue } from "./data-types";
 
 export function interpret(
     input: string,
-    rootContext = new Context(StandardLibrary)
+    rootContext = new Context(getStandardLibrary())
 ) {
     const expressions = parse(input);
     if (expressions.length === 1) {
@@ -40,26 +40,41 @@ function interpretListExpression(list: List, context: Context): ExprValue {
         return [];
     }
 
-    if (!Array.isArray(list[0])) {
-        if (list[0].type === TokenType.Symbol) {
-            const { name } = list[0];
-            if (name === "lambda") {
-                const [, formalArgs, body] = list;
+    if (isSymbol(list[0])) {
+        const { name } = list[0];
+        if (name === "lambda") {
+            const [, formalArgs, body] = list;
 
-                assertLambdaParameters(formalArgs);
+            assertLambdaParameters(formalArgs);
 
-                return function lambda(...args: ExprValue[]) {
-                    const scope: Scope = formalArgs.reduce(
-                        (acc, formalArg, index) => {
-                            acc[formalArg.name] = args[index];
-                            return acc;
-                        },
-                        {} as Scope
-                    );
-                    const lambdaScope = new Context(scope, context);
-                    return interpretExpression(body, lambdaScope);
-                };
+            return function lambda(...args: ExprValue[]) {
+                const scope: Scope = formalArgs.reduce(
+                    (acc, formalArg, index) => {
+                        acc[formalArg.name] = args[index];
+                        return acc;
+                    },
+                    {} as Scope
+                );
+                const lambdaScope = new Context(scope, context);
+                return interpretExpression(body, lambdaScope);
+            };
+        }
+
+        if (name === "define") {
+            const rest = list.slice(1);
+            if (rest.length === 0) {
+                throw new Error(
+                    "missing variable name and initial value, define accepts two arguments."
+                );
             }
+            const [symbol, value] = rest;
+            if (!isSymbol(symbol)) {
+                throw new Error(
+                    `define first argument must be symbol, received ${symbol.toString()}`
+                );
+            }
+            context.define(symbol.name, interpretExpression(value));
+            return;
         }
     }
 
@@ -84,4 +99,8 @@ function assertLambdaParameters(
     ) {
         throw new Error(`invalid parameters ${list.toString()}`);
     }
+}
+
+function isSymbol(value: List | Token): value is TokenSymbol {
+    return !Array.isArray(value) && value.type === TokenType.Symbol;
 }
