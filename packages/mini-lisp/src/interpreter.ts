@@ -16,10 +16,7 @@ export function interpret(
     throw new Error("invalid case, support only single expression.");
 }
 
-function interpretExpression(
-    expr: Atom | List,
-    context = new Context()
-): ExprValue {
+function interpretExpression(expr: Atom | List, context: Context): ExprValue {
     if (Array.isArray(expr)) {
         return interpretListExpression(expr, context);
     }
@@ -73,19 +70,31 @@ function interpretListExpression(list: List, context: Context): ExprValue {
                     `define first argument must be symbol, received ${symbol.toString()}`
                 );
             }
-            context.define(symbol.name, interpretExpression(value));
+            context.define(symbol.name, interpretExpression(value, context));
             return;
         }
 
         if (name === "if") {
             const [, test, consequent, alternation] = list;
 
-            const expr = interpretExpression(test)
-                ? interpretExpression(consequent)
-                : interpretExpression(alternation);
+            const expr = interpretExpression(test, context)
+                ? interpretExpression(consequent, context)
+                : interpretExpression(alternation, context);
 
             // macro expansion
             return expr;
+        }
+
+        if (name === "set!") {
+            const [, symbol, expr] = list;
+            if (!isSymbol(symbol)) {
+                throw new Error(
+                    `set! first argument must be symbol, received ${symbol.toString()}`
+                );
+            }
+            const exprValue = interpretExpression(expr, context);
+            context.set(symbol.name, exprValue);
+            return exprValue;
         }
     }
 

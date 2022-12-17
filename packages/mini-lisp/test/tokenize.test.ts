@@ -1,7 +1,7 @@
 import { tokenize, TokenType } from "../src";
 
 describe("atoms", () => {
-    test.each(["a", "+", "-", "*", "/", "=", ">", "<", ">=", "<="])(
+    test.each(["a", "+", "-", "*", "/", "=", ">", "<", ">=", "<=", "set!"])(
         "symbol",
         (symbol) => {
             expect(tokenize(symbol)).toEqual([

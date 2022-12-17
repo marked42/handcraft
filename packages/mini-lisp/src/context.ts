@@ -1,6 +1,11 @@
 import { ExprValue } from "./data-types";
 export type Scope = Record<string, ExprValue>;
 
+export interface Reference {
+    base: Context;
+    name: string;
+}
+
 export class Context {
     constructor(
         private readonly scope: Scope = {},
@@ -38,16 +43,38 @@ export class Context {
         this.scope[name] = value;
     }
 
-    get(name: string): ExprValue {
-        if (this.has(name)) {
-            return this.scope[name];
+    lookup(name: string): Reference | undefined {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        let context: Context | undefined = this;
+
+        while (context) {
+            if (context.has(name)) {
+                return { base: context, name };
+            }
+            context = context.parent;
         }
 
-        const value = this.parent?.get(name);
-        if (value !== undefined) {
-            return value;
+        return undefined;
+    }
+
+    get(name: string): ExprValue {
+        const reference = this.lookup(name);
+
+        if (reference) {
+            return reference.base.scope[name];
         }
 
         throw new Error(`undefined variable ${name}`);
+    }
+
+    set(name: string, value: ExprValue): ExprValue {
+        const reference = this.lookup(name);
+
+        if (!reference) {
+            throw new Error(`undefined variable ${name}`);
+        }
+
+        reference.base.scope[name] = value;
+        return value;
     }
 }

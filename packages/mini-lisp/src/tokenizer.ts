@@ -54,7 +54,7 @@ export function tokenize(input: string): Token[] {
     return segments.map((source) => {
         if (
             Operators.includes(source) ||
-            /^[a-zA-Z][a-zA-Z0-9?]*$/.test(source)
+            /^[a-zA-Z][a-zA-Z0-9?!]*$/.test(source)
         ) {
             return { type: TokenType.Symbol, source, name: source };
         }

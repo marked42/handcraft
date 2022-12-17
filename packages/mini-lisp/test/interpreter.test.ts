@@ -87,6 +87,10 @@ describe("variable", () => {
             interpret("(begin (define a 10) ((lambda () (define a 1))))")
         ).toThrowError();
     });
+
+    test("set existing variable", () => {
+        expect(interpret("(begin (define a 1) (set! a 2) a)")).toEqual(2);
+    });
 });
 
 test("if", () => {
