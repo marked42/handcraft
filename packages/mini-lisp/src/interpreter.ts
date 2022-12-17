@@ -1,32 +1,8 @@
 import { StandardLibrary } from "./library";
 import { type Atom, parse, type List } from "./parser";
 import { Token, TokenSymbol, TokenType } from "./tokenizer";
-
-export type NullValue = undefined;
-export type Primitive = string | number | boolean | NullValue;
-export type Callable = (...args: ExprValue[]) => ExprValue;
-export type ExprValue = Primitive | Callable | ExprValue[];
-export type Scope = Record<string, ExprValue>;
-
-export class Context {
-    constructor(
-        private readonly scope: Scope = {},
-        public readonly parent?: Context
-    ) {}
-
-    get(name: string): ExprValue {
-        if (this.scope[name] !== undefined) {
-            return this.scope[name];
-        }
-
-        const value = this.parent?.get(name);
-        if (value !== undefined) {
-            return value;
-        }
-
-        throw new Error(`undefined variable ${name}`);
-    }
-}
+import { Context, type Scope } from "./context";
+import { ExprValue } from "./data-types";
 
 export function interpret(
     input: string,
@@ -64,23 +40,27 @@ function interpretListExpression(list: List, context: Context): ExprValue {
         return [];
     }
 
-    if (
-        !Array.isArray(list[0]) &&
-        list[0].type === TokenType.Symbol &&
-        list[0].name === "lambda"
-    ) {
-        const [, formalArgs, body] = list;
+    if (!Array.isArray(list[0])) {
+        if (list[0].type === TokenType.Symbol) {
+            const { name } = list[0];
+            if (name === "lambda") {
+                const [, formalArgs, body] = list;
 
-        assertLambdaParameters(formalArgs);
+                assertLambdaParameters(formalArgs);
 
-        return function lambda(...args: ExprValue[]) {
-            const scope: Scope = formalArgs.reduce((acc, formalArg, index) => {
-                acc[formalArg.name] = args[index];
-                return acc;
-            }, {} as Scope);
-            const lambdaScope = new Context(scope, context);
-            return interpretExpression(body, lambdaScope);
-        };
+                return function lambda(...args: ExprValue[]) {
+                    const scope: Scope = formalArgs.reduce(
+                        (acc, formalArg, index) => {
+                            acc[formalArg.name] = args[index];
+                            return acc;
+                        },
+                        {} as Scope
+                    );
+                    const lambdaScope = new Context(scope, context);
+                    return interpretExpression(body, lambdaScope);
+                };
+            }
+        }
     }
 
     const values = list.map((item) => interpretExpression(item, context));

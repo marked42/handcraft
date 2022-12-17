@@ -1,4 +1,5 @@
-import { ExprValue, Scope } from "../src";
+import { ExprValue } from "./data-types";
+import { Scope } from "./context";
 
 const PairKey = Symbol();
 
