@@ -120,7 +120,9 @@ export const StandardLibrary: Scope = {
     apply: (proc: ExprValue, ...args: ExprValue[]) => {
         if (typeof proc !== "function") {
             throw new Error(
-                `apply requires first parameter to be function, get ${proc.toString()}`
+                `apply requires first parameter to be function, get ${format(
+                    proc
+                )}`
             );
         }
         if (args.length !== 1) {
@@ -130,7 +132,9 @@ export const StandardLibrary: Scope = {
         }
         if (!Array.isArray(args[0])) {
             throw new Error(
-                `apply requires second parameter to be a list, actual ${args[0].toString()}`
+                `apply requires second parameter to be a list, actual ${format(
+                    args[0]
+                )}`
             );
         }
         return proc(...args[0]);
@@ -153,13 +157,13 @@ export const StandardLibrary: Scope = {
     },
     car: (value: ExprValue) => {
         if (!Array.isArray(value)) {
-            throw new Error(`car applied to invalid value ${value.toString()}`);
+            throw new Error(`car applied to invalid value ${format(value)}`);
         }
         return value[0];
     },
     cdr: (value: ExprValue) => {
         if (!Array.isArray(value)) {
-            throw new Error(`cdr applied to invalid value ${value.toString()}`);
+            throw new Error(`cdr applied to invalid value ${format(value)}`);
         }
         return value.slice(1);
     },
@@ -195,7 +199,7 @@ export const StandardLibrary: Scope = {
             return value.length;
         }
         throw new Error(
-            `length must applies to a list or pair, received ${value.toString()}`
+            `length must applies to a list or pair, received ${format(value)}`
         );
     },
     "procedure?": (value: ExprValue) => {
@@ -212,9 +216,7 @@ function throwInvalidOperandsError(
     throw new Error(
         `operator '${op}' is valid only for ${validOperands.join(
             "/"
-        )}, received (${op} ${actualOperands
-            .map((e) => e.toString())
-            .join(" ")})`
+        )}, received (${op} ${actualOperands.map((e) => format(e)).join(" ")})`
     );
 }
 
@@ -227,4 +229,8 @@ function isNumbers(args: ExprValue[]): args is number[] {
         return true;
     }
     return false;
+}
+
+function format(value: ExprValue) {
+    return value ? value.toString() : "undefined";
 }
