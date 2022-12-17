@@ -59,6 +59,7 @@ export function tokenize(input: string): Token[] {
             return { type: TokenType.Symbol, source, name: source };
         }
 
+        // FIXME: string cannot contains whitespace now
         if (/^"[^"]*"$/.test(source)) {
             return {
                 type: TokenType.String,

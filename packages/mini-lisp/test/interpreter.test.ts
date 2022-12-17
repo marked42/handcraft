@@ -21,6 +21,10 @@ test("built in operators", () => {
     expect(interpret("(<= 1 2)")).toEqual(true);
 });
 
+test("string", () => {
+    expect(interpret('(append "hello-" "world")')).toEqual("hello-world");
+});
+
 describe("variable", () => {
     test("throw on undefined variable", () => {
         expect(() => interpret("a")).toThrowError();

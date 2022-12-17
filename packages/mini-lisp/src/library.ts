@@ -7,9 +7,6 @@ export const StandardLibrary: Scope = {
         if (typeof left === "number" && typeof right === "number") {
             return left + right;
         }
-        if (typeof left === "string" && typeof right === "string") {
-            return left + right;
-        }
 
         throwInvalidOperandsError("+", ["string", "number"], [left, right]);
     },
@@ -68,6 +65,13 @@ export const StandardLibrary: Scope = {
         }
 
         throwInvalidOperandsError(">", ["number"], [left, right]);
+    },
+    append: (left: ExprValue, right: ExprValue) => {
+        if (typeof left === "string" && typeof right === "string") {
+            return left + right;
+        }
+
+        throwInvalidOperandsError("append", ["string"], [left, right]);
     },
     first: (value: ExprValue) => {
         if (!Array.isArray(value)) {

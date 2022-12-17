@@ -18,6 +18,32 @@ describe("atoms", () => {
                 value: "hello-world",
             },
         ]);
+
+        expect(tokenize('(append "hello" "world")')).toEqual([
+            {
+                type: TokenType.Punctuator,
+                source: "(",
+            },
+            {
+                type: TokenType.Symbol,
+                source: "append",
+                name: "append",
+            },
+            {
+                type: TokenType.String,
+                source: '"hello"',
+                value: "hello",
+            },
+            {
+                type: TokenType.String,
+                source: '"world"',
+                value: "world",
+            },
+            {
+                type: TokenType.Punctuator,
+                source: ")",
+            },
+        ]);
     });
 
     test("number literal", () => {
