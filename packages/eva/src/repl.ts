@@ -1,30 +1,30 @@
-import readline from "readline";
+import * as readline from "readline";
 
 function outputPrompt() {
-	process.stdout.write("> ");
+    process.stdout.write("> ");
 }
 
 export function startRepl(options: {
-	listener: (line: string) => void;
-	banner?: string;
+    listener: (line: string) => void;
+    banner?: string;
 }) {
-	const { listener, banner = "Welcome, have fun with eva lang!" } = options;
+    const { listener, banner = "Welcome, have fun with eva lang!" } = options;
 
-	const rl = readline.createInterface({
-		input: process.stdin,
-		output: process.stdout,
-		terminal: false,
-	});
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+        terminal: false,
+    });
 
-	rl.on("line", function (line: string) {
-		try {
-			listener(line);
-		} catch (e) {
-			console.log(e);
-		}
-		outputPrompt();
-	});
+    rl.on("line", function (line: string) {
+        try {
+            listener(line);
+        } catch (e) {
+            console.log(e);
+        }
+        outputPrompt();
+    });
 
-	console.log(banner);
-	outputPrompt();
+    console.log(banner);
+    outputPrompt();
 }

@@ -1,45 +1,42 @@
 {
-  "name": "@handcraft/eva",
-  "version": "1.0.1",
-  "description": "A lisp like script language",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "bin": {
-    "eva": "dist/cli.js"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "build:parser": "./scripts/build-parser.sh",
-    "prebuild": "npm run build:parser",
-    "build": "scripty",
-    "clean": "rimraf ./dist *.tsbuildinfo",
-    "debug": "jest",
-    "test": "scripty",
-    "test:watch": "jest --watch",
-    "lint": "scripty",
-    "prepublishOnly": "yarn lint && yarn test && yarn build",
-    "last": "echo 'last'"
-  },
-  "scripty": {
-    "path": "../../scripts/packages"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/marked42/handcraft.git"
-  },
-  "keywords": [
-    "eva",
-    "interpreter"
-  ],
-  "author": "penghui",
-  "license": "MIT",
-  "private": false,
-  "dependencies": {
-    "readline": "^1.3.0"
-  },
-  "devDependencies": {
-    "syntax-cli": "^0.1.22"
-  }
+    "name": "@handcraft/eva",
+    "version": "1.0.1",
+    "description": "A lisp like script language",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "bin": {
+        "eva": "dist/cli.js"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "build:parser": "./scripts/build-parser.sh",
+        "prebuild": "npm run build:parser",
+        "build": "tsc",
+        "clean": "rimraf ./dist *.tsbuildinfo",
+        "debug": "jest",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "lint": "eslint src --ext ts,js,tsx,jsx",
+        "prepublishOnly": "npm run lint && npm run test && npm run build",
+        "last": "echo 'last'"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/marked42/handcraft.git"
+    },
+    "keywords": [
+        "eva",
+        "interpreter"
+    ],
+    "author": "penghui",
+    "license": "MIT",
+    "private": false,
+    "dependencies": {
+        "readline": "^1.3.0"
+    },
+    "devDependencies": {
+        "syntax-cli": "^0.1.22"
+    }
 }
