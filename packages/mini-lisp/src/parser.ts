@@ -14,44 +14,50 @@ export enum ExpressionType {
     Null,
 }
 
-interface NumberExpression {
+export interface NumberExpression {
     type: ExpressionType.Number;
     value: number;
 }
 
-interface StringExpression {
+export interface StringExpression {
     type: ExpressionType.String;
     value: string;
 }
 
-interface BooleanExpression {
+export interface BooleanExpression {
     type: ExpressionType.Boolean;
     value: boolean;
 }
 
-interface SymbolExpression {
+export interface SymbolExpression {
     type: ExpressionType.Symbol;
     name: string;
 }
 
-interface ProcedureExpression {
+export interface ProcedureExpression {
     type: ExpressionType.Procedure;
     args: SymbolExpression[];
     body: Expression[];
 }
 
-interface ListExpression {
+export function createProcedure((...args: Expression[]) => Expression) {
+    return {
+        type: ExpressionType.Procedure,
+    }
+}
+
+export interface ListExpression {
     type: ExpressionType.List;
     items: Expression[];
 }
 
-interface PairExpression {
+export interface PairExpression {
     type: ExpressionType.Pair;
     first: Expression;
     second: Expression;
 }
 
-interface NullExpression {
+export interface NullExpression {
     type: ExpressionType.Null;
 }
 
@@ -63,12 +69,28 @@ export type AtomExpression =
     | BooleanExpression
     | SymbolExpression;
 
-export type Expression =
-    | AtomExpression
-    | ListExpression
-    | PairExpression
-    | NullExpression
-    | ProcedureExpression;
+export type Expression = AtomExpression | ListExpression;
+
+export function createNumber(value: number): NumberExpression {
+    return {
+        type: ExpressionType.Number,
+        value,
+    };
+}
+
+export function createString(value: string): StringExpression {
+    return {
+        type: ExpressionType.String,
+        value,
+    };
+}
+
+export function createBoolean(value: boolean): BooleanExpression {
+    return {
+        type: ExpressionType.Boolean,
+        value,
+    };
+}
 
 export function parse(input: string): List {
     const tokens = tokenize(input);

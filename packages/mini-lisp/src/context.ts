@@ -1,5 +1,5 @@
-import { ExprValue } from "./data-types";
-export type Scope = Record<string, ExprValue>;
+import { Expression, ProcedureExpression } from "./parser";
+export type Scope = Record<string, ProcedureExpression>;
 
 export interface Reference {
     base: Context;
@@ -30,7 +30,7 @@ export class Context {
      *
      * FIXME: 当前实现中在全局作用域定义变量a，无法区分a是内置符号还是自定义符号，需要添加信息区分。
      */
-    define(name: string, value: ExprValue) {
+    define(name: string, value: Expression) {
         if (this.root.scope[name] !== undefined) {
             throw new Error(
                 `cannot define variable ${name}, it's builtin procedure name.`
@@ -57,7 +57,7 @@ export class Context {
         return undefined;
     }
 
-    get(name: string): ExprValue {
+    get(name: string): Expression {
         const reference = this.lookup(name);
 
         if (reference) {
@@ -67,7 +67,7 @@ export class Context {
         throw new Error(`undefined variable ${name}`);
     }
 
-    set(name: string, value: ExprValue): ExprValue {
+    set(name: string, value: Expression): Expression {
         const reference = this.lookup(name);
 
         if (!reference) {
