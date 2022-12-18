@@ -4,12 +4,19 @@ export enum TokenType {
     String,
     Punctuator,
     Unknown,
+    EOF,
 }
 
 export interface TokenBase {
     type: TokenType;
     source: string;
 }
+
+export interface TokenEOF extends TokenBase {
+    type: TokenType.EOF;
+}
+
+export const TokenEOF: TokenEOF = { type: TokenType.EOF, source: "" };
 
 export interface TokenSymbol extends TokenBase {
     type: TokenType.Symbol;
@@ -36,6 +43,7 @@ export interface TokenUnknown extends TokenBase {
 
 // FIXME: 增加Token类型需要修改这里，如何使用开闭原则？
 export type Token =
+    | TokenEOF
     | TokenSymbol
     | TokenString
     | TokenNumber
