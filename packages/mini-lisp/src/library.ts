@@ -2,16 +2,17 @@ import { Scope } from "./context";
 import {
     BooleanExpression,
     createBoolean,
+    createList,
     createNumber,
     createProcedure,
     createString,
     Expression,
     ExpressionType,
+    ListExpression,
+    NullValue,
     NumberExpression,
     StringExpression,
 } from "./parser";
-
-// const PairKey = Symbol();
 
 function assertNumbers(args: Expression[]): asserts args is NumberExpression[] {
     if (
@@ -54,6 +55,20 @@ function assertBoolean(
 
     throw new Error(
         `arguments must be boolean, get ${args.map(format).join(", ")}`
+    );
+}
+
+function assertList(args: Expression[]): asserts args is ListExpression[] {
+    if (
+        Array.isArray(args) &&
+        args.length > 0 &&
+        args.every((arg) => arg.type === ExpressionType.List)
+    ) {
+        return;
+    }
+
+    throw new Error(
+        `arguments must be lists, get ${args.map(format).join(", ")}`
     );
 }
 
@@ -195,14 +210,89 @@ export function getStandardLibrary() {
         }),
     };
 
+    const list: Scope = {
+        car: createProcedure((...params: Expression[]) => {
+            assertList(params);
+            if (params.length !== 1) {
+                throw new Error(
+                    `car accepts single argument, get ${format(params)}`
+                );
+            }
+
+            // return null when receiving empty list
+            if (params[0].items.length === 0) {
+                return NullValue;
+            }
+
+            return params[0].items[0];
+        }),
+        cdr: createProcedure((...params: Expression[]) => {
+            assertList(params);
+            if (params.length !== 1) {
+                throw new Error(
+                    `cdr accepts single argument, get ${format(params)}`
+                );
+            }
+
+            // return empty list when receiving empty list
+            if (params[0].items.length === 0) {
+                return params[0];
+            }
+
+            return createList(params[0].items.slice(1));
+        }),
+        list: createProcedure((...args: Expression[]) => {
+            return createList(args);
+        }),
+        "list?": createProcedure((value: Expression) => {
+            return createBoolean(value.type === ExpressionType.List);
+        }),
+        "null?": createProcedure((value: Expression) => {
+            return createBoolean(
+                value.type === ExpressionType.List && value.items.length === 0
+            );
+        }),
+        cons: createProcedure((...args: Expression[]) => {
+            if (args.length !== 2) {
+                throw new Error(
+                    `cons expects 2 arguments, get ${args.length} ${format(
+                        args
+                    )}`
+                );
+            }
+            if (args[1].type !== ExpressionType.List) {
+                throw new Error(
+                    `cons expect second argument to be list, get ${format(
+                        args[1]
+                    )}`
+                );
+            }
+            return createList([args[0], ...args[1].items]);
+        }),
+        "pair?": createProcedure((value: Expression) => {
+            return createBoolean(
+                value.type === ExpressionType.List && value.items.length > 0
+            );
+        }),
+        length: createProcedure((value: Expression) => {
+            const params = [value];
+            assertList(params);
+            if (params.length !== 1) {
+                throw new Error(
+                    `length accepts single argument, get ${format(params)}`
+                );
+            }
+
+            return createNumber(params[0].items.length);
+        }),
+    };
+
     const StandardLibrary: Scope = {
         ...arithmetic,
         ...comparison,
         ...string,
         ...logical,
-        // "null?": (value: ExprValue) => {
-        //     return value === undefined;
-        // },
+        ...list,
         // print: (...args: ExprValue[]) => {
         //     console.log(...args);
         //     // FIXME: should return null
@@ -239,56 +329,12 @@ export function getStandardLibrary() {
         //     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         //     return args.at(-1)!;
         // },
-        // car: (value: ExprValue) => {
-        //     if (!Array.isArray(value)) {
-        //         throw new Error(
-        //             `car applied to invalid value ${format(value)}`
-        //         );
-        //     }
-        //     return value[0];
-        // },
-        // cdr: (value: ExprValue) => {
-        //     if (!Array.isArray(value)) {
-        //         throw new Error(
-        //             `cdr applied to invalid value ${format(value)}`
-        //         );
-        //     }
-        //     return value.slice(1);
-        // },
-        // cons: (first: ExprValue, second: ExprValue) => {
-        //     const pair = [first, second];
-        //     Object.defineProperty(pair, PairKey, {
-        //         get value() {
-        //             return true;
-        //         },
-        //     });
-        //     return pair;
-        // },
-        // "pair?": (value: ExprValue) => {
-        //     return Array.isArray(value) && !!(value[PairKey as any] as boolean);
-        // },
         // // TODO: not sure of exact meaning now
         // "eq?": (left: ExprValue, right: ExprValue) => {
         //     return left === right;
         // },
         // "equal?": (left: ExprValue, right: ExprValue) => {
         //     return left === right;
-        // },
-        // list: (...args: ExprValue[]) => {
-        //     return args;
-        // },
-        // "list?": (value: ExprValue) => {
-        //     return Array.isArray(value);
-        // },
-        // length: (value: ExprValue) => {
-        //     if (Array.isArray(value)) {
-        //         return value.length;
-        //     }
-        //     throw new Error(
-        //         `length must applies to a list or pair, received ${format(
-        //             value
-        //         )}`
-        //     );
         // },
         // "procedure?": (value: ExprValue) => {
         //     return typeof value === "function";
@@ -298,6 +344,9 @@ export function getStandardLibrary() {
     return StandardLibrary;
 }
 
-function format(value: Expression) {
-    return value ? value.toString() : "undefined";
+function format(value: Expression | Expression[]): string {
+    if (Array.isArray(value)) {
+        return value.map((e) => format(e)).join(", ");
+    }
+    return JSON.stringify(value, null, 2);
 }
