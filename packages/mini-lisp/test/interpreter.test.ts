@@ -1,9 +1,12 @@
 import {
     createBoolean,
+    createList,
     createNumber,
     createString,
     ExpressionType,
     interpret,
+    NullValue,
+    ListExpression,
 } from "../src";
 
 test("literal atom", () => {
@@ -24,6 +27,14 @@ const expectBoolean = (input: string, result: boolean) => {
 
 const expectString = (input: string, result: string) => {
     expect(interpret(input)).toEqual(createString(result));
+};
+
+const expectNull = (input: string) => {
+    expect(interpret(input)).toBe(NullValue);
+};
+
+const expectList = (input: string, list: ListExpression) => {
+    expect(interpret(input)).toEqual(list);
 };
 
 describe("arithmetic operators", () => {
@@ -178,6 +189,172 @@ describe("logical", () => {
     });
 });
 
+describe("list", () => {
+    describe("literal", () => {
+        test("empty list", () => {
+            expectList("()", createList([]));
+        });
+
+        test("list with 1 item", () => {
+            expectList("(1)", createList([createNumber(1)]));
+        });
+
+        test("list with multiple items", () => {
+            expectList(
+                '(1 "2")',
+                createList([createNumber(1), createString("2")])
+            );
+        });
+
+        test("nested list", () => {
+            expectList(
+                '(1 "2" (3, (4)))',
+                createList([
+                    createNumber(1),
+                    createString("2"),
+                    createList([
+                        createNumber(3),
+                        createList([createNumber(4)]),
+                    ]),
+                ])
+            );
+        });
+    });
+
+    describe("create list with list procedure", () => {
+        test("empty list", () => {
+            expectList("(list)", createList([]));
+        });
+
+        test("list with 1 item", () => {
+            expectList("(list 1)", createList([createNumber(1)]));
+        });
+
+        test("list with multiple items", () => {
+            expectList(
+                '(list 1 "2")',
+                createList([createNumber(1), createString("2")])
+            );
+        });
+
+        test("nested list", () => {
+            expectList(
+                '(list 1 "2" (list 3, (list 4)))',
+                createList([
+                    createNumber(1),
+                    createString("2"),
+                    createList([
+                        createNumber(3),
+                        createList([createNumber(4)]),
+                    ]),
+                ])
+            );
+        });
+    });
+
+    describe("list?", () => {
+        test("return true on list", () => {
+            expectBoolean("(list? ())", true);
+            expectBoolean("(list? (1))", true);
+        });
+
+        test("return false on non list value", () => {
+            expectBoolean("(list? 1)", false);
+            expectBoolean('(list? "1")', false);
+            expectBoolean("(list? #t)", false);
+        });
+    });
+
+    describe("length", () => {
+        test("return 0 on empty list", () => {
+            expectNumber("(length ())", 0);
+        });
+
+        test("return 1 on list with single item", () => {
+            expectNumber("(length (1))", 1);
+        });
+
+        test("return correct list length on list multiple items", () => {
+            expectNumber('(length (list 1 "2"))', 2);
+        });
+
+        test("return correct list length on nested list", () => {
+            expectNumber('(length (list 1 "2" (list 3, (list 4))))', 3);
+        });
+    });
+
+    describe("car", () => {
+        test("return first element of a list", () => {
+            expectNumber("(car (1 2 3))", 1);
+        });
+
+        test("return null on empty list", () => {
+            expectNull("(car ())");
+        });
+
+        test("throw error when receiving zero argument", () => {
+            expect(() => interpret("(car )")).toThrowError();
+        });
+
+        test("throw error when receiving non-list argument", () => {
+            expect(() => interpret("(car 1)")).toThrowError();
+        });
+    });
+
+    describe("cdr", () => {
+        test("return rest element of a list", () => {
+            expectList(
+                "(cdr (1 2 3))",
+                createList([createNumber(2), createNumber(3)])
+            );
+        });
+
+        test("return empty listy on empty list", () => {
+            expectList("(cdr ())", createList([]));
+        });
+
+        test("throw error when receiving zero argument", () => {
+            expect(() => interpret("(cdr )")).toThrowError();
+        });
+
+        test("throw error when receiving non-list argument", () => {
+            expect(() => interpret("(cdr 1)")).toThrowError();
+        });
+    });
+
+    describe("null?", () => {
+        test("return true for empty list", () => {
+            expectBoolean("(null? (list))", true);
+        });
+
+        test("return false for non empty list", () => {
+            expectBoolean("(null? (list 1))", false);
+            expectBoolean("(null? (list 1 2))", false);
+            expectBoolean("(null? (list 1 (list 2)))", false);
+        });
+
+        test("return false for atom", () => {
+            expectBoolean("(null? 1)", false);
+            expectBoolean('(null? "string")', false);
+            expectBoolean("(null? #t)", false);
+            expectBoolean("(null? 1)", false);
+        });
+    });
+});
+
+describe("io", () => {
+    test("print", () => {
+        const log = jest.spyOn(console, "log").mockImplementation(() => {
+            // noop
+        });
+
+        interpret("(print 1)");
+        expect(log).toHaveBeenCalled();
+
+        log.mockReset();
+    });
+});
+
 // describe("variable", () => {
 //     test("throw on undefined variable", () => {
 //         expect(() => interpret("a")).toThrowError();
@@ -219,23 +396,6 @@ describe("logical", () => {
 // });
 
 // describe("call expression", () => {
-//     test("car", () => {
-//         expect(interpret("(car (1 2 3))")).toEqual(1);
-//         expect(() => interpret("(car )")).toThrowError();
-//         expect(() => interpret("(car 1)")).toThrowError();
-//     });
-
-//     test("cdr", () => {
-//         expect(interpret("(cdr (1 2 3))")).toEqual([2, 3]);
-//         expect(() => interpret("(cdr )")).toThrowError();
-//         expect(() => interpret("(cdr 1)")).toThrowError();
-//     });
-
-//     test("abs", () => {
-//         expect(interpret("(abs 1)")).toEqual(1);
-//         expect(interpret("(abs 0)")).toEqual(0);
-//         expect(interpret("(abs -1)")).toEqual(1);
-//     });
 
 //     test("apply", () => {
 //         expect(interpret("(apply + (1 2))")).toEqual(3);
@@ -270,39 +430,6 @@ describe("logical", () => {
 //         expect(interpret("(list? (cons 1 2))")).toEqual(true);
 //     });
 
-//     test("max", () => {
-//         expect(interpret("(max 1)")).toEqual(1);
-//         expect(interpret("(max 1 2 3)")).toEqual(3);
-//         expect(() => interpret("(max ())")).toThrowError();
-//         expect(() => interpret("(max)")).toThrowError();
-//     });
-
-//     test("min", () => {
-//         expect(interpret("(min 1)")).toEqual(1);
-//         expect(interpret("(min 1 2 3)")).toEqual(1);
-//         expect(() => interpret("(min ())")).toThrowError();
-//         expect(() => interpret("(min)")).toThrowError();
-//     });
-
-//     // FIXME: need confirm
-//     test("not", () => {
-//         expect(interpret("(not 1)")).toEqual(false);
-//     });
-
-//     // FIXME: need confirm
-//     test("null?", () => {
-//         expect(interpret("(null? 1)")).toEqual(false);
-//     });
-
-//     test("number?", () => {
-//         expect(interpret("(number? 1)")).toEqual(true);
-//         expect(interpret("(number? ())")).toEqual(false);
-//     });
-
-//     test("round", () => {
-//         expect(interpret("(round 1.1)")).toEqual(1);
-//         expect(() => interpret("(round ())")).toThrowError();
-//     });
 // });
 
 // describe("procedure", () => {

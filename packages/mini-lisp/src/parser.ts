@@ -61,6 +61,10 @@ export interface ListExpression {
     items: Expression[];
 }
 
+export function createList(items: Expression[]): ListExpression {
+    return { type: ExpressionType.List, items };
+}
+
 export interface PairExpression {
     type: ExpressionType.Pair;
     first: Expression;
@@ -78,6 +82,7 @@ export type AtomExpression =
     | StringExpression
     | BooleanExpression
     | ProcedureExpression
+    | NullExpression
     | SymbolExpression;
 
 export type Expression = AtomExpression | ListExpression;

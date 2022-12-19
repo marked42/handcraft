@@ -35,7 +35,8 @@ function interpretListExpression(
     context: Context
 ): Expression {
     if (expr.items.length === 0) {
-        throw new Error("evaluate empty list expression illegally!");
+        // return empty list
+        return expr;
     }
 
     const [first, ...rest] = expr.items;
