@@ -197,6 +197,8 @@ function parseAtomExpression(tokens: TokenStream): AtomExpression | undefined {
             return { type: ExpressionType.String, value: token.value };
         case TokenType.Symbol:
             return { type: ExpressionType.Symbol, name: token.name };
+        case TokenType.Boolean:
+            return { type: ExpressionType.Boolean, value: token.value };
         default:
             tokens.restore();
             return;

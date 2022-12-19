@@ -1,5 +1,6 @@
 import { Scope } from "./context";
 import {
+    BooleanExpression,
     createBoolean,
     createNumber,
     createProcedure,
@@ -36,7 +37,23 @@ function assertStrings(args: Expression[]): asserts args is StringExpression[] {
     }
 
     throw new Error(
-        `arguments must be numbers, get ${args.map(format).join(", ")}`
+        `arguments must be string, get ${args.map(format).join(", ")}`
+    );
+}
+
+function assertBoolean(
+    args: Expression[]
+): asserts args is BooleanExpression[] {
+    if (
+        Array.isArray(args) &&
+        args.length > 0 &&
+        args.every((arg) => arg.type === ExpressionType.Boolean)
+    ) {
+        return;
+    }
+
+    throw new Error(
+        `arguments must be boolean, get ${args.map(format).join(", ")}`
     );
 }
 
@@ -140,13 +157,49 @@ export function getStandardLibrary() {
         }),
     };
 
+    const logical: Scope = {
+        not: createProcedure((...params: Expression[]) => {
+            if (params.length !== 1) {
+                throw new Error(
+                    `"not" only accepts one argument, get ${params
+                        .map((p) => format(p))
+                        .join(", ")}`
+                );
+            }
+            assertBoolean(params);
+
+            return createBoolean(!params[0].value);
+        }),
+        and: createProcedure((...params: Expression[]) => {
+            if (params.length === 0) {
+                throw new Error(
+                    `"and" accepts at least one argument, get ${params
+                        .map((p) => format(p))
+                        .join(", ")}`
+                );
+            }
+            assertBoolean(params);
+            return createBoolean(params.every((p) => p.value));
+        }),
+        or: createProcedure((...params: Expression[]) => {
+            if (params.length === 0) {
+                throw new Error(
+                    `"or" accepts at least one argument, get ${params
+                        .map((p) => format(p))
+                        .join(", ")}`
+                );
+            }
+            assertBoolean(params);
+
+            return createBoolean(params.some((p) => p.value));
+        }),
+    };
+
     const StandardLibrary: Scope = {
         ...arithmetic,
         ...comparison,
         ...string,
-        // not: (value: ExprValue) => {
-        //     return !value;
-        // },
+        ...logical,
         // "null?": (value: ExprValue) => {
         //     return value === undefined;
         // },

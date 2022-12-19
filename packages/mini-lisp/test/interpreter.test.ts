@@ -117,6 +117,67 @@ test("string", () => {
     expectString('(append "hello" "world")', "helloworld");
 });
 
+describe("logical", () => {
+    test("literal", () => {
+        expectBoolean("#t", true);
+        expectBoolean("#true", true);
+        expectBoolean("#f", false);
+        expectBoolean("#false", false);
+    });
+
+    describe("not", () => {
+        test("revert boolean value when receiving one argument", () => {
+            expectBoolean("(not #t)", false);
+            expectBoolean("(not #true)", false);
+            expectBoolean("(not #f)", true);
+            expectBoolean("(not #false)", true);
+        });
+
+        test("throw when receiving zero arguments", () => {
+            expect(() => interpret("(not)")).toThrowError();
+        });
+        test("throw when receiving multiple arguments", () => {
+            expect(() => interpret("(not)")).toThrowError();
+        });
+    });
+
+    describe("and", () => {
+        test("return true when all arguments are true", () => {
+            expectBoolean("(and #t)", true);
+            expectBoolean("(and #t #t)", true);
+            expectBoolean("(and #t #t #t)", true);
+        });
+
+        test("return false when any argument is false", () => {
+            expectBoolean("(and #f)", false);
+            expectBoolean("(and #t #f)", false);
+            expectBoolean("(and #t #t #f)", false);
+        });
+
+        test("throw when receiving zero arguments", () => {
+            expect(() => interpret("(and)")).toThrowError();
+        });
+    });
+
+    describe("or", () => {
+        test("return true when any argument are true", () => {
+            expectBoolean("(or #t)", true);
+            expectBoolean("(or #f #t)", true);
+            expectBoolean("(or #f #f #t)", true);
+        });
+
+        test("return false when all arguments are false", () => {
+            expectBoolean("(and #f)", false);
+            expectBoolean("(and #f #f)", false);
+            expectBoolean("(and #f #f #f)", false);
+        });
+
+        test("throw when receiving zero arguments", () => {
+            expect(() => interpret("(or)")).toThrowError();
+        });
+    });
+});
+
 // describe("variable", () => {
 //     test("throw on undefined variable", () => {
 //         expect(() => interpret("a")).toThrowError();

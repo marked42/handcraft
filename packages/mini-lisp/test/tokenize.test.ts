@@ -51,6 +51,21 @@ describe("atoms", () => {
             { type: TokenType.Number, source: "1", value: 1 },
         ]);
     });
+
+    test("boolean literal", () => {
+        expect(tokenize("#true")).toEqual([
+            { type: TokenType.Boolean, source: "#true", value: true },
+        ]);
+        expect(tokenize("#t")).toEqual([
+            { type: TokenType.Boolean, source: "#t", value: true },
+        ]);
+        expect(tokenize("#false")).toEqual([
+            { type: TokenType.Boolean, source: "#false", value: false },
+        ]);
+        expect(tokenize("#f")).toEqual([
+            { type: TokenType.Boolean, source: "#f", value: false },
+        ]);
+    });
 });
 
 describe("list", () => {

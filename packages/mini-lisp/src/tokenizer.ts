@@ -3,6 +3,7 @@ export enum TokenType {
     Number,
     String,
     Punctuator,
+    Boolean,
     Unknown,
     EOF,
 }
@@ -41,9 +42,15 @@ export interface TokenUnknown extends TokenBase {
     type: TokenType.Unknown;
 }
 
+export interface TokenBoolean extends TokenBase {
+    type: TokenType.Boolean;
+    value: boolean;
+}
+
 // FIXME: 增加Token类型需要修改这里，如何使用开闭原则？
 export type Token =
     | TokenEOF
+    | TokenBoolean
     | TokenSymbol
     | TokenString
     | TokenNumber
@@ -65,6 +72,14 @@ export function tokenize(input: string): Token[] {
             /^[a-zA-Z][a-zA-Z0-9?!]*$/.test(source)
         ) {
             return { type: TokenType.Symbol, source, name: source };
+        }
+
+        if (["#t", "#true"].includes(source)) {
+            return { type: TokenType.Boolean, value: true, source };
+        }
+
+        if (["#f", "#false"].includes(source)) {
+            return { type: TokenType.Boolean, value: false, source };
         }
 
         // FIXME: string cannot contains whitespace now
