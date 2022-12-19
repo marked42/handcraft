@@ -76,23 +76,32 @@ describe("arithmetic operators", () => {
     });
 });
 
-// describe("comparison operators", () => {
-//     test("=", () => {
-//         expect(interpret("(= 1 2)")).toEqual(false);
-//     });
-//     test(">", () => {
-//         expect(interpret("(> 1 2)")).toEqual(false);
-//     });
-//     test(">=", () => {
-//         expect(interpret("(>= 1 2)")).toEqual(false);
-//     });
-//     test("<", () => {
-//         expect(interpret("(< 1 2)")).toEqual(true);
-//     });
-//     test("<=", () => {
-//         expect(interpret("(<= 1 2)")).toEqual(true);
-//     });
-// });
+describe("comparison operators", () => {
+    test("=", () => {
+        expectBoolean("(= 1 1)", true);
+        expectBoolean("(= 1 2)", false);
+    });
+    test(">", () => {
+        expectBoolean("(> 2 1)", true);
+        expectBoolean("(> 2 2)", false);
+        expectBoolean("(> 1 2)", false);
+    });
+    test(">=", () => {
+        expectBoolean("(>= 2 1)", true);
+        expectBoolean("(>= 2 2)", true);
+        expectBoolean("(>= 1 2)", false);
+    });
+    test("<", () => {
+        expectBoolean("(< 1 2)", true);
+        expectBoolean("(< 1 1)", false);
+        expectBoolean("(< 2 1)", false);
+    });
+    test("<=", () => {
+        expectBoolean("(<= 1 2)", true);
+        expectBoolean("(<= 1 1)", true);
+        expectBoolean("(<= 2 1)", false);
+    });
+});
 
 // test("string", () => {
 //     expect(interpret('(append "hello" "world")')).toEqual("helloworld");

@@ -1,5 +1,6 @@
 import { Scope } from "./context";
 import {
+    createBoolean,
     createNumber,
     createProcedure,
     Expression,
@@ -67,10 +68,7 @@ export function getStandardLibrary() {
             return createNumber(Math.min(...params.map((p) => p.value)));
         }),
         "number?": createProcedure((value: Expression) => {
-            return {
-                type: ExpressionType.Boolean,
-                value: value.type === ExpressionType.Number,
-            };
+            return createBoolean(value.type === ExpressionType.Number);
         }),
         abs: createProcedure((value: Expression) => {
             const params = [value];
@@ -81,8 +79,44 @@ export function getStandardLibrary() {
             };
         }),
     };
+
+    const comparison: Scope = {
+        "=": createProcedure((left: Expression, right: Expression) => {
+            const params = [left, right];
+            assertNumbers(params);
+
+            return createBoolean(
+                Math.abs(params[0].value - params[1].value) <= Number.EPSILON
+            );
+        }),
+        ">": createProcedure((left: Expression, right: Expression) => {
+            const params = [left, right];
+            assertNumbers(params);
+
+            return createBoolean(params[0].value > params[1].value);
+        }),
+        "<": createProcedure((left: Expression, right: Expression) => {
+            const params = [left, right];
+            assertNumbers(params);
+
+            return createBoolean(params[0].value < params[1].value);
+        }),
+        ">=": createProcedure((left: Expression, right: Expression) => {
+            const params = [left, right];
+            assertNumbers(params);
+
+            return createBoolean(params[0].value >= params[1].value);
+        }),
+        "<=": createProcedure((left: Expression, right: Expression) => {
+            const params = [left, right];
+            assertNumbers(params);
+
+            return createBoolean(params[0].value <= params[1].value);
+        }),
+    };
     const StandardLibrary: Scope = {
         ...arithmetic,
+        ...comparison,
         // not: (value: ExprValue) => {
         //     return !value;
         // },
@@ -93,36 +127,6 @@ export function getStandardLibrary() {
         //     console.log(...args);
         //     // FIXME: should return null
         //     return args;
-        // },
-        // "=": (left: ExprValue, right: ExprValue) => {
-        //     if (typeof left === "number" && typeof right === "number") {
-        //         return left === right;
-        //     }
-        //     throwInvalidOperandsError(">", ["number"], [left, right]);
-        // },
-        // ">": (left: ExprValue, right: ExprValue) => {
-        //     if (typeof left === "number" && typeof right === "number") {
-        //         return left > right;
-        //     }
-        //     throwInvalidOperandsError(">", ["number"], [left, right]);
-        // },
-        // ">=": (left: ExprValue, right: ExprValue) => {
-        //     if (typeof left === "number" && typeof right === "number") {
-        //         return left >= right;
-        //     }
-        //     throwInvalidOperandsError(">=", ["number"], [left, right]);
-        // },
-        // "<": (left: ExprValue, right: ExprValue) => {
-        //     if (typeof left === "number" && typeof right === "number") {
-        //         return left < right;
-        //     }
-        //     throwInvalidOperandsError("<", ["number"], [left, right]);
-        // },
-        // "<=": (left: ExprValue, right: ExprValue) => {
-        //     if (typeof left === "number" && typeof right === "number") {
-        //         return left <= right;
-        //     }
-        //     throwInvalidOperandsError(">", ["number"], [left, right]);
         // },
         // apply: (proc: ExprValue, ...args: ExprValue[]) => {
         //     if (typeof proc !== "function") {
