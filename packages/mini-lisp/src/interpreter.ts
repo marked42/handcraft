@@ -26,19 +26,19 @@ export function interpretExpression(expr: Expression, context: Context) {
             return expr;
         default:
             // TODO: remove JSON.stringify
-            throw new Error(
-                `unsupported expr ${JSON.stringify(expr, null, 2)}`
-            );
+            throw new Error(`unsupported expr ${formatExpression(expr)}`);
     }
 }
 
-function interpretListExpression(expr: ListExpression, context: Context) {
+function interpretListExpression(
+    expr: ListExpression,
+    context: Context
+): Expression {
     if (expr.items.length === 0) {
         throw new Error("evaluate empty list expression illegally!");
     }
 
     const [first, ...rest] = expr.items;
-    rest;
 
     if (first.type === ExpressionType.Symbol) {
         const value = context.get(first.name);
@@ -46,5 +46,29 @@ function interpretListExpression(expr: ListExpression, context: Context) {
         if (!value) {
             throw new Error(`read non exist variable ${first.name}`);
         }
+
+        if (value.type === ExpressionType.Procedure) {
+            const args = rest.map((e) => interpretExpression(e, context));
+            // TODO: scope
+            // const procedureScope =
+            // const procedureContext = new Context(, context);
+            return value.call(...args);
+        }
+
+        throw new Error(
+            `unresolved symbol at list head, ${formatExpression(expr)}`
+        );
     }
+
+    const result: ListExpression = {
+        type: ExpressionType.List,
+        items: expr.items.map((e) => interpretExpression(e, context)),
+    };
+
+    return result;
+}
+
+// TODO: refactor
+function formatExpression(expr: Expression) {
+    return JSON.stringify(expr, null, 2);
 }

@@ -1,4 +1,4 @@
-import { createNumber, ExpressionType, interpret } from "../src";
+import { createBoolean, createNumber, ExpressionType, interpret } from "../src";
 
 test("literal atom", () => {
     expect(interpret("1")).toEqual({ type: ExpressionType.Number, value: 1 });
@@ -8,33 +8,72 @@ test("literal atom", () => {
     });
 });
 
+const expectNumber = (input: string, result: number) => {
+    expect(interpret(input)).toEqual(createNumber(result));
+};
+
+const expectBoolean = (input: string, result: boolean) => {
+    expect(interpret(input)).toEqual(createBoolean(result));
+};
+
 describe("arithmetic operators", () => {
     test("+", () => {
-        expect(interpret("(+ 1 2)")).toEqual(createNumber(3));
+        expectNumber("(+ 1 2)", 3);
     });
 
-    // test("-", () => {
-    //     expect(interpret("(- 1 2)")).toEqual(-1);
+    test("-", () => {
+        expectNumber("(- 2 1)", 1);
+        expectNumber("(- 1 2)", -1);
+    });
 
-    //     expect(interpret("(- 1 2)")).toEqual(-1);
-    // });
+    test("*", () => {
+        expectNumber("(* 2 3)", 6);
+        expectNumber("(* 0 3)", 0);
+        expectNumber("(* -2 3)", -6);
+    });
 
-    // test("*", () => {
-    //     expect(interpret("(* 2 3)")).toEqual(6);
-    //     expect(interpret("(* 0 3)")).toEqual(0);
-    // });
+    test("/", () => {
+        expectNumber("(/ 3 3)", 1);
+        expectNumber("(/ 0 3)", 0);
+        expectNumber("(/ 3 0)", Infinity);
+        expectNumber("(/ -1 0)", -Infinity);
+    });
 
-    // test("/", () => {
-    //     expect(interpret("(/ 3 3)")).toEqual(1);
-    //     expect(interpret("(/ 0 3)")).toEqual(0);
-    //     expect(interpret("(/ 3 0)")).toBe(Infinity);
-    //     expect(interpret("(/ -1 0)")).toBe(-Infinity);
-    // });
+    test("expt", () => {
+        expectNumber("(expt 2 3)", 8);
+        expectNumber("(expt 0 3)", 0);
+    });
 
-    // test("expt", () => {
-    //     expect(interpret("(expt 2 3)")).toEqual(8);
-    //     expect(interpret("(expt 0 3)")).toEqual(0);
-    // });
+    test("round", () => {
+        expectNumber("(round 2.3)", 2);
+        expectNumber("(round 2.5)", 3);
+        expectNumber("(round 2.9)", 3);
+        expectNumber("(round -2.3)", -2);
+        expectNumber("(round -2.5)", -2);
+        expectNumber("(round -2.9)", -3);
+    });
+
+    test("abs", () => {
+        expectNumber("(abs 1)", 1);
+        expectNumber("(abs 0)", 0);
+        expectNumber("(abs -1)", 1);
+    });
+
+    test("number?", () => {
+        expectBoolean("(number? 1)", true);
+        expectBoolean('(number? "1")', false);
+        expectBoolean("(number? (1))", false);
+    });
+
+    test("max", () => {
+        expectNumber("(max 2 3)", 3);
+        expectNumber("(max 0 -1)", 0);
+    });
+
+    test("min", () => {
+        expectNumber("(min 2 3)", 2);
+        expectNumber("(min 0 -1)", -1);
+    });
 });
 
 // describe("comparison operators", () => {

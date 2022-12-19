@@ -36,14 +36,24 @@ export interface SymbolExpression {
 
 export interface ProcedureExpression {
     type: ExpressionType.Procedure;
-    args: SymbolExpression[];
-    body: Expression[];
+    call(...args: Expression[]): Expression;
+    toString(): string;
 }
 
-export function createProcedure((...args: Expression[]) => Expression) {
-    return {
+export function createProcedure(
+    fn: (...args: Expression[]) => Expression
+): ProcedureExpression {
+    const procedure: ProcedureExpression = {
         type: ExpressionType.Procedure,
-    }
+        call(...args: Expression[]) {
+            return fn(...args);
+        },
+        toString() {
+            return `<procedure (...args...) (...native...)>`;
+        },
+    };
+
+    return procedure;
 }
 
 export interface ListExpression {
@@ -67,6 +77,7 @@ export type AtomExpression =
     | NumberExpression
     | StringExpression
     | BooleanExpression
+    | ProcedureExpression
     | SymbolExpression;
 
 export type Expression = AtomExpression | ListExpression;

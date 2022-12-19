@@ -1,79 +1,98 @@
 import { Scope } from "./context";
-import { createNumber, Expression, ExpressionType } from "./parser";
+import {
+    createNumber,
+    createProcedure,
+    Expression,
+    ExpressionType,
+    NumberExpression,
+} from "./parser";
 
 // const PairKey = Symbol();
+
+function assertNumbers(args: Expression[]): asserts args is NumberExpression[] {
+    if (
+        Array.isArray(args) &&
+        args.length > 0 &&
+        args.every((arg) => arg.type === ExpressionType.Number)
+    ) {
+        return;
+    }
+
+    throw new Error(
+        `arguments must be numbers, get ${args.map(format).join(", ")}`
+    );
+}
 
 /**
  * 使用函数每次获取独立的标准函数库定义
  */
 export function getStandardLibrary() {
+    const arithmetic: Scope = {
+        "+": createProcedure((left: Expression, right: Expression) => {
+            const params = [left, right];
+            assertNumbers(params);
+            return createNumber(params[0].value + params[1].value);
+        }),
+        "-": createProcedure((left: Expression, right: Expression) => {
+            const params = [left, right];
+            assertNumbers(params);
+            return createNumber(params[0].value - params[1].value);
+        }),
+        "*": createProcedure((left: Expression, right: Expression) => {
+            const params = [left, right];
+            assertNumbers(params);
+            return createNumber(params[0].value * params[1].value);
+        }),
+        "/": createProcedure((left: Expression, right: Expression) => {
+            const params = [left, right];
+            assertNumbers(params);
+            return createNumber(params[0].value / params[1].value);
+        }),
+        expt: createProcedure((left: Expression, right: Expression) => {
+            const params = [left, right];
+            assertNumbers(params);
+            return createNumber(Math.pow(params[0].value, params[1].value));
+        }),
+        round: createProcedure((left: Expression) => {
+            const params = [left];
+            assertNumbers(params);
+            return createNumber(Math.round(params[0].value));
+        }),
+        max: createProcedure((...params: Expression[]) => {
+            assertNumbers(params);
+            return createNumber(Math.max(...params.map((p) => p.value)));
+        }),
+        min: createProcedure((...params: Expression[]) => {
+            assertNumbers(params);
+            return createNumber(Math.min(...params.map((p) => p.value)));
+        }),
+        "number?": createProcedure((value: Expression) => {
+            return {
+                type: ExpressionType.Boolean,
+                value: value.type === ExpressionType.Number,
+            };
+        }),
+        abs: createProcedure((value: Expression) => {
+            const params = [value];
+            assertNumbers(params);
+            return {
+                type: ExpressionType.Number,
+                value: Math.abs(params[0].value),
+            };
+        }),
+    };
     const StandardLibrary: Scope = {
-        "+": (left: Expression, right: Expression) => {
-            // TODO: duplication
-            // ts function supports only single predicate
-            if (
-                left.type === ExpressionType.Number &&
-                right.type === ExpressionType.Number
-            ) {
-                return createNumber(left.value + right.value);
-            }
-            throwInvalidOperandsError("+", ["string", "number"], [left, right]);
-        },
-        // expt: (left: ExprValue, right: ExprValue) => {
-        //     if (typeof left === "number" && typeof right === "number") {
-        //         return Math.pow(left, right);
-        //     }
-        //     throwInvalidOperandsError("expt", ["number"], [left, right]);
-        // },
-        // max: (...args: ExprValue[]) => {
-        //     if (isNumbers(args)) {
-        //         return Math.max(...args);
-        //     }
-        //     throwInvalidOperandsError("max", ["number"], args);
-        // },
-        // min: (...args: ExprValue[]) => {
-        //     if (isNumbers(args)) {
-        //         return Math.min(...args);
-        //     }
-        //     throwInvalidOperandsError("min", ["number"], args);
-        // },
-        // round: (value: ExprValue) => {
-        //     if (typeof value === "number") {
-        //         return Math.round(value);
-        //     }
-        //     throwInvalidOperandsError("round", ["number"], [value]);
-        // },
+        ...arithmetic,
         // not: (value: ExprValue) => {
         //     return !value;
         // },
         // "null?": (value: ExprValue) => {
         //     return value === undefined;
         // },
-        // "number?": (value: ExprValue) => {
-        //     return typeof value === "number";
-        // },
         // print: (...args: ExprValue[]) => {
         //     console.log(...args);
         //     // FIXME: should return null
         //     return args;
-        // },
-        // "-": (left: ExprValue, right: ExprValue) => {
-        //     if (typeof left === "number" && typeof right === "number") {
-        //         return left - right;
-        //     }
-        //     throwInvalidOperandsError("-", ["number"], [left, right]);
-        // },
-        // "*": (left: ExprValue, right: ExprValue) => {
-        //     if (typeof left === "number" && typeof right === "number") {
-        //         return left * right;
-        //     }
-        //     throwInvalidOperandsError("*", ["number"], [left, right]);
-        // },
-        // "/": (left: ExprValue, right: ExprValue) => {
-        //     if (typeof left === "number" && typeof right === "number") {
-        //         return left / right;
-        //     }
-        //     throwInvalidOperandsError("/", ["number"], [left, right]);
         // },
         // "=": (left: ExprValue, right: ExprValue) => {
         //     if (typeof left === "number" && typeof right === "number") {
@@ -104,12 +123,6 @@ export function getStandardLibrary() {
         //         return left <= right;
         //     }
         //     throwInvalidOperandsError(">", ["number"], [left, right]);
-        // },
-        // abs: (left: ExprValue) => {
-        //     if (typeof left === "number") {
-        //         return Math.abs(left);
-        //     }
-        //     throwInvalidOperandsError(">", ["number"], [left]);
         // },
         // apply: (proc: ExprValue, ...args: ExprValue[]) => {
         //     if (typeof proc !== "function") {
@@ -206,29 +219,6 @@ export function getStandardLibrary() {
     };
     return StandardLibrary;
 }
-
-function throwInvalidOperandsError(
-    op: string,
-    validOperands: string[],
-    actualOperands: Expression[]
-): never {
-    throw new Error(
-        `operator '${op}' is valid only for ${validOperands.join(
-            "/"
-        )}, received (${op} ${actualOperands.map((e) => format(e)).join(" ")})`
-    );
-}
-
-// function isNumbers(args: ExprValue[]): args is number[] {
-//     if (
-//         Array.isArray(args) &&
-//         args.length > 0 &&
-//         args.every((arg) => typeof arg === "number")
-//     ) {
-//         return true;
-//     }
-//     return false;
-// }
 
 function format(value: Expression) {
     return value ? value.toString() : "undefined";

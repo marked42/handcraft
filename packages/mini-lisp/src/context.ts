@@ -1,5 +1,5 @@
-import { Expression, ProcedureExpression } from "./parser";
-export type Scope = Record<string, ProcedureExpression>;
+import { Expression } from "./parser";
+export type Scope = Record<string, Expression>;
 
 export interface Reference {
     base: Context;

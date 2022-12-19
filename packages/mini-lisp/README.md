@@ -23,3 +23,12 @@
 TODO:
 
 1. jest watch keeps file cache when creating new files
+1. typescript type predicate on multiple args ?
+
+```ts
+function isNumbers(...args: any[]): args is number[] {
+    // ...
+}
+```
+
+### T
