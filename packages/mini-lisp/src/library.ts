@@ -3,9 +3,11 @@ import {
     createBoolean,
     createNumber,
     createProcedure,
+    createString,
     Expression,
     ExpressionType,
     NumberExpression,
+    StringExpression,
 } from "./parser";
 
 // const PairKey = Symbol();
@@ -15,6 +17,20 @@ function assertNumbers(args: Expression[]): asserts args is NumberExpression[] {
         Array.isArray(args) &&
         args.length > 0 &&
         args.every((arg) => arg.type === ExpressionType.Number)
+    ) {
+        return;
+    }
+
+    throw new Error(
+        `arguments must be numbers, get ${args.map(format).join(", ")}`
+    );
+}
+
+function assertStrings(args: Expression[]): asserts args is StringExpression[] {
+    if (
+        Array.isArray(args) &&
+        args.length > 0 &&
+        args.every((arg) => arg.type === ExpressionType.String)
     ) {
         return;
     }
@@ -114,9 +130,20 @@ export function getStandardLibrary() {
             return createBoolean(params[0].value <= params[1].value);
         }),
     };
+
+    const string: Scope = {
+        append: createProcedure((left: Expression, right: Expression) => {
+            const params = [left, right];
+            assertStrings(params);
+
+            return createString(params[0].value + params[1].value);
+        }),
+    };
+
     const StandardLibrary: Scope = {
         ...arithmetic,
         ...comparison,
+        ...string,
         // not: (value: ExprValue) => {
         //     return !value;
         // },
@@ -158,12 +185,6 @@ export function getStandardLibrary() {
         //     }
         //     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         //     return args.at(-1)!;
-        // },
-        // append: (left: ExprValue, right: ExprValue) => {
-        //     if (typeof left === "string" && typeof right === "string") {
-        //         return left + right;
-        //     }
-        //     throwInvalidOperandsError("append", ["string"], [left, right]);
         // },
         // car: (value: ExprValue) => {
         //     if (!Array.isArray(value)) {

@@ -1,4 +1,10 @@
-import { createBoolean, createNumber, ExpressionType, interpret } from "../src";
+import {
+    createBoolean,
+    createNumber,
+    createString,
+    ExpressionType,
+    interpret,
+} from "../src";
 
 test("literal atom", () => {
     expect(interpret("1")).toEqual({ type: ExpressionType.Number, value: 1 });
@@ -14,6 +20,10 @@ const expectNumber = (input: string, result: number) => {
 
 const expectBoolean = (input: string, result: boolean) => {
     expect(interpret(input)).toEqual(createBoolean(result));
+};
+
+const expectString = (input: string, result: string) => {
+    expect(interpret(input)).toEqual(createString(result));
 };
 
 describe("arithmetic operators", () => {
@@ -103,9 +113,9 @@ describe("comparison operators", () => {
     });
 });
 
-// test("string", () => {
-//     expect(interpret('(append "hello" "world")')).toEqual("helloworld");
-// });
+test("string", () => {
+    expectString('(append "hello" "world")', "helloworld");
+});
 
 // describe("variable", () => {
 //     test("throw on undefined variable", () => {
