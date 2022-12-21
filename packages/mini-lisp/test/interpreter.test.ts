@@ -432,12 +432,15 @@ describe("io", () => {
 
 // });
 
-// describe("procedure", () => {
-//     test("procedure?", () => {
-//         expect(interpret("(procedure? (lambda (x) (x)))")).toEqual(true);
-//         expect(interpret("(procedure? 1)")).toEqual(false);
-//     });
-// });
+describe("procedure?", () => {
+    test("return true for procedure", () => {
+        expectBoolean("(procedure? procedure?)", true);
+    });
+
+    test("return false for non procedure", () => {
+        expectBoolean("(procedure? 1)", false);
+    });
+});
 
 // describe("pair", () => {
 //     test("cons", () => {

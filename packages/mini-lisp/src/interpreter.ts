@@ -23,7 +23,7 @@ export function interpretExpression(expr: Expression, context: Context) {
         case ExpressionType.Boolean:
             return expr;
         case ExpressionType.Symbol:
-            return expr;
+            return context.get(expr.name);
         default:
             // TODO: remove JSON.stringify
             throw new Error(`unsupported expr ${formatExpression(expr)}`);
@@ -52,7 +52,7 @@ function interpretListExpression(
             const args = rest.map((e) => interpretExpression(e, context));
             // TODO: scope
             // const procedureScope =
-            // const procedureContext = new Context(, context);
+            // const procedureContext = new Context({}, context);
             return value.call(...args);
         }
 

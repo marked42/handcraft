@@ -324,9 +324,9 @@ export function getStandardLibrary() {
         // "equal?": (left: ExprValue, right: ExprValue) => {
         //     return left === right;
         // },
-        // "procedure?": (value: ExprValue) => {
-        //     return typeof value === "function";
-        // },
+        "procedure?": createProcedure((value: Expression) => {
+            return createBoolean(value.type === ExpressionType.Procedure);
+        }),
         // TODO: symbol
     };
     return StandardLibrary;
