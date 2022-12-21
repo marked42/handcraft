@@ -68,6 +68,50 @@ function interpretListExpression(
             return isTruthy(test) ? consequent : alternate;
         }
 
+        if (first.name === "define") {
+            if (rest.length !== 2) {
+                throw new Error(
+                    `define accepts 2 parameters, get ${rest.length}`
+                );
+            }
+
+            // do not evaluate variable, not defined yet.
+            const [variable, init] = rest;
+            if (variable.type !== ExpressionType.Symbol) {
+                throw new Error(
+                    `define requires first parameter to be symbol, get ${format(
+                        variable
+                    )}`
+                );
+            }
+            const value = interpretExpression(init, context);
+            context.define(variable.name, value);
+
+            return value;
+        }
+
+        if (first.name === "set!") {
+            if (rest.length !== 2) {
+                throw new Error(
+                    `set! accepts 2 parameters, get ${rest.length}`
+                );
+            }
+
+            // do not evaluate variable
+            const [variable, init] = rest;
+            if (variable.type !== ExpressionType.Symbol) {
+                throw new Error(
+                    `set! requires first parameter to be symbol, get ${format(
+                        variable
+                    )}`
+                );
+            }
+            const value = interpretExpression(init, context);
+            context.set(variable.name, value);
+
+            return value;
+        }
+
         const value = context.get(first.name);
 
         if (!value) {

@@ -7,6 +7,7 @@ import {
     interpret,
     NullValue,
     ListExpression,
+    Context,
 } from "../src";
 
 test("literal atom", () => {
@@ -355,44 +356,54 @@ describe("io", () => {
     });
 });
 
-// describe("variable", () => {
-//     test("throw on undefined variable", () => {
-//         expect(() => interpret("a")).toThrowError();
-//     });
+describe("define", () => {
+    test("define variable", () => {
+        expectNumber("(begin (define r 10) r)", 10);
+        expectNumber("(begin (define r 10) (* 2 (* r r)))", 200);
+    });
 
-//     test("read variable", () => {
-//         expect(interpret("a", new Context({ a: 1 }))).toEqual(1);
-//     });
+    test("cannot redefine existed variable", () => {
+        expect(() =>
+            interpret("(begin (define r 10) (define r 11))")
+        ).toThrowError();
+    });
 
-//     test("define variable", () => {
-//         expect(interpret("(begin (define r 10) r)")).toEqual(10);
-//         expect(interpret("(begin (define r 10) (* 2 (* r r)))")).toEqual(200);
-//     });
+    test("cannot redefine builtin variable", () => {
+        expect(() => interpret("(define + 10)")).toThrowError();
+    });
 
-//     test("cannot redefine existed variable", () => {
-//         expect(() =>
-//             interpret("(begin (define r 10) (define r 11))")
-//         ).toThrowError();
-//     });
+    test("cannot redefine builtin variable", () => {
+        expect(() =>
+            interpret("(begin (define a 10) ((lambda () (define a 1))))")
+        ).toThrowError();
+    });
+});
 
-//     test("cannot redefine builtin variable", () => {
-//         expect(() => interpret("(define + 10)")).toThrowError();
-//     });
+describe("variable", () => {
+    test("throw on undefined variable", () => {
+        expect(() => interpret("a")).toThrowError();
+    });
 
-//     test("cannot redefine builtin variable", () => {
-//         expect(() =>
-//             interpret("(begin (define a 10) ((lambda () (define a 1))))")
-//         ).toThrowError();
-//     });
+    test("read variable", () => {
+        expect(
+            interpret(
+                "a",
+                new Context({
+                    a: createNumber(1),
+                })
+            )
+        ).toEqual(createNumber(1));
+    });
 
-//     test("set existing variable", () => {
-//         expect(interpret("(begin (define a 1) (set! a 2) a)")).toEqual(2);
-//     });
-// });
+    test("set existing variable", () => {
+        expectNumber("(begin (define a 1) (set! a 2) a)", 2);
+    });
+});
 
 describe("if", () => {
     test("return consequent when test evaluates to true", () => {
         expectNumber("(if 1 2 3)", 2);
+        expectNumber("(if (> 10 20) (+ 1 1) (+ 3 3))", 6);
     });
 
     test("return alternate when test evaluates to true", () => {
