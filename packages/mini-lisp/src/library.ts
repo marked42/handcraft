@@ -305,15 +305,15 @@ export function getStandardLibrary() {
         //     }
         //     return proc(...args[0]);
         // },
-        // begin: (...args: ExprValue[]) => {
-        //     if (args.length === 0) {
-        //         throw new Error(
-        //             `begin accepts 1 argument at least, actual ${args.toString()}`
-        //         );
-        //     }
-        //     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        //     return args.at(-1)!;
-        // },
+        begin: createProcedure((...args: Expression[]) => {
+            if (args.length === 0) {
+                throw new Error(
+                    `begin accepts 1 argument at least, actual ${args.toString()}`
+                );
+            }
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            return args.at(-1)!;
+        }),
         // "pair?": (value: ExprValue) => {
         //     return Array.isArray(value) && !!(value[PairKey as any] as boolean);
         // },
@@ -327,7 +327,6 @@ export function getStandardLibrary() {
         "procedure?": createProcedure((value: Expression) => {
             return createBoolean(value.type === ExpressionType.Procedure);
         }),
-        // TODO: symbol
     };
     return StandardLibrary;
 }

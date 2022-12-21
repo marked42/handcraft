@@ -395,6 +395,16 @@ describe("io", () => {
 //     expect(interpret("(if 0 2 3)")).toEqual(3);
 // });
 
+describe("begin", () => {
+    test("returns last expression", () => {
+        expectNumber("(begin 1 2 3)", 3);
+    });
+
+    test("throw error when receiving zero arguments", () => {
+        expect(() => interpret("(begin)")).toThrowError();
+    });
+});
+
 // describe("call expression", () => {
 
 //     test("apply", () => {
