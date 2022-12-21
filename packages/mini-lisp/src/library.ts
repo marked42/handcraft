@@ -1,4 +1,5 @@
 import { Scope } from "./context";
+import { format } from "./utils";
 import {
     BooleanExpression,
     createBoolean,
@@ -329,11 +330,4 @@ export function getStandardLibrary() {
         }),
     };
     return StandardLibrary;
-}
-
-function format(value: Expression | Expression[]): string {
-    if (Array.isArray(value)) {
-        return value.map((e) => format(e)).join(", ");
-    }
-    return JSON.stringify(value, null, 2);
 }

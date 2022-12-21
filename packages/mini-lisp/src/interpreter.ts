@@ -1,6 +1,7 @@
 import { getStandardLibrary } from "./library";
 import { parseV2, Expression, ExpressionType, ListExpression } from "./parser";
 import { Context } from "./context";
+import { format } from "./utils";
 
 export function interpret(
     input: string,
@@ -26,7 +27,7 @@ export function interpretExpression(expr: Expression, context: Context) {
             return context.get(expr.name);
         default:
             // TODO: remove JSON.stringify
-            throw new Error(`unsupported expr ${formatExpression(expr)}`);
+            throw new Error(`unsupported expr ${format(expr)}`);
     }
 }
 
@@ -56,9 +57,7 @@ function interpretListExpression(
             return value.call(...args);
         }
 
-        throw new Error(
-            `unresolved symbol at list head, ${formatExpression(expr)}`
-        );
+        throw new Error(`unresolved symbol at list head, ${format(expr)}`);
     }
 
     const result: ListExpression = {
@@ -67,9 +66,4 @@ function interpretListExpression(
     };
 
     return result;
-}
-
-// TODO: refactor
-function formatExpression(expr: Expression) {
-    return JSON.stringify(expr, null, 2);
 }
