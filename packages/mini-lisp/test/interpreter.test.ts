@@ -390,10 +390,15 @@ describe("io", () => {
 //     });
 // });
 
-// test("if", () => {
-//     expect(interpret("(if 1 2 3)")).toEqual(2);
-//     expect(interpret("(if 0 2 3)")).toEqual(3);
-// });
+describe("if", () => {
+    test("return consequent when test evaluates to true", () => {
+        expectNumber("(if 1 2 3)", 2);
+    });
+
+    test("return alternate when test evaluates to true", () => {
+        expectNumber("(if 0 2 3)", 3);
+    });
+});
 
 describe("begin", () => {
     test("returns last expression", () => {

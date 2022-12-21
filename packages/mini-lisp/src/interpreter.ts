@@ -43,6 +43,31 @@ function interpretListExpression(
     const [first, ...rest] = expr.items;
 
     if (first.type === ExpressionType.Symbol) {
+        if (first.name === "if") {
+            if (rest.length !== 3) {
+                throw new Error(`if accepts 3 arguments, get ${format(rest)}`);
+            }
+            const [test, consequent, alternate] = rest.map((e) =>
+                interpretExpression(e, context)
+            );
+
+            // FIXME: conform to spec
+            const isTruthy = (expr: Expression) => {
+                switch (expr.type) {
+                    case ExpressionType.Boolean:
+                        return expr.value;
+                    case ExpressionType.Number:
+                        return expr.value !== 0;
+                    case ExpressionType.List:
+                        return expr.items.length > 0;
+                    default:
+                        throw new Error("invalid case");
+                }
+            };
+
+            return isTruthy(test) ? consequent : alternate;
+        }
+
         const value = context.get(first.name);
 
         if (!value) {
