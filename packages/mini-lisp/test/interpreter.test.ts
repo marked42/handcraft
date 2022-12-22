@@ -491,21 +491,19 @@ describe("procedure?", () => {
     });
 });
 
-// describe("pair", () => {
-// });
+describe("lambda", () => {
+    test("single parameter", () => {
+        expectString('((lambda (x) x) "Lisp")', "Lisp");
+    });
 
-// describe("lambda", () => {
-//     test("single parameter", () => {
-//         expect(interpret('((lambda (x) x) "Lisp")')).toEqual("Lisp");
-//     });
+    test("use built-in function", () => {
+        expectNumber("((lambda (x) (+ x x)) 1)", 2);
+    });
 
-//     test("use built-in function", () => {
-//         expect(interpret("((lambda (x) (+ x x)) 1)")).toEqual(2);
-//     });
-
-//     test("closure", () => {
-//         expect(
-//             interpret('((lambda (a) ((lambda (b) (b a)) "b")) "a")')
-//         ).toEqual(["b", "a"]);
-//     });
-// });
+    test("closure", () => {
+        expectList(
+            '((lambda (a) ((lambda (b) (list b a)) "b")) "a")',
+            createList([createString("b"), createString("a")])
+        );
+    });
+});
