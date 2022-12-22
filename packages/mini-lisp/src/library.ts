@@ -163,6 +163,41 @@ export function getStandardLibrary() {
         }),
     };
 
+    const equality: Scope = {
+        // TODO: not sure of exact meaning now
+        "eq?": createProcedure((left: Expression, right: Expression) => {
+            return createBoolean(left === right);
+        }),
+        "equal?": createProcedure((left: Expression, right: Expression) => {
+            if (
+                left.type === ExpressionType.Number &&
+                right.type === ExpressionType.Number
+            ) {
+                return createBoolean(left.value === right.value);
+            }
+            if (
+                left.type === ExpressionType.String &&
+                right.type === ExpressionType.String
+            ) {
+                return createBoolean(left.value === right.value);
+            }
+            if (
+                left.type === ExpressionType.Boolean &&
+                right.type === ExpressionType.Boolean
+            ) {
+                return createBoolean(left.value === right.value);
+            }
+            if (
+                left.type === ExpressionType.Symbol &&
+                right.type === ExpressionType.Symbol
+            ) {
+                return createBoolean(left.name === right.name);
+            }
+
+            return createBoolean(false);
+        }),
+    };
+
     const string: Scope = {
         append: createProcedure((left: Expression, right: Expression) => {
             const params = [left, right];
@@ -303,6 +338,7 @@ export function getStandardLibrary() {
     const StandardLibrary: Scope = {
         ...arithmetic,
         ...comparison,
+        ...equality,
         ...string,
         ...logical,
         ...list,
@@ -338,16 +374,6 @@ export function getStandardLibrary() {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             return args.at(-1)!;
         }),
-        // "pair?": (value: ExprValue) => {
-        //     return Array.isArray(value) && !!(value[PairKey as any] as boolean);
-        // },
-        // // TODO: not sure of exact meaning now
-        // "eq?": (left: ExprValue, right: ExprValue) => {
-        //     return left === right;
-        // },
-        // "equal?": (left: ExprValue, right: ExprValue) => {
-        //     return left === right;
-        // },
         "procedure?": createProcedure((value: Expression) => {
             return createBoolean(value.type === ExpressionType.Procedure);
         }),

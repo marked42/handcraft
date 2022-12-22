@@ -9,14 +9,6 @@ import {
     Context,
 } from "../src";
 
-test("literal atom", () => {
-    expect(interpret("1")).toEqual({ type: ExpressionType.Number, value: 1 });
-    expect(interpret('"a"')).toEqual({
-        type: ExpressionType.String,
-        value: "a",
-    });
-});
-
 const expectNumber = (input: string, result: number) => {
     expect(interpret(input)).toEqual(createNumber(result));
 };
@@ -32,6 +24,14 @@ const expectString = (input: string, result: string) => {
 const expectList = (input: string, list: ListExpression) => {
     expect(interpret(input)).toEqual(list);
 };
+
+test("literal atom", () => {
+    expect(interpret("1")).toEqual({ type: ExpressionType.Number, value: 1 });
+    expect(interpret('"a"')).toEqual({
+        type: ExpressionType.String,
+        value: "a",
+    });
+});
 
 describe("arithmetic operators", () => {
     test("+", () => {
@@ -117,6 +117,28 @@ describe("comparison operators", () => {
         expectBoolean("(<= 1 2)", true);
         expectBoolean("(<= 1 1)", true);
         expectBoolean("(<= 2 1)", false);
+    });
+});
+
+describe("equality", () => {
+    describe("eq?", () => {
+        test("return true if two values are the same one", () => {
+            expectBoolean("(begin (define l (list)) (eq? l l))", true);
+        });
+
+        test("return false if two values are not the same one", () => {
+            expectBoolean("(eq? (list) (list))", false);
+        });
+    });
+
+    describe("equal?", () => {
+        test("return true if two values are equal", () => {
+            expectBoolean("(equal? 1 1)", true);
+        });
+
+        test("return false if two values are not equal", () => {
+            expectBoolean("(equal? 1 2)", false);
+        });
     });
 });
 
