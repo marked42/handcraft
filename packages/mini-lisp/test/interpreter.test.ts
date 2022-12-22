@@ -456,43 +456,6 @@ describe("begin", () => {
     });
 });
 
-// describe("call expression", () => {
-
-//     test("apply", () => {
-//         expect(interpret("(apply + (1 2))")).toEqual(3);
-//         expect(() => interpret("(apply + )")).toThrowError();
-//         expect(() => interpret("(apply + (1 2) 3)")).toThrowError();
-//         expect(() => interpret("(apply 1 (1 2))")).toThrowError();
-//     });
-
-//     test("begin", () => {
-//         expect(interpret("(begin 1 2 3)")).toEqual(3);
-//         expect(() => interpret("(begin)")).toThrowError();
-//     });
-
-//     test("length", () => {
-//         expect(interpret("(length ())")).toEqual(0);
-//         expect(interpret("(length (1 2 3))")).toEqual(3);
-//         expect(() => interpret("(length)")).toThrowError();
-//         expect(() => interpret("(length 1)")).toThrowError();
-//     });
-
-//     test("list", () => {
-//         expect(interpret("(list 1 2 3)")).toEqual([1, 2, 3]);
-//         expect(interpret("(list)")).toEqual([]);
-//     });
-
-//     test("list?", () => {
-//         expect(interpret("(list? (list 1 2 3))")).toEqual(true);
-//         expect(interpret("(list? (list))")).toEqual(true);
-//         expect(interpret("(list? ())")).toEqual(true);
-//         expect(interpret("(list? 1)")).toEqual(false);
-//         // FIXME: treat pair as list now, needs confirm
-//         expect(interpret("(list? (cons 1 2))")).toEqual(true);
-//     });
-
-// });
-
 describe("procedure?", () => {
     test("return true for procedure", () => {
         expectBoolean("(procedure? procedure?)", true);
@@ -500,6 +463,13 @@ describe("procedure?", () => {
 
     test("return false for non procedure", () => {
         expectBoolean("(procedure? 1)", false);
+    });
+
+    test("apply", () => {
+        expectNumber("(apply + (list 1 2))", 3);
+        expect(() => interpret("(apply + )")).toThrowError();
+        expect(() => interpret("(apply + (1 2) 3)")).toThrowError();
+        expect(() => interpret("(apply 1 (1 2))")).toThrowError();
     });
 });
 

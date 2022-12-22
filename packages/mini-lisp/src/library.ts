@@ -335,6 +335,37 @@ export function getStandardLibrary() {
         }),
     };
 
+    const procedure: Scope = {
+        // TODO: pass down context
+        apply: createProcedure((proc: Expression, ...args: Expression[]) => {
+            if (proc.type !== ExpressionType.Procedure) {
+                throw new Error(
+                    `apply requires first parameter to be function, get ${format(
+                        proc
+                    )}`
+                );
+            }
+            if (args.length !== 1) {
+                throw new Error(
+                    `apply accepts exactly two parameters, actual ${format(
+                        args
+                    )}`
+                );
+            }
+            if (args[0].type !== ExpressionType.List) {
+                throw new Error(
+                    `apply requires second parameter to be a list, actual ${format(
+                        args[0]
+                    )}`
+                );
+            }
+            return proc.call(...args[0].items);
+        }),
+        "procedure?": createProcedure((value: Expression) => {
+            return createBoolean(value.type === ExpressionType.Procedure);
+        }),
+    };
+
     const StandardLibrary: Scope = {
         ...arithmetic,
         ...comparison,
@@ -343,28 +374,7 @@ export function getStandardLibrary() {
         ...logical,
         ...list,
         ...io,
-        // apply: (proc: ExprValue, ...args: ExprValue[]) => {
-        //     if (typeof proc !== "function") {
-        //         throw new Error(
-        //             `apply requires first parameter to be function, get ${format(
-        //                 proc
-        //             )}`
-        //         );
-        //     }
-        //     if (args.length !== 1) {
-        //         throw new Error(
-        //             `apply accepts exactly two parameters, actual ${args.toString()}`
-        //         );
-        //     }
-        //     if (!Array.isArray(args[0])) {
-        //         throw new Error(
-        //             `apply requires second parameter to be a list, actual ${format(
-        //                 args[0]
-        //             )}`
-        //         );
-        //     }
-        //     return proc(...args[0]);
-        // },
+        ...procedure,
         begin: createProcedure((...args: Expression[]) => {
             if (args.length === 0) {
                 throw new Error(
@@ -373,9 +383,6 @@ export function getStandardLibrary() {
             }
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             return args.at(-1)!;
-        }),
-        "procedure?": createProcedure((value: Expression) => {
-            return createBoolean(value.type === ExpressionType.Procedure);
         }),
     };
     return StandardLibrary;

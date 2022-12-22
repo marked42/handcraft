@@ -4,13 +4,13 @@ export type Atom = Token;
 export type List = Array<List | Atom>;
 
 export enum ExpressionType {
-    Number,
-    String,
-    Boolean,
-    Symbol,
-    Procedure,
-    List,
-    Pair,
+    Number = "Number",
+    String = "String",
+    Boolean = "Boolean",
+    Symbol = "Symbol",
+    Procedure = "Procedure",
+    List = "List",
+    Pair = "Pair",
 }
 
 export interface NumberExpression {
