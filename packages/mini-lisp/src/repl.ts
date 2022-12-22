@@ -4,6 +4,7 @@ import { interpret } from "./interpreter";
 import { getStandardLibrary } from "./library";
 
 import { stdin as input, stdout as output } from "process";
+import { format } from "./utils";
 
 const rl = readline.createInterface({ input, output });
 
@@ -14,7 +15,7 @@ export function repl(prompt = "lisp > ") {
     rl.on("line", (line: string) => {
         try {
             const value = interpret(line, rootContext);
-            console.log(value);
+            console.log(format(value));
         } catch (e) {
             console.error((e as any)?.message ?? e);
         }
