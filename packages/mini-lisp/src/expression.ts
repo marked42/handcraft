@@ -1,3 +1,5 @@
+import { format } from "./utils";
+
 export enum ExpressionType {
     Number = "Number",
     String = "String",
@@ -93,4 +95,68 @@ export function createBoolean(value: boolean): BooleanExpression {
         type: ExpressionType.Boolean,
         value,
     };
+}
+
+export function assertNumbers(
+    args: Expression[]
+): asserts args is NumberExpression[] {
+    if (
+        Array.isArray(args) &&
+        args.length > 0 &&
+        args.every((arg) => arg.type === ExpressionType.Number)
+    ) {
+        return;
+    }
+
+    throw new Error(
+        `arguments must be numbers, get ${args.map(format).join(", ")}`
+    );
+}
+
+export function assertStrings(
+    args: Expression[]
+): asserts args is StringExpression[] {
+    if (
+        Array.isArray(args) &&
+        args.length > 0 &&
+        args.every((arg) => arg.type === ExpressionType.String)
+    ) {
+        return;
+    }
+
+    throw new Error(
+        `arguments must be string, get ${args.map(format).join(", ")}`
+    );
+}
+
+export function assertBoolean(
+    args: Expression[]
+): asserts args is BooleanExpression[] {
+    if (
+        Array.isArray(args) &&
+        args.length > 0 &&
+        args.every((arg) => arg.type === ExpressionType.Boolean)
+    ) {
+        return;
+    }
+
+    throw new Error(
+        `arguments must be boolean, get ${args.map(format).join(", ")}`
+    );
+}
+
+export function assertList(
+    args: Expression[]
+): asserts args is ListExpression[] {
+    if (
+        Array.isArray(args) &&
+        args.length > 0 &&
+        args.every((arg) => arg.type === ExpressionType.List)
+    ) {
+        return;
+    }
+
+    throw new Error(
+        `arguments must be lists, get ${args.map(format).join(", ")}`
+    );
 }

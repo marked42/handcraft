@@ -1,7 +1,6 @@
 import { Scope } from "./context";
 import { format } from "./utils";
 import {
-    BooleanExpression,
     createBoolean,
     createList,
     createNumber,
@@ -9,68 +8,11 @@ import {
     createString,
     Expression,
     ExpressionType,
-    ListExpression,
-    NumberExpression,
-    StringExpression,
+    assertBoolean,
+    assertList,
+    assertStrings,
+    assertNumbers,
 } from "./expression";
-
-function assertNumbers(args: Expression[]): asserts args is NumberExpression[] {
-    if (
-        Array.isArray(args) &&
-        args.length > 0 &&
-        args.every((arg) => arg.type === ExpressionType.Number)
-    ) {
-        return;
-    }
-
-    throw new Error(
-        `arguments must be numbers, get ${args.map(format).join(", ")}`
-    );
-}
-
-function assertStrings(args: Expression[]): asserts args is StringExpression[] {
-    if (
-        Array.isArray(args) &&
-        args.length > 0 &&
-        args.every((arg) => arg.type === ExpressionType.String)
-    ) {
-        return;
-    }
-
-    throw new Error(
-        `arguments must be string, get ${args.map(format).join(", ")}`
-    );
-}
-
-function assertBoolean(
-    args: Expression[]
-): asserts args is BooleanExpression[] {
-    if (
-        Array.isArray(args) &&
-        args.length > 0 &&
-        args.every((arg) => arg.type === ExpressionType.Boolean)
-    ) {
-        return;
-    }
-
-    throw new Error(
-        `arguments must be boolean, get ${args.map(format).join(", ")}`
-    );
-}
-
-function assertList(args: Expression[]): asserts args is ListExpression[] {
-    if (
-        Array.isArray(args) &&
-        args.length > 0 &&
-        args.every((arg) => arg.type === ExpressionType.List)
-    ) {
-        return;
-    }
-
-    throw new Error(
-        `arguments must be lists, get ${args.map(format).join(", ")}`
-    );
-}
 
 /**
  * 使用函数每次获取独立的标准函数库定义
