@@ -103,3 +103,41 @@ export function tokenize(input: string): Token[] {
         return { type: TokenType.Unknown, source, value: source };
     });
 }
+
+export class TokenStream {
+    private index = 0;
+    private backupIndex: number[] = [];
+    private readonly tokens: Token[] = [];
+
+    constructor(input: string) {
+        this.tokens = tokenize(input);
+    }
+
+    store() {
+        this.backupIndex.push(this.index);
+    }
+
+    restore() {
+        const index = this.backupIndex.pop();
+        if (typeof index !== "number") {
+            throw new Error("no backup index");
+        }
+        this.index = index;
+    }
+
+    next() {
+        return this.index < this.tokens.length
+            ? this.tokens[this.index++]
+            : TokenEOF;
+    }
+
+    peek() {
+        return this.index < this.tokens.length
+            ? this.tokens[this.index]
+            : TokenEOF;
+    }
+}
+
+export function formatToken(token: Token) {
+    return JSON.stringify(token, null, 2);
+}

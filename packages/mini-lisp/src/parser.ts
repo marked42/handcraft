@@ -1,4 +1,4 @@
-import { type Token, tokenize, TokenType, TokenEOF } from "./tokenizer";
+import { TokenType, TokenStream, formatToken } from "./tokenizer";
 import {
     Expression,
     AtomExpression,
@@ -7,7 +7,7 @@ import {
 } from "./expression";
 
 export function parse(input: string): Expression[] {
-    const tokens = new TokenStream(tokenize(input));
+    const tokens = new TokenStream(input);
 
     return parseExpressions(tokens);
 }
@@ -79,41 +79,6 @@ function parseAtomExpression(tokens: TokenStream): AtomExpression | undefined {
             tokens.restore();
             return;
     }
-}
-
-export class TokenStream {
-    private index = 0;
-    private backupIndex: number[] = [];
-
-    constructor(private tokens: Token[]) {}
-
-    store() {
-        this.backupIndex.push(this.index);
-    }
-
-    restore() {
-        const index = this.backupIndex.pop();
-        if (typeof index !== "number") {
-            throw new Error("no backup index");
-        }
-        this.index = index;
-    }
-
-    next() {
-        return this.index < this.tokens.length
-            ? this.tokens[this.index++]
-            : TokenEOF;
-    }
-
-    peek() {
-        return this.index < this.tokens.length
-            ? this.tokens[this.index]
-            : TokenEOF;
-    }
-}
-
-function formatToken(token: Token) {
-    return JSON.stringify(token, null, 2);
 }
 
 function parseListExpression(tokens: TokenStream): ListExpression | undefined {
