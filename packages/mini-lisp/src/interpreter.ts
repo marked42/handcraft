@@ -1,5 +1,12 @@
 import { getStandardLibrary } from "./library";
-import { parseV2, Expression, ExpressionType, ListExpression } from "./parser";
+import {
+    parseV2,
+    Expression,
+    ExpressionType,
+    ListExpression,
+    createProcedure,
+    SymbolExpression,
+} from "./parser";
 import { Context } from "./context";
 import { format } from "./utils";
 
@@ -26,7 +33,6 @@ export function interpretExpression(expr: Expression, context: Context) {
         case ExpressionType.Symbol:
             return context.get(expr.name);
         default:
-            // TODO: remove JSON.stringify
             throw new Error(`unsupported expr ${format(expr)}`);
     }
 }
@@ -41,6 +47,7 @@ function interpretListExpression(
 
     const [first, ...rest] = expr.items;
 
+    // TODO: refactor special forms
     if (first.type === ExpressionType.Symbol) {
         if (first.name === "if") {
             if (rest.length !== 3) {
@@ -111,27 +118,74 @@ function interpretListExpression(
             return value;
         }
 
-        const value = context.get(first.name);
+        if (first.name === "lambda") {
+            if (rest.length !== 2) {
+                throw new Error(
+                    `lambda accepts 2 parameters, get ${format(rest)}`
+                );
+            }
 
-        if (!value) {
-            throw new Error(`read non exist variable ${first.name}`);
+            const [parameters, body] = rest;
+            assertSymbolList(parameters);
+
+            return createProcedure((...args: Expression[]) => {
+                if (args.length !== parameters.items.length) {
+                    throw new Error(
+                        `lambda accepts ${
+                            parameters.items.length
+                        } parameters, get ${args.length} ${format(args)}`
+                    );
+                }
+
+                const lambdaContext = createCallContext(
+                    context,
+                    parameters,
+                    args
+                );
+
+                return interpretExpression(body, lambdaContext);
+            });
         }
-
-        if (value.type === ExpressionType.Procedure) {
-            const args = rest.map((e) => interpretExpression(e, context));
-            // TODO: scope
-            // const procedureScope =
-            // const procedureContext = new Context({}, context);
-            return value.call(...args);
-        }
-
-        throw new Error(`unresolved symbol at list head, ${format(expr)}`);
     }
 
-    const result: ListExpression = {
-        type: ExpressionType.List,
-        items: expr.items.map((e) => interpretExpression(e, context)),
-    };
+    const value = interpretExpression(first, context);
 
-    return result;
+    if (value.type === ExpressionType.Procedure) {
+        const args = rest.map((e) => interpretExpression(e, context));
+        // TODO: scope
+        // const procedureScope =
+        // const procedureContext = new Context({}, context);
+        return value.call(...args);
+    }
+
+    throw new Error(
+        `list expression first argument must be procedure, get ${format(value)}`
+    );
+}
+
+function assertSymbolList(
+    list: Expression
+): asserts list is ListExpression<SymbolExpression> {
+    if (
+        list.type !== ExpressionType.List ||
+        list.items.some((p) => p.type !== ExpressionType.Symbol)
+    ) {
+        throw new Error(
+            `lambda first parameter must be a list of symbols, get ${format(
+                list
+            )}`
+        );
+    }
+}
+
+function createCallContext(
+    context: Context,
+    parameters: ListExpression<SymbolExpression>,
+    args: Expression[]
+) {
+    const scope: Record<string, Expression> = {};
+    parameters.items.forEach((p, i) => {
+        scope[p.name] = args[i];
+    });
+    return new Context(scope, context);
 }

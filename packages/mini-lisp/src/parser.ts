@@ -55,9 +55,9 @@ export function createProcedure(
     return procedure;
 }
 
-export interface ListExpression {
+export interface ListExpression<T = Expression> {
     type: ExpressionType.List;
-    items: Expression[];
+    items: T[];
 }
 
 export function createList(items: Expression[]): ListExpression {
