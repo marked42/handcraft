@@ -79,7 +79,7 @@ describe("arithmetic operators", () => {
     test("number?", () => {
         expectBoolean("(number? 1)", true);
         expectBoolean('(number? "1")', false);
-        expectBoolean("(number? (1))", false);
+        expectBoolean("(number? (list 1))", false);
     });
 
     test("max", () => {
@@ -210,23 +210,23 @@ describe("logical", () => {
 describe("list", () => {
     describe("literal", () => {
         test("empty list", () => {
-            expect(() => interpret("()")).toThrowError();
+            expectList("(list)", createList([]));
         });
 
         test("list with 1 item", () => {
-            expectList("(1)", createList([createNumber(1)]));
+            expectList("(list 1)", createList([createNumber(1)]));
         });
 
         test("list with multiple items", () => {
             expectList(
-                '(1 "2")',
+                '(list 1 "2")',
                 createList([createNumber(1), createString("2")])
             );
         });
 
         test("nested list", () => {
             expectList(
-                '(1 "2" (3, (4)))',
+                '(list 1 "2" (list 3 (list 4)))',
                 createList([
                     createNumber(1),
                     createString("2"),
@@ -273,7 +273,7 @@ describe("list", () => {
     describe("list?", () => {
         test("return true on list", () => {
             expectBoolean("(list? (list))", true);
-            expectBoolean("(list? (1))", true);
+            expectBoolean("(list? (list 1))", true);
         });
 
         test("return false on non list value", () => {
@@ -289,7 +289,7 @@ describe("list", () => {
         });
 
         test("return 1 on list with single item", () => {
-            expectNumber("(length (1))", 1);
+            expectNumber("(length (list 1))", 1);
         });
 
         test("return correct list length on list multiple items", () => {
@@ -303,11 +303,11 @@ describe("list", () => {
 
     describe("car", () => {
         test("return first element of a list", () => {
-            expectNumber("(car (1 2 3))", 1);
+            expectNumber("(car (list 1 2 3))", 1);
         });
 
         test("throw error when receiving empty list", () => {
-            expect(() => interpret("(car ())")).toThrowError();
+            expect(() => interpret("(car (list))")).toThrowError();
         });
 
         test("throw error when receiving zero argument", () => {
@@ -322,13 +322,13 @@ describe("list", () => {
     describe("cdr", () => {
         test("return rest element of a list", () => {
             expectList(
-                "(cdr (1 2 3))",
+                "(cdr (list 1 2 3))",
                 createList([createNumber(2), createNumber(3)])
             );
         });
 
         test("throw error when receiving empty list", () => {
-            expect(() => interpret("(cdr ())")).toThrowError();
+            expect(() => interpret("(cdr (list))")).toThrowError();
         });
 
         test("throw error when receiving zero argument", () => {
