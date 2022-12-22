@@ -10,7 +10,6 @@ import {
     Expression,
     ExpressionType,
     ListExpression,
-    NullValue,
     NumberExpression,
     StringExpression,
 } from "./parser";
@@ -220,9 +219,10 @@ export function getStandardLibrary() {
                 );
             }
 
-            // return null when receiving empty list
             if (params[0].items.length === 0) {
-                return NullValue;
+                throw new Error(
+                    `car accepts non empty list, get ${format(params[0])}`
+                );
             }
 
             return params[0].items[0];
@@ -235,12 +235,30 @@ export function getStandardLibrary() {
                 );
             }
 
-            // return empty list when receiving empty list
             if (params[0].items.length === 0) {
-                return params[0];
+                throw new Error(
+                    `cdr accepts non empty list, get ${format(params[0])}`
+                );
             }
 
             return createList(params[0].items.slice(1));
+        }),
+        cons: createProcedure((...args: Expression[]) => {
+            if (args.length !== 2) {
+                throw new Error(
+                    `cons expects 2 arguments, get ${args.length} ${format(
+                        args
+                    )}`
+                );
+            }
+            if (args[1].type !== ExpressionType.List) {
+                throw new Error(
+                    `cons expect second argument to be list, get ${format(
+                        args[1]
+                    )}`
+                );
+            }
+            return createList([args[0], ...args[1].items]);
         }),
         list: createProcedure((...args: Expression[]) => {
             return createList(args);
@@ -258,6 +276,11 @@ export function getStandardLibrary() {
             }
 
             return createNumber(params[0].items.length);
+        }),
+        "pair?": createProcedure((value: Expression) => {
+            return createBoolean(
+                value.type === ExpressionType.List && value.items.length > 0
+            );
         }),
         "null?": createProcedure((value: Expression) => {
             return createBoolean(

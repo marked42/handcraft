@@ -11,7 +11,6 @@ export enum ExpressionType {
     Procedure,
     List,
     Pair,
-    Null,
 }
 
 export interface NumberExpression {
@@ -71,18 +70,11 @@ export interface PairExpression {
     second: Expression;
 }
 
-export interface NullExpression {
-    type: ExpressionType.Null;
-}
-
-export const NullValue: NullExpression = { type: ExpressionType.Null };
-
 export type AtomExpression =
     | NumberExpression
     | StringExpression
     | BooleanExpression
     | ProcedureExpression
-    | NullExpression
     | SymbolExpression;
 
 export type Expression = AtomExpression | ListExpression;

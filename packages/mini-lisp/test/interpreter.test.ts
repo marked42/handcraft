@@ -5,7 +5,6 @@ import {
     createString,
     ExpressionType,
     interpret,
-    NullValue,
     ListExpression,
     Context,
 } from "../src";
@@ -28,10 +27,6 @@ const expectBoolean = (input: string, result: boolean) => {
 
 const expectString = (input: string, result: string) => {
     expect(interpret(input)).toEqual(createString(result));
-};
-
-const expectNull = (input: string) => {
-    expect(interpret(input)).toBe(NullValue);
 };
 
 const expectList = (input: string, list: ListExpression) => {
@@ -193,7 +188,7 @@ describe("logical", () => {
 describe("list", () => {
     describe("literal", () => {
         test("empty list", () => {
-            expectList("()", createList([]));
+            expect(() => interpret("()")).toThrowError();
         });
 
         test("list with 1 item", () => {
@@ -255,7 +250,7 @@ describe("list", () => {
 
     describe("list?", () => {
         test("return true on list", () => {
-            expectBoolean("(list? ())", true);
+            expectBoolean("(list? (list))", true);
             expectBoolean("(list? (1))", true);
         });
 
@@ -268,7 +263,7 @@ describe("list", () => {
 
     describe("length", () => {
         test("return 0 on empty list", () => {
-            expectNumber("(length ())", 0);
+            expectNumber("(length (list))", 0);
         });
 
         test("return 1 on list with single item", () => {
@@ -289,8 +284,8 @@ describe("list", () => {
             expectNumber("(car (1 2 3))", 1);
         });
 
-        test("return null on empty list", () => {
-            expectNull("(car ())");
+        test("throw error when receiving empty list", () => {
+            expect(() => interpret("(car ())")).toThrowError();
         });
 
         test("throw error when receiving zero argument", () => {
@@ -310,8 +305,8 @@ describe("list", () => {
             );
         });
 
-        test("return empty listy on empty list", () => {
-            expectList("(cdr ())", createList([]));
+        test("throw error when receiving empty list", () => {
+            expect(() => interpret("(cdr ())")).toThrowError();
         });
 
         test("throw error when receiving zero argument", () => {
@@ -339,6 +334,24 @@ describe("list", () => {
             expectBoolean('(null? "string")', false);
             expectBoolean("(null? #t)", false);
             expectBoolean("(null? 1)", false);
+        });
+    });
+
+    describe("pair?", () => {
+        test("returns false for empty list", () => {
+            expectBoolean("(pair? (list))", false);
+        });
+
+        test("returns true for non empty list", () => {
+            expectBoolean("(pair? (list 1))", true);
+            expectBoolean("(pair? (list 1 2))", true);
+            expectBoolean("(pair? (list 1 2 3))", true);
+        });
+
+        test("returns false for atom", () => {
+            expectBoolean("(pair? 1)", false);
+            expectBoolean("(pair? #t)", false);
+            expectBoolean('(pair? "string")', false);
         });
     });
 });
