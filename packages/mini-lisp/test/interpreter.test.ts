@@ -376,6 +376,24 @@ describe("list", () => {
             expectBoolean('(pair? "string")', false);
         });
     });
+
+    describe("cons", () => {
+        test("chain together a new list", () => {
+            expectList(
+                "(cons 1 (list 2 3))",
+                createList([createNumber(1), createNumber(2), createNumber(3)])
+            );
+        });
+
+        test("throw error when second parameter is not list", () => {
+            expect(() => interpret("(cons 1 2)")).toThrowError();
+        });
+
+        test("throw error when not accepting 2 parameters", () => {
+            expect(() => interpret("(cons 1)")).toThrowError();
+            expect(() => interpret("(cons 1 2 3)")).toThrowError();
+        });
+    });
 });
 
 describe("io", () => {
@@ -474,13 +492,6 @@ describe("procedure?", () => {
 });
 
 // describe("pair", () => {
-//     test("cons", () => {
-//         expect(interpret("(cons 1 2)")).toEqual([1, 2]);
-//     });
-
-//     test("con?", () => {
-//         expect(interpret("(pair? (cons 1 2))")).toEqual(true);
-//     });
 // });
 
 // describe("lambda", () => {
