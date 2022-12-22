@@ -1,4 +1,4 @@
-import { Expression } from "./parser";
+import { Expression } from "./expression";
 export type Scope = Record<string, Expression>;
 
 export interface Reference {

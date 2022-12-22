@@ -1,133 +1,12 @@
 import { type Token, tokenize, TokenType, TokenEOF } from "./tokenizer";
+import {
+    Expression,
+    AtomExpression,
+    ListExpression,
+    ExpressionType,
+} from "./expression";
 
-export type Atom = Token;
-export type List = Array<List | Atom>;
-
-export enum ExpressionType {
-    Number = "Number",
-    String = "String",
-    Boolean = "Boolean",
-    Symbol = "Symbol",
-    Procedure = "Procedure",
-    List = "List",
-    Pair = "Pair",
-}
-
-export interface NumberExpression {
-    type: ExpressionType.Number;
-    value: number;
-}
-
-export interface StringExpression {
-    type: ExpressionType.String;
-    value: string;
-}
-
-export interface BooleanExpression {
-    type: ExpressionType.Boolean;
-    value: boolean;
-}
-
-export interface SymbolExpression {
-    type: ExpressionType.Symbol;
-    name: string;
-}
-
-export interface ProcedureExpression {
-    type: ExpressionType.Procedure;
-    call(...args: Expression[]): Expression;
-    toString(): string;
-}
-
-export function createProcedure(
-    fn: (...args: Expression[]) => Expression
-): ProcedureExpression {
-    const procedure: ProcedureExpression = {
-        type: ExpressionType.Procedure,
-        call(...args: Expression[]) {
-            return fn(...args);
-        },
-        toString() {
-            return `<procedure (...args...) (...native...)>`;
-        },
-    };
-
-    return procedure;
-}
-
-export interface ListExpression<T = Expression> {
-    type: ExpressionType.List;
-    items: T[];
-}
-
-export function createList(items: Expression[]): ListExpression {
-    return { type: ExpressionType.List, items };
-}
-
-export interface PairExpression {
-    type: ExpressionType.Pair;
-    first: Expression;
-    second: Expression;
-}
-
-export type AtomExpression =
-    | NumberExpression
-    | StringExpression
-    | BooleanExpression
-    | ProcedureExpression
-    | SymbolExpression;
-
-export type Expression = AtomExpression | ListExpression;
-
-export function createNumber(value: number): NumberExpression {
-    return {
-        type: ExpressionType.Number,
-        value,
-    };
-}
-
-export function createString(value: string): StringExpression {
-    return {
-        type: ExpressionType.String,
-        value,
-    };
-}
-
-export function createBoolean(value: boolean): BooleanExpression {
-    return {
-        type: ExpressionType.Boolean,
-        value,
-    };
-}
-
-export function parse(input: string): List {
-    const tokens = tokenize(input);
-
-    return parseImpl(tokens);
-}
-
-function parseImpl(tokens: Token[], list: List = []): List {
-    const nextToken = tokens.shift();
-    if (!nextToken) {
-        return list;
-    }
-
-    // FIXME: violation of OCP
-    if (nextToken.type === TokenType.Punctuator && nextToken.source === "(") {
-        list.push(parseImpl(tokens));
-        return parseImpl(tokens, list);
-    } else if (
-        nextToken.type === TokenType.Punctuator &&
-        nextToken.source === ")"
-    ) {
-        return list;
-    }
-
-    list.push(nextToken);
-    return parseImpl(tokens, list);
-}
-
-export function parseV2(input: string): Expression[] {
+export function parse(input: string): Expression[] {
     const tokens = new TokenStream(tokenize(input));
 
     return parseExpressions(tokens);
@@ -136,9 +15,9 @@ export function parseV2(input: string): Expression[] {
 /**
  * Expressions: Expression+
  *
- * Expression: Atom | List
+ * Expression: AtomExpression | ListExpression
  *
- * List: '(' Expression* ')'
+ * ListExpression: '(' Expression* ')'
  */
 function parseExpressions(tokens: TokenStream): Expression[] {
     const expressions: Expression[] = [];
@@ -147,7 +26,7 @@ function parseExpressions(tokens: TokenStream): Expression[] {
     while (true) {
         const token = tokens.peek();
         if (token.type === TokenType.EOF) {
-            // requires one expression at lease
+            // requires one expression at least
             if (expressions.length === 0) {
                 throw new Error("unexpected end");
             } else {

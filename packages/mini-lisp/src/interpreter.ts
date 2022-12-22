@@ -1,12 +1,12 @@
 import { getStandardLibrary } from "./library";
 import {
-    parseV2,
     Expression,
     ExpressionType,
     ListExpression,
     createProcedure,
     SymbolExpression,
-} from "./parser";
+} from "./expression";
+import { parse } from "./parser";
 import { Context } from "./context";
 import { format } from "./utils";
 
@@ -14,7 +14,7 @@ export function interpret(
     input: string,
     rootContext = new Context(getStandardLibrary())
 ) {
-    const expressions = parseV2(input);
+    const expressions = parse(input);
     if (expressions.length === 1) {
         return interpretExpression(expressions[0], rootContext);
     }
@@ -152,9 +152,7 @@ function interpretListExpression(
 
     if (value.type === ExpressionType.Procedure) {
         const args = rest.map((e) => interpretExpression(e, context));
-        // TODO: scope
-        // const procedureScope =
-        // const procedureContext = new Context({}, context);
+        // don't need context
         return value.call(...args);
     }
 

@@ -4,3 +4,4 @@ export * from "./parser";
 export * from "./interpreter";
 export * from "./library";
 export * from "./context";
+export * from "./expression";

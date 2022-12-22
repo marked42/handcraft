@@ -1,4 +1,4 @@
-import { Expression } from "./parser";
+import { Expression } from "./expression";
 
 // TODO: refactor
 export function format(value: Expression | Expression[]): string {

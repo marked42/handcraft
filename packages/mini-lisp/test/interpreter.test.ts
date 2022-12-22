@@ -486,8 +486,8 @@ describe("procedure?", () => {
     test("apply", () => {
         expectNumber("(apply + (list 1 2))", 3);
         expect(() => interpret("(apply + )")).toThrowError();
-        expect(() => interpret("(apply + (1 2) 3)")).toThrowError();
-        expect(() => interpret("(apply 1 (1 2))")).toThrowError();
+        expect(() => interpret("(apply + (list 1 2) 3)")).toThrowError();
+        expect(() => interpret("(apply 1 (list 1 2))")).toThrowError();
     });
 });
 

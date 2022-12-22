@@ -12,7 +12,7 @@ import {
     ListExpression,
     NumberExpression,
     StringExpression,
-} from "./parser";
+} from "./expression";
 
 function assertNumbers(args: Expression[]): asserts args is NumberExpression[] {
     if (
