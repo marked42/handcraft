@@ -160,3 +160,18 @@ export function assertList(
         `arguments must be lists, get ${args.map(format).join(", ")}`
     );
 }
+
+export function assertSymbolList(
+    list: Expression
+): asserts list is ListExpression<SymbolExpression> {
+    if (
+        list.type !== ExpressionType.List ||
+        list.items.some((p) => p.type !== ExpressionType.Symbol)
+    ) {
+        throw new Error(
+            `lambda first parameter must be a list of symbols, get ${format(
+                list
+            )}`
+        );
+    }
+}
