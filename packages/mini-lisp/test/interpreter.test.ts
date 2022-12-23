@@ -521,3 +521,17 @@ describe("quote", () => {
         expect(() => interpret("(quote)")).toThrowError();
     });
 });
+
+test("scope", () => {
+    const input = `
+(begin
+    (define make-account
+        (lambda (balance)
+            (lambda (amt)
+                (begin (set! balance (+ balance amt))
+                    balance))))
+    (define account1 (make-account 100.00))
+    (account1 -20.00))
+`;
+    expectNumber(input, 80);
+});
