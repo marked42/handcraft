@@ -52,7 +52,7 @@ function interpretListExpression(
 
     if (value.type === ExpressionType.Procedure) {
         const args = rest.map((e) => interpretExpression(e, context));
-        // don't need context
+        // built-in procedures don't use other variable, so it's ok to not pass context here
         return value.call(...args);
     }
 
