@@ -99,6 +99,16 @@ export const SpecialForms: Record<string, SpecialForm> = {
             return interpretExpression(body, lambdaContext);
         });
     },
+    quote: (args: Expression[]) => {
+        if (args.length !== 1) {
+            throw new Error(
+                `quote accepts only 1 argument, get ${args.length} ${format(
+                    args
+                )}`
+            );
+        }
+        return args[0];
+    },
 };
 
 function createCallContext(

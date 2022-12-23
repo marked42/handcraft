@@ -507,3 +507,17 @@ describe("lambda", () => {
         );
     });
 });
+
+describe("quote", () => {
+    test("return list literally", () => {
+        expectList("(quote (1))", createList([createNumber(1)]));
+    });
+
+    test("throw error when receiving zero arguments", () => {
+        expect(() => interpret("(quote)")).toThrowError();
+    });
+
+    test("throw error when receiving more than 1 arguments", () => {
+        expect(() => interpret("(quote)")).toThrowError();
+    });
+});
