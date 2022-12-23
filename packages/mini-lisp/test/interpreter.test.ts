@@ -535,3 +535,12 @@ test("scope", () => {
 `;
     expectNumber(input, 80);
 });
+
+test("recursive", () => {
+    const input = `
+(begin
+    (define fact (lambda (n) (if (<= n 1) 1 (* n (fact (- n 1))))))
+    (fact 2))
+`;
+    expectNumber(input, 3628800);
+});
