@@ -19,9 +19,10 @@ export const SpecialForms: Record<string, SpecialForm> = {
         if (args.length !== 3) {
             throw new Error(`if accepts 3 arguments, get ${format(args)}`);
         }
-        const [test, consequent, alternate] = args.map((e) =>
-            interpretExpression(e, context)
-        );
+        const [test, consequent, alternate] = args;
+        // .map((e) =>
+        //     interpretExpression(e, context)
+        // );
 
         // FIXME: conform to spec
         const isTruthy = (expr: Expression) => {
@@ -37,7 +38,9 @@ export const SpecialForms: Record<string, SpecialForm> = {
             }
         };
 
-        return isTruthy(test) ? consequent : alternate;
+        return isTruthy(interpretExpression(test, context))
+            ? interpretExpression(consequent, context)
+            : interpretExpression(alternate, context);
     },
     define: (args: Expression[], context: Context) => {
         if (args.length !== 2) {
