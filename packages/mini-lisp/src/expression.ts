@@ -7,7 +7,6 @@ export enum ExpressionType {
     Symbol = "Symbol",
     Procedure = "Procedure",
     List = "List",
-    Pair = "Pair",
 }
 
 export interface NumberExpression {
@@ -57,16 +56,6 @@ export interface ListExpression<T = Expression> {
     items: T[];
 }
 
-export function createList(items: Expression[]): ListExpression {
-    return { type: ExpressionType.List, items };
-}
-
-export interface PairExpression {
-    type: ExpressionType.Pair;
-    first: Expression;
-    second: Expression;
-}
-
 export type AtomExpression =
     | NumberExpression
     | StringExpression
@@ -95,6 +84,10 @@ export function createBoolean(value: boolean): BooleanExpression {
         type: ExpressionType.Boolean,
         value,
     };
+}
+
+export function createList(items: Expression[]): ListExpression {
+    return { type: ExpressionType.List, items };
 }
 
 export function assertNumbers(
