@@ -168,3 +168,17 @@ export function assertSymbolList(
         );
     }
 }
+
+// FIXME: conform to spec
+export const isTruthy = (expr: Expression) => {
+    switch (expr.type) {
+        case ExpressionType.Boolean:
+            return expr.value;
+        case ExpressionType.Number:
+            return expr.value !== 0;
+        case ExpressionType.List:
+            return expr.items.length > 0;
+        default:
+            throw new Error("invalid case");
+    }
+};

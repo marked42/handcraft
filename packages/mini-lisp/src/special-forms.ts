@@ -6,6 +6,7 @@ import {
     assertSymbolList,
     ListExpression,
     SymbolExpression,
+    isTruthy,
 } from "./expression";
 import { interpretExpression } from "./interpreter";
 import { format } from "./utils";
@@ -20,23 +21,6 @@ export const SpecialForms: Record<string, SpecialForm> = {
             throw new Error(`if accepts 3 arguments, get ${format(args)}`);
         }
         const [test, consequent, alternate] = args;
-        // .map((e) =>
-        //     interpretExpression(e, context)
-        // );
-
-        // FIXME: conform to spec
-        const isTruthy = (expr: Expression) => {
-            switch (expr.type) {
-                case ExpressionType.Boolean:
-                    return expr.value;
-                case ExpressionType.Number:
-                    return expr.value !== 0;
-                case ExpressionType.List:
-                    return expr.items.length > 0;
-                default:
-                    throw new Error("invalid case");
-            }
-        };
 
         return isTruthy(interpretExpression(test, context))
             ? interpretExpression(consequent, context)
