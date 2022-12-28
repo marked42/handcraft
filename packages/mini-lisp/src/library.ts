@@ -68,6 +68,11 @@ export function getStandardLibrary() {
                 value: Math.abs(params[0].value),
             };
         }),
+        pow: createProcedure((left: Expression, right: Expression) => {
+            const params = [left, right];
+            assertNumbers(params);
+            return createNumber(Math.pow(params[0].value, params[1].value));
+        }),
     };
 
     const comparison: Scope = {
@@ -308,6 +313,32 @@ export function getStandardLibrary() {
         }),
     };
 
+    const controlFlow: Scope = {
+        "call/cc": createProcedure((proc: Expression) => {
+            if (proc.type !== ExpressionType.Procedure) {
+                throw new Error(
+                    `call/cc expect a procedure, get ${format(proc)}`
+                );
+            }
+
+            const escapeError = new Error("");
+            let escapedValue: Expression = createList([]);
+            const escape = createProcedure((value) => {
+                escapedValue = value;
+                throw escapeError;
+            });
+
+            try {
+                return proc.call(escape);
+            } catch (e) {
+                if (e === escapeError) {
+                    return escapedValue;
+                }
+                throw e;
+            }
+        }),
+    };
+
     const StandardLibrary: Scope = {
         ...arithmetic,
         ...comparison,
@@ -317,6 +348,7 @@ export function getStandardLibrary() {
         ...list,
         ...io,
         ...procedure,
+        ...controlFlow,
         begin: createProcedure((...args: Expression[]) => {
             if (args.length === 0) {
                 throw new Error(

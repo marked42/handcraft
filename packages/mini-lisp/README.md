@@ -7,6 +7,9 @@
 ## Roadmap
 
 1. [LISP 方言路线图](https://www.zhihu.com/question/26760072/answer/35156245)
+1. proper tail recursive
+1. macro expansion
+1. call with continuation
 
 1. primitive expression Atom / Symbol
 1. means of combination List / Procedure
@@ -32,4 +35,10 @@ function isNumbers(...args: any[]): args is number[] {
 }
 ```
 
-### T
+### REPL
+
+1. 一行一条语句
+1. 一条语句跨多行
+1. 一行多条语句
+1. 错误处理
+1. syntax error

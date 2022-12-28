@@ -544,3 +544,24 @@ test("recursive", () => {
 `;
     expectNumber(input, 3628800);
 });
+
+describe("call/cc", () => {
+    test("return expression when calling escape", () => {
+        expectNumber("(call/cc (lambda (escape) (* 100 (escape 3))))", 3);
+    });
+
+    test("return expression when not calling escape", () => {
+        expectNumber("(call/cc (lambda (escape) (* 100 3)))", 300);
+    });
+
+    test("nested call/cc", () => {
+        expectNumber(
+            "(call/cc (lambda (throw) (+ 5 (* 10 (call/cc (lambda (escape) (* 100 (escape 3))))))))",
+            35
+        );
+        expectNumber(
+            "(call/cc (lambda (throw) (+ 5 (* 10 (call/cc (lambda (escape) (* 100 (throw 3))))))))",
+            3
+        );
+    });
+});
