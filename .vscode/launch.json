@@ -9,9 +9,13 @@
             "request": "launch",
             "name": "Launch Program",
             "runtimeExecutable": "node",
-            "skipFiles": ["<node_internals>/**"],
-            "program": "${workspaceFolder}/packages/lang/src/tokenizer.ts",
-            "outFiles": ["${workspaceFolder}/**/*.js"]
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/packages/mini-lisp/src/evaluate.js",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ]
         }
     ]
 }
