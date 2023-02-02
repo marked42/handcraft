@@ -27,6 +27,23 @@
 1. register machine
 1. [An Incremental Approach to Compiler Construction](http://scheme2006.cs.uchicago.edu/11-ghuloum.pdf)
 
+## model of evaluation
+
+substitution model
+environment model
+
+## Streams
+
+SICP 3.5
+
+## Concurrency
+
+assignment / concurrency SICP 3.4
+
+## Constraint based language
+
+SICP 3.3.5 Propagation of Constraints
+
 ## Known Issues
 
 TODO:
