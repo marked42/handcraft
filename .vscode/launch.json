@@ -8,11 +8,11 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "runtimeExecutable": "node",
+            "runtimeExecutable": "/Users/penghui/.nvm/versions/node/v16.17.0/bin/node",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/packages/mini-lisp/src/evaluate.js",
+            "program": "${workspaceFolder}/pl/lambda.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]
