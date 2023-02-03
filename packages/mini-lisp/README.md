@@ -26,6 +26,7 @@
 1. lazy evaluation
 1. register machine
 1. [An Incremental Approach to Compiler Construction](http://scheme2006.cs.uchicago.edu/11-ghuloum.pdf)
+1. [Lisp from Scratch in Rust](https://www.youtube.com/watch?v=0-wrD7gQ9R4)
 
 substitution model -> environment model -> evaluator (applicative order) -> normal order (lazy evaluation) -> non-deterministic computing -> logic programming -> register machine
 
