@@ -27,10 +27,25 @@
 1. register machine
 1. [An Incremental Approach to Compiler Construction](http://scheme2006.cs.uchicago.edu/11-ghuloum.pdf)
 
-## model of evaluation
+substitution model -> environment model -> evaluator (applicative order) -> normal order (lazy evaluation) -> non-deterministic computing -> logic programming -> register machine
 
-substitution model
-environment model
+recursive procedure iterative process / recursive process
+
+metacircular / self-hoisting
+
+### evaluator
+
+1. primitive data
+    1. number/boolean/string
+1. special forms
+    1. quote
+    1. assignment
+    1. if
+    1. lambda
+    1. begin
+    1. case
+1. primitive procedure
+1. compound procedure with environment model
 
 ## Streams
 
