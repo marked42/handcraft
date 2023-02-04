@@ -214,14 +214,6 @@
       (cons (eval (first-operand exps) env)
             (list-of-values (rest-operands exps) env))))
 
-; exer 4.1 arguments evaluation order left to right
-(define (list-of-values-left-to-right exps env)
-  (if (no-operands? exps)
-      '()
-      (let ((first (eval (first-operand exp) env)))
-        (cons first
-              (list-of-values (rest-operands exps) env)))))
-
 (define (my-apply procedure arguments)
   (cond
     ((primitive-procedure? procedure)
