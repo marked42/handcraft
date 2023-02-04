@@ -7,7 +7,8 @@
     ((variable? exp) (lookup-variable-value exp env))
     ((assignment? exp) (eval-assignment exp env))
     ((definition? exp) (eval-definition exp env))
-    ((and? exp) (eval-and exp env))
+    ((and? exp) (eval-and (cdr exp) env))
+    ((or? exp) (eval-or (cdr exp) env))
     ((if? exp) (eval-if exp env))
     ((lambda? exp) (make-procedure (lambda-parameters exp)
                                    (lambda-body exp)
@@ -19,15 +20,22 @@
     (else (error "Unkown expression type: EVAL" exp))))
 
 (define (and? exp) (tagged-list? exp 'and))
-(define (eval-and exp env)
-  (let ((operands (cdr exp)))
+(define (eval-and exps env)
     (cond
-      ((null? operands) true)
-      ((false? (eval (car operands) env)) false)
-      (else (eval-and (cdr operands) env))
+      ((null? exps) true)
+      ((false? (eval (car exps) env)) false)
+      (else (eval-and (cdr exps) env))
       )
     )
-  )
+
+(define (or? exp) (tagged-list? exp 'or))
+(define (eval-or exps env)
+    (cond
+      ((null? exps) false)
+      ((true? (eval (car exps) env)) true)
+      (else (eval-or (cdr exps) env))
+      )
+)
 
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
@@ -143,7 +151,6 @@
                      (sequence->exp (cond-actions first))
                      (expand-clauses rest))))))
 
-;FIXME: code on SCIP uses cadr, seems wrong
 (define (text-of-quotation exp) (cdr exp))
 
 (define (tagged-list? exp tag)
@@ -296,6 +303,14 @@
 
 (define the-global-environment (setup-environment))
 
-(eval '(and false true) the-global-environment)
-(eval '(and true true) the-global-environment)
 (eval '(and) the-global-environment)
+(eval '(and false true) the-global-environment)
+(eval '(and false false) the-global-environment)
+(eval '(and true false) the-global-environment)
+(eval '(and true true) the-global-environment)
+
+(eval '(or) the-global-environment)
+(eval '(or false true) the-global-environment)
+(eval '(or false false) the-global-environment)
+(eval '(or true false) the-global-environment)
+(eval '(or true true) the-global-environment)
