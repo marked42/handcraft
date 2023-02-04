@@ -1,5 +1,8 @@
 #lang sicp
 
+(define (true? val) (not (eq? val false)))
+(define (false? val) (eq? val false))
+
 (define (eval exp env)
   (cond
     ((self-evaluating? exp) exp)
@@ -8,7 +11,7 @@
     ((assignment? exp) (eval-assignment exp env))
     ((definition? exp) (eval-definition exp env))
     ((and? exp) (eval-and (cdr exp) env))
-    ((or? exp) (eval-or (cdr exp) env))
+    ((or? exp) (eval (or->if (cdr exp)) env))
     ((if? exp) (eval-if exp env))
     ((lambda? exp) (make-procedure (lambda-parameters exp)
                                    (lambda-body exp)
@@ -28,13 +31,16 @@
       )
     )
 
+; implement or as derived expression
 (define (or? exp) (tagged-list? exp 'or))
-(define (eval-or exps env)
-    (cond
-      ((null? exps) false)
-      ((true? (eval (car exps) env)) true)
-      (else (eval-or (cdr exps) env))
-      )
+(define (or->if exps)
+  (define (loop exps)
+    (if (null? exps)
+      'false
+      (make-if (car exps) 'true (loop (cdr exps)))
+    )
+  )
+  (loop exps)
 )
 
 (define (self-evaluating? exp)
@@ -95,9 +101,6 @@
       'false))
 (define (make-if predicate consequent alternative)
   (list 'if predicate consequent alternative))
-
-(define (true? val) (not (eq? val false)))
-(define (false? val) (eq? val false))
 
 ; sequence
 (define (eval-sequence exps env)
@@ -160,7 +163,7 @@
 
 (define (variable? exp) (symbol? exp))
 
-
+; environment
 (define (enclosing-environment env) (cdr env))
 (define (first-frame env) (car env))
 (define the-empty-environment '())
@@ -309,6 +312,7 @@
 (eval '(and true false) the-global-environment)
 (eval '(and true true) the-global-environment)
 
+; false
 (eval '(or) the-global-environment)
 (eval '(or false true) the-global-environment)
 (eval '(or false false) the-global-environment)
