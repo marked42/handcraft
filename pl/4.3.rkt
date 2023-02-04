@@ -1,21 +1,28 @@
 #lang sicp
 
-(define (eval exp env)
+; TODO:
+(define (data-directed-eval exp env)
   (cond
     ((self-evaluating? exp) exp)
-    ((quoted? exp) (text-of-quotation exp))
     ((variable? exp) (lookup-variable-value exp env))
-    ((assignment? exp) (eval-assignment exp env))
-    ((definition? exp) (eval-definition exp env))
-    ((if? exp) (eval-if exp env))
-    ((lambda? exp) (make-procedure (lambda-parameters exp)
-                                   (lambda-body exp)
-                                   env))
-    ((begin? exp) (eval-sequence (begin-actions exp) env))
-    ((cond? exp) (eval (cond->if exp) env))
-    ((application? exp) (my-apply (eval (operator exp) env)
-                                  (list-of-values (operands exp) env)))
-    (else (error "Unkown expression type: EVAL" exp))))
+    (else
+     (let ((handler (find-handler exp handlers)))
+       (if (null? handler)
+           (error "Unkown expression type: EVAL" exp)
+           (handler exp env)
+           )
+       )
+     )
+    ))
+
+(define (find-handler exp handlers)
+  (cond
+    ((null? handlers) '())
+    ((eq? (car exp) (caar handlers)) (cadar handlers))
+    (else (find-handler exp (cdr handlers)))
+    )
+  )
+
 
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
@@ -30,7 +37,7 @@
 (define (assignment-value exp) (caddr exp))
 (define (eval-assignment exp env)
   (set-variable-value! (assignment-variable exp)
-                       (eval (assignment-value exp) env)
+                       (data-directed-eval (assignment-value exp) env)
                        env)
   'ok)
 
@@ -57,16 +64,16 @@
 
 (define (eval-definition exp env)
   (define-variable! (definition-variable exp)
-    (eval (definition-value exp) env)
+    (data-directed-eval (definition-value exp) env)
     env)
   'ok)
 
 ; conditional
 (define (if? exp) (tagged-list? exp 'if))
 (define (eval-if exp env)
-  (if (true? (eval (if-predicate exp) env))
-      (eval (if-consequent exp) env)
-      (eval (if-alternative exp) env)))
+  (if (true? (data-directed-eval (if-predicate exp) env))
+      (data-directed-eval (if-consequent exp) env)
+      (data-directed-eval (if-alternative exp) env)))
 (define (if-predicate exp) (cadr exp))
 (define (if-consequent exp) (caddr exp))
 (define (if-alternative exp)
@@ -82,9 +89,9 @@
 ; sequence
 (define (eval-sequence exps env)
   (cond
-    ((last-exp? exps) (eval (first-exp exps) env))
+    ((last-exp? exps) (data-directed-eval (first-exp exps) env))
     (else
-     (eval (first-exp exps) env)
+     (data-directed-eval (first-exp exps) env)
      (eval-sequence (rest-exps exps) env)
      )
     )
@@ -200,9 +207,10 @@
     (scan (frame-variables frame) (frame-values frame))))
 
 
-(define (application? exp) (pair? exp))
-(define (operator exp) (car exp))
-(define (operands exp) (cdr exp))
+; (call + 1 2)
+(define (application? exp) (tagged-list? exp 'call))
+(define (operator exp) (cadr exp))
+(define (operands exp) (cddr exp))
 (define (no-operands? ops) (null? ops))
 (define (first-operand ops) (car ops))
 (define (rest-operands ops) (cdr ops))
@@ -211,14 +219,14 @@
 (define (list-of-values exps env)
   (if (no-operands? exps)
       '()
-      (cons (eval (first-operand exps) env)
+      (cons (data-directed-eval (first-operand exps) env)
             (list-of-values (rest-operands exps) env))))
 
 ; exer 4.1 arguments evaluation order left to right
 (define (list-of-values-left-to-right exps env)
   (if (no-operands? exps)
       '()
-      (let ((first (eval (first-operand exp) env)))
+      (let ((first (data-directed-eval (first-operand exp) env)))
         (cons first
               (list-of-values (rest-operands exps) env)))))
 
@@ -284,9 +292,30 @@
 
 (define the-global-environment (setup-environment))
 
-(eval 1 the-empty-environment)
-(eval '(quote + 1 2) the-global-environment)
-(eval '(+ 1 2) the-global-environment)
-(eval '(null? 1) the-global-environment)
-(eval '(if true 1 2) the-global-environment)
-(eval '(if false 1 2) the-global-environment)
+(define handlers
+  (list
+   (list 'call (lambda (exp env)
+                 (data-directed-eval (operator exp) env)
+                 (list-of-values (operands exp) env)
+                 ))
+   (list 'quote (lambda (exp env)
+                  (text-of-quotation exp)))
+   ;  self-evaluating
+   ; variable
+   (list 'set! eval-assignment)
+   (list 'define eval-definition)
+   (list 'if eval-if)
+   (list 'lambda (lambda (exp env)
+                   (make-procedure (lambda-parameters exp)
+                                   (lambda-body exp)
+                                   env)
+                   ))
+   (list 'begin (lambda (exp env)
+                  (eval-sequence (begin-actions exp) env)
+                  ))
+   (list 'cond (lambda (exp env)
+                 (data-directed-eval (cond->if exp) env)
+                 ))
+   ))
+
+(data-directed-eval '(call + 1 2) the-global-environment)

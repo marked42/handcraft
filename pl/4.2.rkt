@@ -2,6 +2,9 @@
 
 (define (eval exp env)
   (cond
+    ; move to first
+    ((application? exp) (my-apply (eval (operator exp) env)
+                                  (list-of-values (operands exp) env)))
     ((self-evaluating? exp) exp)
     ((quoted? exp) (text-of-quotation exp))
     ((variable? exp) (lookup-variable-value exp env))
@@ -13,8 +16,6 @@
                                    env))
     ((begin? exp) (eval-sequence (begin-actions exp) env))
     ((cond? exp) (eval (cond->if exp) env))
-    ((application? exp) (my-apply (eval (operator exp) env)
-                                  (list-of-values (operands exp) env)))
     (else (error "Unkown expression type: EVAL" exp))))
 
 (define (self-evaluating? exp)
@@ -200,9 +201,10 @@
     (scan (frame-variables frame) (frame-values frame))))
 
 
-(define (application? exp) (pair? exp))
-(define (operator exp) (car exp))
-(define (operands exp) (cdr exp))
+; (call + 1 2)
+(define (application? exp) (tagged-list? exp 'call))
+(define (operator exp) (cadr exp))
+(define (operands exp) (cddr exp))
 (define (no-operands? ops) (null? ops))
 (define (first-operand ops) (car ops))
 (define (rest-operands ops) (cdr ops))
@@ -284,9 +286,4 @@
 
 (define the-global-environment (setup-environment))
 
-(eval 1 the-empty-environment)
-(eval '(quote + 1 2) the-global-environment)
-(eval '(+ 1 2) the-global-environment)
-(eval '(null? 1) the-global-environment)
-(eval '(if true 1 2) the-global-environment)
-(eval '(if false 1 2) the-global-environment)
+(eval '(call + 1 2) the-global-environment)

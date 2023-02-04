@@ -30,9 +30,22 @@
 
 substitution model -> environment model -> evaluator (applicative order) -> normal order (lazy evaluation) -> non-deterministic computing -> logic programming -> register machine
 
+lexical-addressing Section 5.5.6
+
+注意被实现语言中的值如何在实现语言中表示，对于 metacircular 语言来说，也是不同的。
+
 recursive procedure iterative process / recursive process
 
 metacircular / self-hoisting
+
+derived-expression/syntactic sugar 通过将语法转换另一种语法的等价形式来实现
+
+变量定义策略
+
+1. 当做是函数体执行时一个一个顺序定义，某些未定义直接使用的程序会报错。
+1. 当做所有变量提前定义完成
+
+optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze， 提高 evaluator 运行效率，
 
 ### evaluator
 
@@ -59,6 +72,11 @@ assignment / concurrency SICP 3.4
 ## Constraint based language
 
 SICP 3.3.5 Propagation of Constraints
+
+## SICP in racket
+
+1. https://docs.racket-lang.org/sicp-manual/index.html
+1. https://stackoverflow.com/questions/19546115/which-lang-packet-is-proper-for-sicp-in-dr-racket
 
 ## Known Issues
 

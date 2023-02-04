@@ -7,6 +7,7 @@
     ((variable? exp) (lookup-variable-value exp env))
     ((assignment? exp) (eval-assignment exp env))
     ((definition? exp) (eval-definition exp env))
+    ((and? exp) (eval-and exp env))
     ((if? exp) (eval-if exp env))
     ((lambda? exp) (make-procedure (lambda-parameters exp)
                                    (lambda-body exp)
@@ -16,6 +17,17 @@
     ((application? exp) (my-apply (eval (operator exp) env)
                                   (list-of-values (operands exp) env)))
     (else (error "Unkown expression type: EVAL" exp))))
+
+(define (and? exp) (tagged-list? exp 'and))
+(define (eval-and exp env)
+  (let ((operands (cdr exp)))
+    (cond
+      ((null? operands) true)
+      ((false? (eval (car operands) env)) false)
+      (else (eval-and (cdr operands) env))
+      )
+    )
+  )
 
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
@@ -284,9 +296,6 @@
 
 (define the-global-environment (setup-environment))
 
-(eval 1 the-empty-environment)
-(eval '(quote + 1 2) the-global-environment)
-(eval '(+ 1 2) the-global-environment)
-(eval '(null? 1) the-global-environment)
-(eval '(if true 1 2) the-global-environment)
-(eval '(if false 1 2) the-global-environment)
+(eval '(and false true) the-global-environment)
+(eval '(and true true) the-global-environment)
+(eval '(and) the-global-environment)
