@@ -28,6 +28,12 @@
 1. [An Incremental Approach to Compiler Construction](http://scheme2006.cs.uchicago.edu/11-ghuloum.pdf)
 1. [Lisp from Scratch in Rust](https://www.youtube.com/watch?v=0-wrD7gQ9R4)
 
+### pair & list
+
+1. https://docs.racket-lang.org/guide/Lists__Iteration__and_Recursion.html
+1. https://docs.racket-lang.org/guide/Pairs__Lists__and_Racket_Syntax.html
+1. https://people.csail.mit.edu/jaffer/r5rs/Pairs-and-lists.html
+
 substitution model -> environment model -> evaluator (applicative order) -> normal order (lazy evaluation) -> non-deterministic computing -> logic programming -> register machine
 
 lexical-addressing Section 5.5.6
