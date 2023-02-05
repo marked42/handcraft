@@ -148,7 +148,6 @@
                      (sequence->exp (cond-actions first))
                      (expand-clauses rest))))))
 
-;FIXME: code on SCIP uses cadr, seems wrong
 (define (text-of-quotation exp) (cdr exp))
 
 (define (tagged-list? exp tag)

@@ -1,6 +1,5 @@
 #lang sicp
 
-; TODO:
 (define (data-directed-eval exp env)
   (cond
     ((self-evaluating? exp) exp)
@@ -139,7 +138,6 @@
                      (sequence->exp (cond-actions first))
                      (expand-clauses rest))))))
 
-;FIXME: code on SCIP uses cadr, seems wrong
 (define (text-of-quotation exp) (cdr exp))
 
 (define (tagged-list? exp tag)

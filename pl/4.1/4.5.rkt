@@ -149,7 +149,6 @@
   )
 )
 
-;FIXME: code on SCIP uses cadr, seems wrong
 (define (text-of-quotation exp) (cdr exp))
 
 (define (tagged-list? exp tag)
