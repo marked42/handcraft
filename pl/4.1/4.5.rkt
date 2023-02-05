@@ -102,7 +102,7 @@
 (define (sequence->exp seq)
   (cond
     ((null? seq) seq)
-    ((last-exp? seq) (first-exp exp))
+    ((last-exp? seq) (first-exp seq))
     (else (make-begin seq))
     )
   )
@@ -283,10 +283,3 @@
     initial-env))
 
 (define the-global-environment (setup-environment))
-
-(eval 1 the-empty-environment)
-(eval '(quote + 1 2) the-global-environment)
-(eval '(+ 1 2) the-global-environment)
-(eval '(null? 1) the-global-environment)
-(eval '(if true 1 2) the-global-environment)
-(eval '(if false 1 2) the-global-environment)
