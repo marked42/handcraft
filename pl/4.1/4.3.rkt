@@ -6,20 +6,21 @@
     ((self-evaluating? exp) exp)
     ((variable? exp) (lookup-variable-value exp env))
     (else
-     (let ((handler (find-handler exp handlers)))
+     (let ((handler (find-handler (car exp) handlers)))
+      (display (list "hand" (car exp) handler))
        (if (null? handler)
            (error "Unkown expression type: EVAL" exp)
-           (handler exp env)
+           (apply handler (map (lambda (exp) (data-directed-eval exp env)) (cdr exp)))
            )
        )
      )
     ))
 
-(define (find-handler exp handlers)
+(define (find-handler operator handlers)
   (cond
     ((null? handlers) '())
-    ((eq? (car exp) (caar handlers)) (cadar handlers))
-    (else (find-handler exp (cdr handlers)))
+    ((eq? operator (caar handlers)) (cadar handlers))
+    (else (find-handler operator (cdr handlers)))
     )
   )
 
@@ -305,6 +306,7 @@
    (list 'set! eval-assignment)
    (list 'define eval-definition)
    (list 'if eval-if)
+   (list '+ +)
    (list 'lambda (lambda (exp env)
                    (make-procedure (lambda-parameters exp)
                                    (lambda-body exp)
@@ -318,4 +320,4 @@
                  ))
    ))
 
-(data-directed-eval '(call + 1 2) the-global-environment)
+(data-directed-eval '(+ 1 2) the-global-environment)
