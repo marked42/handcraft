@@ -202,7 +202,7 @@
 
 
 ; (call + 1 2)
-(define (application? exp) (tagged-list? exp 'call))
+(define (application? exp) (pair? exp))
 (define (operator exp) (cadr exp))
 (define (operands exp) (cddr exp))
 (define (no-operands? ops) (null? ops))
