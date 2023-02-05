@@ -283,3 +283,5 @@
     initial-env))
 
 (define the-global-environment (setup-environment))
+
+(eval '(cond (1 2) (else 3)) the-global-environment)
