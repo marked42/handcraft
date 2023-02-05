@@ -107,7 +107,6 @@
     )
   )
 
-; (cond (predicate ...actions) (predicate ...actions) (else ...actions))
 (define (cond? exp) (tagged-list? exp 'cond))
 (define (cond-clauses exp) (cdr exp))
 (define (cond->if exp) (expand-clauses (cond-clauses exp)))
@@ -128,8 +127,27 @@
                 (sequence->exp (cond-actions first))
                 (error "ELSE clause isn't last: COND->IF" clauses))
             (make-if (cond-predicate first)
-                     (sequence->exp (cond-actions first))
+                     (expand-clause first)
                      (expand-clauses rest))))))
+
+(define (cond-extend-clause? clause)
+  (eq? (cadr clause) '=>)
+)
+
+(define (cond-extend-clause-val clause)
+  (car clause)
+)
+
+(define (cond-extend-clause-map clause)
+  (caddr clause)
+)
+
+(define (expand-clause clause)
+  (if (cond-extend-clause? clause)
+    (list (cond-extend-clause-map clause) (cond-extend-clause-val clause))
+    (sequence->exp (cond-actions clause))
+  )
+)
 
 ;FIXME: code on SCIP uses cadr, seems wrong
 (define (text-of-quotation exp) (cdr exp))
@@ -285,3 +303,4 @@
 (define the-global-environment (setup-environment))
 
 (eval '(cond (1 2) (else 3)) the-global-environment)
+(eval '(cond (1 => (lambda (x) (+ x 10))) (else 3)) the-global-environment)
