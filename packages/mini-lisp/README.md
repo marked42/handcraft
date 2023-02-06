@@ -63,7 +63,9 @@ optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze�
     1. if
     1. lambda
     1. begin
-    1. case
+    1. cond test => recipient form
+    1. let/named let simultaneous binding
+    1. let\* bind from left to right
 1. primitive procedure
 1. compound procedure with environment model
 
