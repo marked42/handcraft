@@ -8,6 +8,7 @@
     ((assignment? exp) (eval-assignment exp env))
     ((definition? exp) (eval-definition exp env))
     ((if? exp) (eval-if exp env))
+    ((let? exp) (eval (let->combination exp) env))
     ((lambda? exp) (make-procedure (lambda-parameters exp)
                                    (lambda-body exp)
                                    env))
@@ -16,6 +17,46 @@
     ((application? exp) (my-apply (eval (operator exp) env)
                                   (list-of-values (operands exp) env)))
     (else (error "Unkown expression type: EVAL" exp))))
+
+; (let ((⟨var1⟩ ⟨exp1⟩) . . . (⟨varn⟩ ⟨expn⟩)) ⟨body⟩)
+(define (let? exp) (tagged-list? exp 'let))
+
+(define (let-var-val-pairs exp) (cadr exp))
+(define (let-vars exp) (map car (let-var-val-pairs exp)))
+(define (let-vals exp) (map cadr (let-var-val-pairs exp)))
+(define (let-body exp) (cddr exp))
+
+(define (let-name-params-body exp)
+  (if (symbol? (cadr exp))
+      (list (cadr exp) (caddr exp) (cdddr exp))
+      (list '() (cadr exp) (cddr exp))
+      )
+  )
+
+
+; ((lambda (⟨var1⟩ ... ⟨varn⟩) ⟨body⟩) ⟨exp1⟩ ... ⟨expn⟩)
+(define (let->combination exp)
+  (let ((name-params-body (let-name-params-body exp)))
+    (define name (car name-params-body))
+    (let ((params (cadr name-params-body)))
+      (define vars (map car params))
+      (define vals (map cadr params))
+      (define body (caddr name-params-body))
+      (if (null? name)
+          (cons
+           (make-lambda vars body)
+           vals
+           )
+          (make-begin
+           (list
+            (list 'define name (make-lambda vars body))
+            (cons name vals)
+            )
+           )
+          )
+      )
+    )
+  )
 
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
@@ -102,7 +143,7 @@
 (define (sequence->exp seq)
   (cond
     ((null? seq) seq)
-    ((last-exp? seq) (first-exp exp))
+    ((last-exp? seq) (first-exp seq))
     (else (make-begin seq))
     )
   )
@@ -131,7 +172,6 @@
                      (sequence->exp (cond-actions first))
                      (expand-clauses rest))))))
 
-;FIXME: code on SCIP uses cadr, seems wrong
 (define (text-of-quotation exp) (cdr exp))
 
 (define (tagged-list? exp tag)
@@ -203,6 +243,7 @@
 (define (application? exp) (pair? exp))
 (define (operator exp) (car exp))
 (define (operands exp) (cdr exp))
+
 (define (no-operands? ops) (null? ops))
 (define (first-operand ops) (car ops))
 (define (rest-operands ops) (cdr ops))
@@ -276,9 +317,14 @@
 
 (define the-global-environment (setup-environment))
 
-(eval 1 the-empty-environment)
-(eval '(quote + 1 2) the-global-environment)
-(eval '(+ 1 2) the-global-environment)
-(eval '(null? 1) the-global-environment)
-(eval '(if true 1 2) the-global-environment)
-(eval '(if false 1 2) the-global-environment)
+(define let-exp '(let ((var1 1) (var2 2)) var1 var2))
+(define named-let-exp '(let fib ((var1 1) (var2 2)) var1 var2))
+; (let-name-params-body let-exp)
+; (let-name-params-body named-let-exp)
+(let->combination let-exp)
+(eval let-exp the-global-environment)
+
+(let->combination named-let-exp)
+(eval named-let-exp the-global-environment)
+; (cddr let-exp)
+; (cdddr named-let-exp)

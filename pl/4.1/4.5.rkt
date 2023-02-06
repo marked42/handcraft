@@ -37,7 +37,7 @@
 ; definition
 ; (define <var> <value>)
 ; (define (<var> <parameter1> ... <parametern>) <body>)
-(define (definition? exp) (tagged-list? exp 'definition))
+(define (definition? exp) (tagged-list? exp 'define))
 (define (definition-variable exp)
   (if (symbol? (cadr exp))
       (cadr exp)
@@ -132,22 +132,22 @@
 
 (define (cond-extend-clause? clause)
   (eq? (cadr clause) '=>)
-)
+  )
 
 (define (cond-extend-clause-val clause)
   (car clause)
-)
+  )
 
 (define (cond-extend-clause-map clause)
   (caddr clause)
-)
+  )
 
 (define (expand-clause clause)
   (if (cond-extend-clause? clause)
-    (list (cond-extend-clause-map clause) (cond-extend-clause-val clause))
-    (sequence->exp (cond-actions clause))
+      (list (cond-extend-clause-map clause) (cond-extend-clause-val clause))
+      (sequence->exp (cond-actions clause))
+      )
   )
-)
 
 (define (text-of-quotation exp) (cdr exp))
 

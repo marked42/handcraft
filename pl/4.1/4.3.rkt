@@ -6,7 +6,7 @@
     ((variable? exp) (lookup-variable-value exp env))
     (else
      (let ((handler (find-handler (car exp) handlers)))
-      (display (list "hand" (car exp) handler))
+       (display (list "hand" (car exp) handler))
        (if (null? handler)
            (error "Unkown expression type: EVAL" exp)
            (apply handler (map (lambda (exp) (data-directed-eval exp env)) (cdr exp)))
@@ -44,7 +44,7 @@
 ; definition
 ; (define <var> <value>)
 ; (define (<var> <parameter1> ... <parametern>) <body>)
-(define (definition? exp) (tagged-list? exp 'definition))
+(define (definition? exp) (tagged-list? exp 'define))
 (define (definition-variable exp)
   (if (symbol? (cadr exp))
       (cadr exp)

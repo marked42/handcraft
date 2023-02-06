@@ -52,7 +52,7 @@
 ; definition
 ; (define <var> <value>)
 ; (define (<var> <parameter1> ... <parametern>) <body>)
-(define (definition? exp) (tagged-list? exp 'definition))
+(define (definition? exp) (tagged-list? exp 'define))
 (define (definition-variable exp)
   (if (symbol? (cadr exp))
       (cadr exp)
