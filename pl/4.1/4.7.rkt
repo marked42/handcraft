@@ -299,21 +299,25 @@
 (define (let*-body exp) (cddr exp))
 (define (let*? exp) (tagged-list? exp 'let*))
 
+(define (make-let parameters body)
+  (cons
+   'let
+   (cons
+    parameters
+    body
+    )
+   )
+  )
+
 (define (let*->nested-let exp)
   (define (loop parameters body)
-    (if (eq? (length  parameters) 1)
-        (cons
-         'let
-         (cons
-          (list (car parameters))
-          body))
-        (cons
-         'let
-         (cons
-          (list (car parameters))
-          (list (loop (cdr parameters) body))
-          ))
-        )
+    (make-let
+     (list (car parameters))
+     (if (eq? (length parameters) 1)
+         body
+         (list (loop (cdr parameters) body))
+         )
+     )
     )
   (loop (let*-parameters exp) (let*-body exp))
   )
