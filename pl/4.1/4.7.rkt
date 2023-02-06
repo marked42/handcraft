@@ -9,6 +9,7 @@
     ((definition? exp) (eval-definition exp env))
     ((if? exp) (eval-if exp env))
     ((let? exp) (eval (let->combination exp) env))
+    ((let*? exp) (eval (let*->nested-let exp) env))
     ((lambda? exp) (make-procedure (lambda-parameters exp)
                                    (lambda-body exp)
                                    env))
@@ -252,6 +253,7 @@
    (list 'cons cons)
    (list 'null? null?)
    (list '+ +)
+   (list '* *)
    ; more primitive procedures
    )
   )
@@ -291,10 +293,32 @@
 
 (define the-global-environment (setup-environment))
 
-(define let-exp '(let ((var1 1) (var2 2)) var1 var2))
-; (let-var-val-pairs let-exp)
-; (let-vars let-exp)
-; (let-vals let-exp)
-; (let-body let-exp)
-(let->combination let-exp)
-(eval let-exp the-global-environment)
+(define let*-exp '(let* ((x 3) (y (+ x 2)) (z (+ x y 5))) (* x z)))
+
+(define (let*-parameters exp) (cadr exp))
+(define (let*-body exp) (cddr exp))
+(define (let*? exp) (tagged-list? exp 'let*))
+
+(define (let*->nested-let exp)
+  (define (loop parameters body)
+    (if (eq? (length  parameters) 1)
+        (cons
+         'let
+         (cons
+          (list (car parameters))
+          body))
+        (cons
+         'let
+         (cons
+          (list (car parameters))
+          (list (loop (cdr parameters) body))
+          ))
+        )
+    )
+  (loop (let*-parameters exp) (let*-body exp))
+  )
+
+(let*-parameters let*-exp)
+(let*-body let*-exp)
+(let*->nested-let let*-exp)
+(eval let*-exp the-global-environment)
