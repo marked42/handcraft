@@ -69,6 +69,21 @@ optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze�
 1. primitive procedure
 1. compound procedure with environment model
 
+## Variable Binding
+
+1. declaration / reference
+1. scope
+1. extent
+1. dynamic / static
+1. lexical scoping
+1. scoping rules
+
+Books
+
+1. EOPL 3.5 Scoping and Binding of Variables
+1. SICP 4.1.6 Internal Definitions
+1. PLP 3 Names Scopes Bindings
+
 ## Streams
 
 SICP 3.5
