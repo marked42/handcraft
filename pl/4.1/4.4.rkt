@@ -24,24 +24,24 @@
 
 (define (and? exp) (tagged-list? exp 'and))
 (define (eval-and exps env)
-    (cond
-      ((null? exps) true)
-      ((false? (eval (car exps) env)) false)
-      (else (eval-and (cdr exps) env))
-      )
+  (cond
+    ((null? exps) true)
+    ((false? (eval (car exps) env)) false)
+    (else (eval-and (cdr exps) env))
     )
+  )
 
 ; implement or as derived expression
 (define (or? exp) (tagged-list? exp 'or))
 (define (or->if exps)
   (define (loop exps)
     (if (null? exps)
-      'false
-      (make-if (car exps) 'true (loop (cdr exps)))
+        'false
+        (make-if (car exps) 'true (loop (cdr exps)))
+        )
     )
-  )
   (loop exps)
-)
+  )
 
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
@@ -63,7 +63,7 @@
 ; definition
 ; (define <var> <value>)
 ; (define (<var> <parameter1> ... <parametern>) <body>)
-(define (definition? exp) (tagged-list? exp 'definition))
+(define (definition? exp) (tagged-list? exp 'define))
 (define (definition-variable exp)
   (if (symbol? (cadr exp))
       (cadr exp)
@@ -209,7 +209,7 @@
     (if (eq? env the-empty-environment)
         (error "Unbound variable: SET!" var)
         (let ((frame (first-frame env)))
-          (scan (frame-variables frame) (frame-values)))))
+          (scan (frame-variables frame) (frame-values frame)))))
   (env-loop env))
 
 (define (define-variable! var val env)

@@ -25,8 +25,8 @@
 (define (quoted? exp) (tagged-list? exp 'quote))
 
 ; assignment (set! a 1)
-(define (assignment? exp) (tagged-list? exp 'set!))
-(define (assignment-variable exp) (cadr exp))
+(define (assignment? exp) (eq? (cadr exp) '=))
+(define (assignment-variable exp) (car exp))
 (define (assignment-value exp) (caddr exp))
 (define (eval-assignment exp env)
   (set-variable-value! (assignment-variable exp)
@@ -107,6 +107,7 @@
     )
   )
 
+; (cond (predicate ...actions) (predicate ...actions) (else ...actions))
 (define (cond? exp) (tagged-list? exp 'cond))
 (define (cond-clauses exp) (cdr exp))
 (define (cond->if exp) (expand-clauses (cond-clauses exp)))
@@ -127,27 +128,8 @@
                 (sequence->exp (cond-actions first))
                 (error "ELSE clause isn't last: COND->IF" clauses))
             (make-if (cond-predicate first)
-                     (expand-clause first)
+                     (sequence->exp (cond-actions first))
                      (expand-clauses rest))))))
-
-(define (cond-extend-clause? clause)
-  (eq? (cadr clause) '=>)
-  )
-
-(define (cond-extend-clause-val clause)
-  (car clause)
-  )
-
-(define (cond-extend-clause-map clause)
-  (caddr clause)
-  )
-
-(define (expand-clause clause)
-  (if (cond-extend-clause? clause)
-      (list (cond-extend-clause-map clause) (cond-extend-clause-val clause))
-      (sequence->exp (cond-actions clause))
-      )
-  )
 
 (define (text-of-quotation exp) (cdr exp))
 
@@ -231,14 +213,6 @@
       (cons (eval (first-operand exps) env)
             (list-of-values (rest-operands exps) env))))
 
-; exer 4.1 arguments evaluation order left to right
-(define (list-of-values-left-to-right exps env)
-  (if (no-operands? exps)
-      '()
-      (let ((first (eval (first-operand exp) env)))
-        (cons first
-              (list-of-values (rest-operands exps) env)))))
-
 (define (my-apply procedure arguments)
   (cond
     ((primitive-procedure? procedure)
@@ -262,6 +236,7 @@
    (list 'cons cons)
    (list 'null? null?)
    (list '+ +)
+   (list 'display display)
    ; more primitive procedures
    )
   )
@@ -301,5 +276,6 @@
 
 (define the-global-environment (setup-environment))
 
-(eval '(cond (1 2) (else 3)) the-global-environment)
-(eval '(cond (1 => (lambda (x) (+ x 10))) (else 3)) the-global-environment)
+; (eval '(begin (define a 1) (display a) (set! a 2) a) the-global-environment)
+; change assignment syntax (var = val)
+(eval '(begin (define a 1) (display a) (a = 2) a) the-global-environment)

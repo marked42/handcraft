@@ -37,7 +37,7 @@
 ; definition
 ; (define <var> <value>)
 ; (define (<var> <parameter1> ... <parametern>) <body>)
-(define (definition? exp) (tagged-list? exp 'definition))
+(define (definition? exp) (tagged-list? exp 'define))
 (define (definition-variable exp)
   (if (symbol? (cadr exp))
       (cadr exp)
@@ -187,7 +187,7 @@
     (if (eq? env the-empty-environment)
         (error "Unbound variable: SET!" var)
         (let ((frame (first-frame env)))
-          (scan (frame-variables frame) (frame-values)))))
+          (scan (frame-variables frame) (frame-values frame)))))
   (env-loop env))
 
 (define (define-variable! var val env)

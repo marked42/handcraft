@@ -29,10 +29,8 @@
 ; ((lambda (⟨var1⟩ ... ⟨varn⟩) ⟨body⟩) ⟨exp1⟩ ... ⟨expn⟩)
 (define (let->combination exp)
   (cons
-    (make-lambda (let-vars exp) (let-body exp))
-    (let-vals exp)))
-
-(define let-exp '(let ((var1 1) (var2 2)) var1 var2))
+   (make-lambda (let-vars exp) (let-body exp))
+   (let-vals exp)))
 
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
@@ -54,7 +52,7 @@
 ; definition
 ; (define <var> <value>)
 ; (define (<var> <parameter1> ... <parametern>) <body>)
-(define (definition? exp) (tagged-list? exp 'definition))
+(define (definition? exp) (tagged-list? exp 'define))
 (define (definition-variable exp)
   (if (symbol? (cadr exp))
       (cadr exp)
@@ -203,7 +201,7 @@
     (if (eq? env the-empty-environment)
         (error "Unbound variable: SET!" var)
         (let ((frame (first-frame env)))
-          (scan (frame-variables frame) (frame-values)))))
+          (scan (frame-variables frame) (frame-values frame)))))
   (env-loop env))
 
 (define (define-variable! var val env)
@@ -293,6 +291,7 @@
 
 (define the-global-environment (setup-environment))
 
+(define let-exp '(let ((var1 1) (var2 2)) var1 var2))
 ; (let-var-val-pairs let-exp)
 ; (let-vars let-exp)
 ; (let-vals let-exp)

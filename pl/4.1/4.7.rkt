@@ -8,6 +8,8 @@
     ((assignment? exp) (eval-assignment exp env))
     ((definition? exp) (eval-definition exp env))
     ((if? exp) (eval-if exp env))
+    ((let? exp) (eval (let->combination exp) env))
+    ((let*? exp) (eval (let*->nested-let exp) env))
     ((lambda? exp) (make-procedure (lambda-parameters exp)
                                    (lambda-body exp)
                                    env))
@@ -16,6 +18,20 @@
     ((application? exp) (my-apply (eval (operator exp) env)
                                   (list-of-values (operands exp) env)))
     (else (error "Unkown expression type: EVAL" exp))))
+
+; (let ((⟨var1⟩ ⟨exp1⟩) . . . (⟨varn⟩ ⟨expn⟩)) ⟨body⟩)
+(define (let? exp) (tagged-list? exp 'let))
+
+(define (let-var-val-pairs exp) (cadr exp))
+(define (let-vars exp) (map car (let-var-val-pairs exp)))
+(define (let-vals exp) (map cadr (let-var-val-pairs exp)))
+(define (let-body exp) (cddr exp))
+
+; ((lambda (⟨var1⟩ ... ⟨varn⟩) ⟨body⟩) ⟨exp1⟩ ... ⟨expn⟩)
+(define (let->combination exp)
+  (cons
+   (make-lambda (let-vars exp) (let-body exp))
+   (let-vals exp)))
 
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
@@ -107,6 +123,7 @@
     )
   )
 
+; (cond (predicate ...actions) (predicate ...actions) (else ...actions))
 (define (cond? exp) (tagged-list? exp 'cond))
 (define (cond-clauses exp) (cdr exp))
 (define (cond->if exp) (expand-clauses (cond-clauses exp)))
@@ -127,27 +144,8 @@
                 (sequence->exp (cond-actions first))
                 (error "ELSE clause isn't last: COND->IF" clauses))
             (make-if (cond-predicate first)
-                     (expand-clause first)
+                     (sequence->exp (cond-actions first))
                      (expand-clauses rest))))))
-
-(define (cond-extend-clause? clause)
-  (eq? (cadr clause) '=>)
-  )
-
-(define (cond-extend-clause-val clause)
-  (car clause)
-  )
-
-(define (cond-extend-clause-map clause)
-  (caddr clause)
-  )
-
-(define (expand-clause clause)
-  (if (cond-extend-clause? clause)
-      (list (cond-extend-clause-map clause) (cond-extend-clause-val clause))
-      (sequence->exp (cond-actions clause))
-      )
-  )
 
 (define (text-of-quotation exp) (cdr exp))
 
@@ -220,6 +218,7 @@
 (define (application? exp) (pair? exp))
 (define (operator exp) (car exp))
 (define (operands exp) (cdr exp))
+
 (define (no-operands? ops) (null? ops))
 (define (first-operand ops) (car ops))
 (define (rest-operands ops) (cdr ops))
@@ -230,14 +229,6 @@
       '()
       (cons (eval (first-operand exps) env)
             (list-of-values (rest-operands exps) env))))
-
-; exer 4.1 arguments evaluation order left to right
-(define (list-of-values-left-to-right exps env)
-  (if (no-operands? exps)
-      '()
-      (let ((first (eval (first-operand exp) env)))
-        (cons first
-              (list-of-values (rest-operands exps) env)))))
 
 (define (my-apply procedure arguments)
   (cond
@@ -262,6 +253,7 @@
    (list 'cons cons)
    (list 'null? null?)
    (list '+ +)
+   (list '* *)
    ; more primitive procedures
    )
   )
@@ -301,5 +293,36 @@
 
 (define the-global-environment (setup-environment))
 
-(eval '(cond (1 2) (else 3)) the-global-environment)
-(eval '(cond (1 => (lambda (x) (+ x 10))) (else 3)) the-global-environment)
+(define let*-exp '(let* ((x 3) (y (+ x 2)) (z (+ x y 5))) (* x z)))
+
+(define (let*-parameters exp) (cadr exp))
+(define (let*-body exp) (cddr exp))
+(define (let*? exp) (tagged-list? exp 'let*))
+
+(define (make-let parameters body)
+  (cons
+   'let
+   (cons
+    parameters
+    body
+    )
+   )
+  )
+
+(define (let*->nested-let exp)
+  (define (loop parameters body)
+    (make-let
+     (list (car parameters))
+     (if (eq? (length parameters) 1)
+         body
+         (list (loop (cdr parameters) body))
+         )
+     )
+    )
+  (loop (let*-parameters exp) (let*-body exp))
+  )
+
+(let*-parameters let*-exp)
+(let*-body let*-exp)
+(let*->nested-let let*-exp)
+(eval let*-exp the-global-environment)
