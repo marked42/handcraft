@@ -203,11 +203,12 @@
 
 (define (begin? exp) (tagged-list? exp 'begin))
 (define (begin-actions exp) (cdr exp))
-(define (analyze-sequence exps)
+(define (analyze-sequence-v1 exps)
   (if (null? exps)
       (error "Empty sequence: ANALYZE")
       (let ((procs (map analyze exps)))
         (lambda (env)
+          ; discouraged style, use pure recursion
           (define r '())
           (define (loop procs)
             (if (pair? procs)
@@ -223,6 +224,23 @@
         )
       )
   )
+
+; exer 4.23 expand sequence iteration when analyzing
+(define (analyze-sequence exps)
+  (define (sequentially first second)
+    (lambda (env) (first env) (second env))
+  )
+  (define (loop first rest)
+    (if (null? rest)
+        first
+        (loop (sequentially first (car rest)) (cdr rest))
+    )
+  )
+  (let ((procs (map analyze exps)))
+    (if (null? procs) (error "Empty sequence: ANALYZE"))
+    (loop (car procs) (cdr procs))
+  )
+)
 
 ; (define begin-exp '(begin 1 2 3))
 ; (begin-actions begin-exp)
@@ -302,4 +320,4 @@
 ; (application-callee application-exp)
 ; (application-arguments application-exp)
 ; (analyze '(+ 1 1))
-(eval '(+ 1 3))
+; (eval '(+ 1 3))
