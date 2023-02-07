@@ -2,9 +2,6 @@
 
 (define (eval exp env)
   (cond
-    ; move to first
-    ((application? exp) (my-apply (eval (operator exp) env)
-                                  (list-of-values (operands exp) env)))
     ((self-evaluating? exp) exp)
     ((quoted? exp) (text-of-quotation exp))
     ((variable? exp) (lookup-variable-value exp env))
@@ -16,6 +13,8 @@
                                    env))
     ((begin? exp) (eval-sequence (begin-actions exp) env))
     ((cond? exp) (eval (cond->if exp) env))
+    ((application? exp) (my-apply (eval (operator exp) env)
+                                  (list-of-values (operands exp) env)))
     (else (error "Unkown expression type: EVAL" exp))))
 
 (define (self-evaluating? exp)
@@ -187,7 +186,7 @@
     (if (eq? env the-empty-environment)
         (error "Unbound variable: SET!" var)
         (let ((frame (first-frame env)))
-          (scan (frame-variables frame) (frame-values)))))
+          (scan (frame-variables frame) (frame-values frame)))))
   (env-loop env))
 
 (define (define-variable! var val env)
