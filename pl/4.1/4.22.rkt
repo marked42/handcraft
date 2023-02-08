@@ -1,0 +1,21 @@
+#lang sicp
+
+; (let ((⟨var1⟩ ⟨exp1⟩) . . . (⟨varn⟩ ⟨expn⟩)) ⟨body⟩)
+; (define (let? exp) (tagged-list exp 'let))
+(define let-exp '(let ((a 1) (b 2)) a b))
+(define (let-vars exp) (map car (cadr exp)))
+(define (let-vals exp) (map cadr (cadr exp)))
+(define (let-body exp) (cddr exp))
+
+; (let-vars let-exp)
+; (let-vals let-exp)
+; (let-body let-exp)
+(define (analyze-let exp)
+  (let ((vars (let-vars exp))
+        (vals (map analyze (let-vals exp)))
+        (body (analyze (let-body exp))))
+    (lambda (env)
+      (my-apply (make-procedure vars body env) (map (lambda (val) (val env)) vals))
+      )
+    )
+  )
