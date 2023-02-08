@@ -69,6 +69,8 @@ optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze�
 1. primitive procedure
 1. compound procedure with environment model
 
+[SICP Exercise Solutions](https://eli.thegreenplace.net/tag/sicp)
+
 ## Variable Binding
 
 let 表达式的变量初始化表达式中引用的变量是外层变量，该 let 定义的变量
