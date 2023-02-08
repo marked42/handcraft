@@ -1,0 +1,55 @@
+#lang sicp
+
+(define (tagged-list exp tag)
+  (if (pair? exp)
+      (eq? (car exp) tag)
+      false
+      )
+  )
+(define (define? exp) (tagged-list exp 'define))
+(define define-body '((define u 1) (define v 2) 3 4))
+
+(define (filter-defines exps)
+  (if (null? exps)
+      '()
+      (let ((first (car exps)) (rest (cdr exps)))
+        (if (define? first)
+            (cons first (filter-defines rest))
+            (filter-defines rest)
+            )
+        )
+      )
+  )
+
+(define (filter-non-defines exps)
+  (if (null? exps)
+      '()
+      (let ((first (car exps)) (rest (cdr exps)))
+        (if (not (define? first))
+            (cons first (filter-non-defines rest))
+            (filter-non-defines rest)
+            )
+        )
+      )
+  )
+
+
+(define (to-assignment defines)
+  (cons 'let
+        (cons (map (lambda (define) (list (cadr define) '*unassigned*)) defines)
+              (map (lambda (define) (cons 'set! (cdr define))) defines)
+              )
+        )
+  )
+
+(define (scan-out-defines exps)
+  (let ((defines (filter-defines exps))
+        (non-defines (filter-non-defines exps)))
+    (append (to-assignment defines) non-defines)
+    )
+  )
+
+(filter-defines define-body)
+(filter-non-defines define-body)
+(to-assignment (filter-defines define-body))
+(scan-out-defines define-body)

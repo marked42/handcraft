@@ -71,9 +71,14 @@ optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze�
 
 ## Variable Binding
 
+let 表达式的变量初始化表达式中引用的变量是外层变量，该 let 定义的变量
+
 1. declaration / reference
+1. binding association between a variable and its value
 1. scope
-1. extent
+1. extent time interval during which binding is maintained
+    1. closure referenced binding semi-infinite extent / dynamic property
+    1. dynamic extent / static property
 1. dynamic / static
 1. lexical scoping
 1. scoping rules
