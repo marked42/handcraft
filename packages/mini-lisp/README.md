@@ -93,6 +93,18 @@ Books
 1. SICP 4.1.6 Internal Definitions
 1. PLP 3 Names Scopes Bindings
 
+## Applicative Order VS Normal Order
+
+1. SICP 4.2 Variations on a Scheme
+1. Programming language pragmatics 6.62 Applicative- and Normal-Order Evaluation
+1. Lazy evaluation
+1. call-by-name = lazy evaluation without memoization
+1. call-by-need = lazy evaluation + memoization
+1. thunk / force / the process of evaluating the expression in a thunk is called forcing.
+    1. passed to a primitive procedure that will use the value of thunk
+    1. used as predicate of a conditional
+    1. used as procedure to be applied
+
 ## Streams
 
 SICP 3.5
