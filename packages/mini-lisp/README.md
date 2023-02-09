@@ -65,7 +65,9 @@ optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze�
     1. begin
     1. cond test => recipient form
     1. let/named let simultaneous binding
-    1. let\* bind from left to right
+    1. let 语句的变量初始化表达式在对应匿名函数外层环境求值，作为参数传给匿名函数，因此 let 定义的变量对于初始化表达式不可见，无法形成递归形式。
+    1. define 定义的变量不能互相引用，效果和 let 相同。
+    1. let-rec 的变量初始值为 unassigned 特殊值，初始化的表达式在匿名函数内部求值，因此能引用定义的变量，形成递归形式。
 1. primitive procedure
 1. compound procedure with environment model
 
