@@ -101,6 +101,11 @@ SICP 3.5
 
 assignment / concurrency SICP 3.4
 
+## Y Combinator/Fixed Point
+
+1. SICP Exercise 4.21 Page 533
+1. Design Concepts in programming languages Chapter 5 Fixed Points
+
 ## Constraint based language
 
 SICP 3.3.5 Propagation of Constraints
