@@ -58,7 +58,7 @@
   (set-variable-value! (assignment-variable exp)
                        (eval (assignment-value exp) env)
                        env)
-  'ok)
+  )
 
 ; definition
 ; (define <var> <value>)
@@ -85,7 +85,7 @@
   (define-variable! (definition-variable exp)
     (eval (definition-value exp) env)
     env)
-  'ok)
+  )
 
 ; conditional
 (define (if? exp) (tagged-list? exp 'if))
@@ -268,6 +268,7 @@
    (list 'null? null?)
    (list '+ +)
    (list '= =)
+   (list 'display display)
    ; more primitive procedures
    )
   )
@@ -373,4 +374,13 @@
         )
   )
 
-(eval '(begin (define (try a b) (if (= a 0) 1 b)) (try 0 (/ 1 0))) the-global-environment)
+; (eval '(begin (define (try a b) (if (= a 0) 1 b)) (try 0 (/ 1 0))) the-global-environment)
+
+; exer 4.27
+(eval '(begin (define count 0) (define (id x) (set! count (+ count 1)) x) (define w (id (id 10))) (display count) (display w) (display count)) the-global-environment)
+; 1. define w calls id once for initialization, count incremented to 1, delayed argument (id 10) is returned
+; count
+; 2. read w uses primitive procedure car to get its value, which forces delayed (id 10) and get actual value 10, count is incremented to 2,
+; w
+; 3. 2
+; count
