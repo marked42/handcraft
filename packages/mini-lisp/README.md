@@ -71,6 +71,11 @@ optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze�
 1. primitive procedure
 1. compound procedure with environment model
 
+lazy evaluation + side effects + memoization
+
+1. 用户自定义函数是 lazy，内置函数是 eager
+1. 设计语法可以指定任意一个函数的参数是否 lazy 和 memo
+
 [SICP Exercise Solutions](https://eli.thegreenplace.net/tag/sicp)
 
 ## Variable Binding
