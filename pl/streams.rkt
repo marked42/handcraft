@@ -188,3 +188,41 @@
 
 ; (define integer-sum (stream-map-v2 + (integer 1) (integer 1)))
 ; (display-stream (head 5 integer-sum))
+
+; exer 3.51
+(define (exer3.51)
+  (define (show x)
+    (display-line x)
+    x
+    )
+
+  (define x (stream-map show (stream-enumerate-interval 0 10)))
+  ; 0 1 2 3 4 5
+  (stream-ref x 5)
+  ; 6 7 because of memo
+  (stream-ref x 7)
+
+  (define y (stream-map show (stream-enumerate-interval 0 10)))
+  ; 1 2 3 4 5 6 7, y is a different list from x,
+  (stream-ref y 7)
+  )
+; (exer3.51)
+
+; exer 3.52
+; (define (exer3.52)
+(define sum 0)
+(define (accum x) (set! sum (+ x sum)) sum)
+; 1 2 3 4  5  6  7  8  9  10 11 12 13 14  15  16 17 18 19 20
+; 1 3 6 10 15 21 28 36 45 55 66 78 91 105 120 136 153 171 190 210
+(define seq (stream-map accum (stream-enumerate-interval 1 20)))
+
+; 6 10 28 36 66 78 120 136 190 210
+(define y (stream-filter even? seq))
+; 136
+(stream-ref y 7)
+
+; 10 15 45 55 105 120 190 210
+(define z (stream-filter (lambda (x) (= (remainder x 5) 0)) seq))
+; (display-stream z)
+;   )
+; (exer3.52)
