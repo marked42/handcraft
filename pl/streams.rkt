@@ -35,12 +35,12 @@
 (define the-empty-stream '())
 
 ; inifinite ones stream
-(define (ones)
-  (cons-stream 1 (ones))
-  )
-
+; (define (ones)
+;   (cons-stream 1 (ones))
+;   )
 ; 1
 ; (display (stream-car (stream-cdr (ones))))
+
 
 (define (integer start)
   (cons-stream start (integer (+ start 1)))
@@ -219,10 +219,87 @@
 ; 6 10 28 36 66 78 120 136 190 210
 (define y (stream-filter even? seq))
 ; 136
-(stream-ref y 7)
+; (stream-ref y 7)
 
 ; 10 15 45 55 105 120 190 210
 (define z (stream-filter (lambda (x) (= (remainder x 5) 0)) seq))
 ; (display-stream z)
 ;   )
 ; (exer3.52)
+
+
+; 3.5.2
+
+(define (integers-starting-from n)
+  (cons-stream n (integers-starting-from (+ n 1)))
+  )
+(define integers (integers-starting-from 1))
+(define (divisible? x y) (= (remainder x y) 0))
+(define no-sevens (stream-filter (lambda (x) (not (divisible? x 7))) integers))
+; 117
+; (stream-ref no-sevens 100)
+
+(define (fibgen a b) (cons-stream a (fibgen b (+ a b))))
+(define fibs (fibgen 0 1))
+
+(define (sieve stream)
+  (cons-stream
+   (stream-car stream)
+   (sieve (stream-filter
+           (lambda (x) (not (divisible? x (stream-car stream))))
+           (stream-cdr stream)
+           ))
+   )
+  )
+(define primes (sieve (integers-starting-from 2)))
+; 233
+; (stream-ref primes 50)
+
+; implicitly define streams
+(define ones (cons-stream 1 ones))
+
+(define (add-streams s1 s2) (stream-map-v2 + s1 s2))
+
+
+(define (scale-stream stream factor)
+  (stream-map-v2 (lambda (x) (* x factor)) stream)
+  )
+(define double (cons-stream 1 (scale-stream double 2)))
+
+; mutual recursive primes definition
+
+; exer 3.54
+(define (mul-streams s1 s2) (stream-map-v2 * s1 s2))
+(define factorials (cons-stream 1 (mul-streams factorials (integers-starting-from 2))))
+
+; exer 3.55
+(define (partial-sum s)
+  (cons-stream
+   (stream-car s)
+   (add-streams
+    (partial-sum s)
+    (stream-cdr s)
+    ))
+  )
+
+(define (merge s1 s2)
+  (cond ((stream-null? s1) s2)
+        ((stream-null? s2) s1)
+        (else
+         (let ((s1car (stream-car s1)) (s2car (stream-car s2)))
+           (cond ((< s1car s2car)
+                  (cons-stream s1car (merge (stream-cdr s1) s2))
+                  )
+                 ((< s2car s1car)
+                  (cons-stream s2car (merge s1 (stream-cdr s1)))
+                  )
+                 ; remove repetition, keep only single element
+                 (else (cons-stream
+                        s1car
+                        (merge (stream-cdr s1) (stream-cdr s2))
+                        ))
+                 )
+           )
+         )
+        )
+  )

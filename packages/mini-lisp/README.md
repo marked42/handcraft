@@ -114,6 +114,31 @@ Books
 
 SICP 3.5
 
+定义 stream 的两种方式
+
+将 integer 当做完整的序列，利用序列的第 n 项，计算下一项 n + 1。
+
+```scheme
+integer 1 2 3 4 5 6
+          1 2 3 4 5 6
+          1 1 1 1 1 1
+(define integers (cons-stream 1 (add-streams ones integers)))
+```
+
+这种方法定义 `integers`是表达式，需要语言支持惰性求实，否则递归调用死循环。
+
+将 integer 当做接收 start 参数的函数，表示从 start 开始的自然数序列，可以递归定义。
+
+```scheme
+<!-- (cons start integer(start + 1)) -->
+
+(define (integer start)
+  (cons-stream start (integer (+ start 1)))
+  )
+```
+
+其中通项同事 next = start + 1
+
 ## Concurrency
 
 assignment / concurrency SICP 3.4
