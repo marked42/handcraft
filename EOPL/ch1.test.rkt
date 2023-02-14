@@ -92,4 +92,40 @@
         )
   )
 
+; exer 1.33
 (check-equal? (mark-leaves-with-red-depth tree) marked-tree "mark tree")
+
+(define path-tree
+  '(14 (7 () (12 () ()))
+       (26 (20 (17 () ())
+               ())
+           (31 () ()))))
+
+(check-equal? (path 17 path-tree) '(right left left) "return path")
+
+; exer 1.35
+(define number-tree
+  (interior-node 'foo
+                 (interior-node 'bar
+                                (leaf 26)
+                                (leaf 12))
+                 (interior-node 'baz
+                                (leaf 11)
+                                (interior-node 'quux
+                                               (leaf 117)
+                                               (leaf 14)
+                                               )
+                                )
+                 )
+  )
+
+(define numbered-tree
+  '(foo (bar 0 1)
+        (baz 2 (quux 3 4))
+        )
+  )
+
+(check-equal? (number-leaves number-tree) numbered-tree "number leaves")
+
+; exer 1.36
+(check-equal? (number-elements-v2 '(v0 v1 v2)) '((0 v0) (1 v1) (2 v2)) "number list elements")
