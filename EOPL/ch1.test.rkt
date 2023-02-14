@@ -39,4 +39,57 @@
 (check-equal? (product '(a b c) '(x y)) '((a x) (a y) (b x) (b y) (c x) (c y)) "cartesian product")
 
 ; exer 1.22
-(check-equal? (filter-in symbol? '(a 2 (1 3) b 7)) (2 7) "filter numbers")
+(check-equal? (filter-in number? '(a 2 (1 3) b 7)) '(2 7) "filter in numbers")
+(check-equal? (filter-in symbol? '(a (b c) 17 foo)) '(a foo) "filter in symbols")
+
+; exer 1.23
+(check-equal? (list-index number? '(a 2 (1 3) b 7)) 1 "first number at 1")
+(check-equal? (list-index symbol? '(a (b c) 17 foo)) 0 "first symbol at 0")
+(check-equal? (list-index symbol? '(1 2 (a b) 3)) #f "no symbols found")
+
+; exer 1.24
+(check-equal? (every? number? '(a b c 3 e)) #f "should be false")
+(check-equal? (every? number? '(1 2 3 5 4)) #t "should be true")
+
+; exer 1.25
+(check-equal? (exists? number? '(a b c 3 e)) #t "should be true")
+(check-equal? (exists? number? '(a b c d e)) #f "should be false")
+
+; exer 1.26
+(check-equal? (up '((1 2) (3 4))) '(1 2 3 4) "up")
+(check-equal? (up '((x (y)) z)) '(x (y) z) "up")
+
+; exer 1.27
+(check-equal? (flatten '(a b c)) '(a b c) "flatten")
+(check-equal? (flatten '((a) () (b ()) () (c))) '(a b c) "flatten")
+(check-equal? (flatten '((a b) c (((d) e)))) '(a b c d e) "flatten")
+(check-equal? (flatten '(a b (() (c)))) '(a b c) "flatten")
+
+; exer 1.28
+(check-equal? (merge '(1 4) '(1 2 8)) '(1 1 2 4 8) "merge")
+(check-equal? (merge '(35 62 81 90 91) '(3 83 85 90)) '(3 35 62 81 83 85 90 90 91) "merge")
+
+; exer 1.31
+(check-equal? (interior-node 'red (leaf 1) (leaf 2)) '(red 1 2) "build binary tree")
+
+; exer 1.32
+(check-equal? (double-tree (interior-node 'red (leaf 1) (leaf 2))) '(red 2 4) "double binary tree")
+
+(define tree
+  (interior-node 'red
+                 (interior-node 'bar
+                                (leaf 26)
+                                (leaf 12))
+                 (interior-node 'red
+                                (leaf 11)
+                                (interior-node 'quux
+                                               (leaf 117)
+                                               (leaf 14)))))
+(define marked-tree
+  (list 'red
+        (list 'bar 1 1)
+        (list 'red 2 (list 'quux 2 2))
+        )
+  )
+
+(check-equal? (mark-leaves-with-red-depth tree) marked-tree "mark tree")

@@ -305,12 +305,159 @@
   (if (null? lst)
       '()
       (let ((first (car lst)) (rest (cdr lst)))
-        (cond ((list? first)
-               (append
-                (filter-in pred first)
-                (filter-in pred rest)))
-              ((pred first) (cons first (filter-in pred rest)))
-              (else (filter-in pred rest)))
+        (if (pred first)
+            (cons first (filter-in pred rest))
+            (filter-in pred rest))
         )
       )
   )
+
+; exer 1.23
+(define (list-index pred lst)
+  (if (null? lst)
+      #f
+      (let ((first (car lst)) (rest (cdr lst)))
+        (if (pred first)
+            0
+            (let ((index (list-index pred rest)))
+              (if (number? index)
+                  (+ 1 index)
+                  #f
+                  )
+              )
+            )
+        )
+      )
+  )
+
+; exer 1.24
+(define (every? pred lst)
+  (if (null? lst)
+      #t
+      (let ((first (car lst)) (rest (cdr lst)))
+        (if (pred first)
+            (every? pred rest)
+            #f
+            )
+        )
+      )
+  )
+
+; exer 1.25
+(define (exists? pred lst)
+  (if (null? lst)
+      #f
+      (let ((first (car lst)) (rest (cdr lst)))
+        (if (pred first)
+            #t
+            (exists? pred rest)
+            )
+        )
+      )
+  )
+
+; exer 1.26
+(define (up lst)
+  (if (null? lst)
+      '()
+      (let ((first (car lst)) (rest (cdr lst)))
+        (if (list? first)
+            (append first (up rest))
+            (cons first (up rest))
+            )
+        )
+      )
+
+  ; exer 1.27
+  (define (flatten lst)
+    (if (null? lst)
+        '()
+        (let ((first (car lst)) (rest (cdr lst)))
+          (if (list? first)
+              (append (flatten first) (flatten rest))
+              (cons first (flatten rest))
+              )
+          )
+        )
+    )
+
+  ; exer 1.28
+  (define (merge loi1 loi2)
+    (cond ((null? loi1) loi2)
+          ((null? loi2) loi1)
+          (else
+           (let ((f1 (car loi1))
+                 (r1 (cdr loi1))
+                 (f2 (car loi2))
+                 (r2 (cdr loi2)))
+             (if (< f1 f2)
+                 (cons f1 (merge r1 loi2))
+                 (cons f2 (merge loi1 r2))
+                 )
+             ))
+          )
+    )
+
+  ; exer 1.29 TODO:
+  ; exer 1.30 TODO:
+
+  ; Bintree::=Int |(Symbol Bintree Bintree)
+  ; exer 1.31
+  (define (leaf? node) (number? node))
+  (define (leaf node)
+    (if (leaf? node)
+        node
+        (error "leaf accepts only number, get ~s." node)
+        )
+    )
+  (define (interior-node s left right) (list s left right))
+  (define (lson n)
+    (if (leaf? n)
+        (error "lson accetps only interior node, get leaf ~s" n)
+        (cadr n)
+        )
+    )
+  (define (rson n)
+    (if (leaf? n)
+        (error "rson accetps only interior node, get leaf ~s" n)
+        (caddr n)
+        )
+    )
+
+  (define (contents-of n)
+    (if (leaf? n)
+        n
+        (car n)
+        )
+    )
+
+  ; exer 1.32
+  (define (double-tree tree)
+    (if (leaf? tree)
+        (leaf (* 2 (contents-of tree)))
+        (let ((content (contents-of tree)) (left (lson tree)) (right (rson tree)))
+          (interior-node
+           content
+           (double-tree (leaf left))
+           (double-tree (leaf right))
+           )
+          )
+        )
+    )
+
+  ; exer 1.33
+  (define (mark-leaves-with-red-depth tree)
+    (define (helper t depth)
+      (if (leaf? t)
+          (leaf depth)
+          (let ((content (contents-of t)) (left (lson t)) (right (rson t)))
+            (interior-node
+             content
+             (helper left (+ depth (if (eq? content 'red) 1 0)))
+             (helper right (+ depth (if (eq? content 'red) 1 0)))
+             )
+            )
+          )
+      )
+    (helper tree 0)
+    )
