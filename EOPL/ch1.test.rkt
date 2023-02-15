@@ -69,6 +69,13 @@
 (check-equal? (merge '(1 4) '(1 2 8)) '(1 1 2 4 8) "merge")
 (check-equal? (merge '(35 62 81 90 91) '(3 83 85 90)) '(3 35 62 81 83 85 90 90 91) "merge")
 
+; exer 1.29
+(check-equal? (sort '(8 2 5 2 3)) '(2 2 3 5 8) "sort in ascending order")
+
+; exer 1.30
+(check-equal? (sort/predicate < '(8 2 5 2 3)) '(2 2 3 5 8) "sort in ascending order")
+(check-equal? (sort/predicate > '(8 2 5 2 3)) '(8 5 3 2 2) "sort in descending order")
+
 ; exer 1.31
 (check-equal? (interior-node 'red (leaf 1) (leaf 2)) '(red 1 2) "build binary tree")
 

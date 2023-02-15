@@ -399,8 +399,49 @@
         )
   )
 
-; exer 1.29 TODO:
-; exer 1.30 TODO:
+; exer 1.29
+(define (sort loi)
+  (define (insert val loi)
+    (if (null? loi)
+        (list val)
+        (let ((first (car loi)) (rest (cdr loi)))
+          (if (< val first)
+              (cons val loi)
+              (cons first (insert val rest))
+              )
+          )
+        )
+    )
+
+  (if (null? loi)
+      '()
+      (let ((first (car loi)) (rest (cdr loi)))
+        (insert first (sort rest))
+        )
+      )
+  )
+
+; exer 1.30
+(define (sort/predicate pred loi)
+  (define (insert val loi)
+    (if (null? loi)
+        (list val)
+        (let ((first (car loi)) (rest (cdr loi)))
+          (if (pred val first)
+              (cons val loi)
+              (cons first (insert val rest))
+              )
+          )
+        )
+    )
+
+  (if (null? loi)
+      '()
+      (let ((first (car loi)) (rest (cdr loi)))
+        (insert first (sort/predicate pred rest))
+        )
+      )
+  )
 
 ; Bintree::=Int |(Symbol Bintree Bintree)
 ; exer 1.31
