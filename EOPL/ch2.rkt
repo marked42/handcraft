@@ -1,54 +1,31 @@
-#lang racket
+#lang eopl
 
-(provide (all-defined-out))
+(define (empty-env) '(empty-env))
 
-; unary representation
-; (define (zero) '())
-; (define (is-zero? n) (null? n))
-; (define (successor n) (cons #t n))
-; (define (predecessor n) (cdr n))
-
-; number representation
-; (define (zero) 0)
-; (define (is-zero? n) (zero? 0))
-; (define (successor n) (+ n 1))
-; (define (predecessor n) (- n 1))
-
-; bignum representation
-; 0 -> ()
-; (r . q)
-
-; exer 2.1
-
-(define N 16)
-(define (zero) '())
-(define (is-zero? n) (null? n))
-(define (successor n)
-  (if (is-zero? n)
-      (list 1)
-      (let ((first (car n)) (rest (cdr n)))
-        (if (= (- N 1) first)
-            (cons 0 (successor rest))
-            (cons (+ first 1) rest)
-            )
-        )
-      )
+(define (extend-env var val env)
+  (list 'extend-env var val env)
   )
 
-(define (predecessor n)
-  (if (is-zero? n)
-      (error "out of range, predecessor of 0 is -1, cannot be represented")
-      (let ((first (car n)) (rest (cdr n)))
-        (if (= first 0)
-            (cons (- N 1) (predecessor rest))
-            (begin
-              (display (list N rest))
-              (cons (- first 1) rest)
-              )
-            )
+(define (apply-env env var)
+  (cond ((eqv? (car env) 'empty-env) (report-no-binding-found var))
+        ((eqv? (car env) 'exten-env)
+         (let ((saved-var (cadr env))
+               (saved-val (caddr env))
+               (saved-env (cadddr env)))
+           (if (eqv? saved-var var)
+               saved-val
+               (apply-env saved-env var)
+               )
+           )
+         )
+        (else (report-invalid-env env))
         )
-      )
   )
 
-; exer 2.2
-; (predecessor 0) 发生underflow，无法表示
+(define (report-no-binding-found var)
+  (eopl:error 'apply-env "No binding for ~s" var)
+  )
+
+(define (report-invalid-env env)
+  (eopl:error 'apply-env "Bad environment: ~s" env)
+  )
