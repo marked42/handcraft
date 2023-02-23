@@ -1,5 +1,7 @@
 #lang eopl
 
+(provide (all-defined-out))
+
 (define (empty-env) '(empty-env))
 
 (define (extend-env var val env)

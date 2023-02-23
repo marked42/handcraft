@@ -1,5 +1,7 @@
 #lang eopl
 
+(require "ch2.rkt")
+
 (define-datatype program program?
   (a-program (exp1 expression?))
   )
@@ -19,14 +21,16 @@
    (exp2 expression?)
    (exp3 expression?)
    )
-  ;   (var-exp
-  ;    (var identifier?))
-  ;   (let-exp
-  ;    (var identifier?)
-  ;    (exp1 expression?)
-  ;    (body expression)
-  ;    )
+  (var-exp
+   (var identifier?))
+  (let-exp
+   (var identifier?)
+   (exp1 expression?)
+   (body expression?)
+   )
   )
+
+(define identifier? symbol?)
 
 (define-datatype expval expval?
   (num-val (num number?))
@@ -56,4 +60,8 @@
                            empty-env)
                )
    )
+  )
+
+(define (report-expval-extractor-error type val)
+  (eopl:error 'expval-extractors "Looking for a ~s, found ~s" type val)
   )
