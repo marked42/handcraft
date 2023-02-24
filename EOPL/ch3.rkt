@@ -29,6 +29,14 @@
    (exp1 expression?)
    (body expression?)
    )
+  (proc-exp
+   (var identifier?)
+   (body expression?)
+   )
+  (call-exp
+   (rator expression?)
+   (rand expression?)
+   )
   )
 
 (define identifier? symbol?)
@@ -36,12 +44,20 @@
 (define-datatype expval expval?
   (num-val (num number?))
   (bool-val (bool boolean?))
+  (proc-val (proc proc?))
   )
 
 (define (expval->num val)
   (cases expval val
     (num-val (num) num)
     (else (report-expval-extractor-error 'num val))
+    )
+  )
+
+(define (expval->proc val)
+  (cases expval val
+    (proc-val (proc) proc)
+    (else (report-expval-extractor-error 'proc val))
     )
   )
 
@@ -118,7 +134,31 @@
                          )
                )
              )
+    (proc-exp (var body)
+              (proc-val (procedure var body env))
+              )
+    (call-exp (rator rand)
+              (let ((proc (expval->proc (value-of rator env)))
+                    (arg (value-of rand env))
+                    )
+                (apply-procedure proc arg)
+                )
+              )
     )
+  )
+
+(define (procedure var body env)
+  (lambda (val)
+    (value-of body (extend-env var val env))
+    )
+  )
+
+(define (proc? val)
+  (procedure? val)
+  )
+
+(define (apply-procedure proc1 val)
+  (proc1 val)
   )
 
 (define the-lexical-spec
@@ -153,6 +193,15 @@
      ("let" identifier "=" expression "in" expression)
      let-exp)
 
+    (expression
+     ("proc" "(" identifier ")" expression)
+     proc-exp
+     )
+
+    (expression
+     ("(" expression expression ")")
+     call-exp
+     )
     ))
 
 (define scan&parse
@@ -178,3 +227,5 @@
 (equal-answer? (run "if zero? (0) then 1 else 2") 1 "if-exp")
 (equal-answer? (run "if zero? (1) then 1 else 2") 2 "if-exp")
 (equal-answer? (run "let x = 1 in x") 1 "let")
+
+(equal-answer? (run "let f = proc (x) -(x,11) in (f (f 77))") 55 "proc")

@@ -36,7 +36,9 @@
 
 substitution model -> environment model -> evaluator (applicative order) -> normal order (lazy evaluation) -> non-deterministic computing -> logic programming -> register machine
 
-lexical-addressing Section 5.5.6
+1. 对于环境变量的优化 EOPL 3.26
+
+自由变量 lexical-addressing Section 5.5.6
 
 注意被实现语言中的值如何在实现语言中表示，对于 metacircular 语言来说，也是不同的。
 
@@ -83,11 +85,22 @@ optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze�
         ```
 
     1. define 定义的变量不能互相引用，效果和 let 相同。
+    1. 环境变量的表示 每层一个/procedural representation
     1. let-rec 的变量初始值为 unassigned 特殊值，初始化的表达式在匿名函数内部求值，因此能引用定义的变量，形成递归形式。
 
 1. 如何编写代码达到方便添加内置 operator 的效果，而不是写死在代码中
 1. primitive procedure
 1. compound procedure with environment model
+1. 函数特性
+    1. 多参数，参数末尾逗号
+    1. 命名参数
+    1. 变长参数
+    1. 高阶函数
+    1. 闭包
+    1. 匿名函数 声明和定义分开
+    1. 声明与定义合一 letproc
+    1. 多返回值
+    1. recursive EOPL 3.23/3.24/3.25 Y Combinator
 
 lazy evaluation + side effects + memoization
 
