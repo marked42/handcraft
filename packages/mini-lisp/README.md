@@ -58,6 +58,7 @@ optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze�
 1. primitive data
     1. number/boolean/string
 1. special forms
+
     1. quote
     1. assignment
     1. if
@@ -66,8 +67,25 @@ optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze�
     1. cond test => recipient form
     1. let/named let simultaneous binding
     1. let 语句的变量初始化表达式在对应匿名函数外层环境求值，作为参数传给匿名函数，因此 let 定义的变量对于初始化表达式不可见，无法形成递归形式。
+    1. let\*/let 的变量初始值作用域环境不同，考虑下面例子
+
+        ```
+        let x = 30
+        in let x = -(x,1) y = -(x,2)
+        in -(x,y)
+        -(x,y) 值为1
+
+        let x = 30
+        in let∗ x = -(x,1) y = -(x,2)
+        in -(x,y)
+
+        -(x,y) 值为2
+        ```
+
     1. define 定义的变量不能互相引用，效果和 let 相同。
     1. let-rec 的变量初始值为 unassigned 特殊值，初始化的表达式在匿名函数内部求值，因此能引用定义的变量，形成递归形式。
+
+1. 如何编写代码达到方便添加内置 operator 的效果，而不是写死在代码中
 1. primitive procedure
 1. compound procedure with environment model
 

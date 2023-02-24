@@ -10,7 +10,7 @@
 
 (define (apply-env env var)
   (cond ((eqv? (car env) 'empty-env) (report-no-binding-found var))
-        ((eqv? (car env) 'exten-env)
+        ((eqv? (car env) 'extend-env)
          (let ((saved-var (cadr env))
                (saved-val (caddr env))
                (saved-env (cadddr env)))
