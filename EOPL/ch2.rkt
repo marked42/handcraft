@@ -31,3 +31,12 @@
 (define (report-invalid-env env)
   (eopl:error 'apply-env "Bad environment: ~s" env)
   )
+
+(define (environment? env)
+  (if (pair? env)
+      (let ((first (car env)))
+        (or (eq? first 'empty-env) (eq? first 'extend-env))
+        )
+      #f
+      )
+)

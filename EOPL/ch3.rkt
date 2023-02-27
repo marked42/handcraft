@@ -147,18 +147,36 @@
     )
   )
 
-(define (procedure var body env)
-  (lambda (val)
-    (value-of body (extend-env var val env))
-    )
-  )
+; represent language procedure as native procedure
+; (define (procedure var body env)
+;   (lambda (val)
+;     (value-of body (extend-env var val env))
+;     )
+;   )
 
-(define (proc? val)
-  (procedure? val)
+; (define (proc? val)
+;   (procedure? val)
+;   )
+
+; (define (apply-procedure proc1 val)
+;   (proc1 val)
+;   )
+
+; represent procedure as custom data structure
+(define-datatype proc proc?
+  (procedure
+   (var identifier?)
+   (body expression?)
+   (saved-env environment?)
+   )
   )
 
 (define (apply-procedure proc1 val)
-  (proc1 val)
+  (cases proc proc1
+    (procedure (var body saved-env)
+               (value-of body (extend-env var val saved-env))
+               )
+    )
   )
 
 (define the-lexical-spec
