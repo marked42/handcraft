@@ -134,6 +134,7 @@ Books
 1. SICP 4.2 Variations on a Scheme
 1. Programming language pragmatics 6.62 Applicative- and Normal-Order Evaluation
 1. Lazy evaluation
+1. explicit references (support chained refs) / call-by-value (implicit references) / call-by-reference / call-by-sharing
 1. call-by-name = lazy evaluation without memoization
 1. call-by-need = lazy evaluation + memoization
 1. thunk / force / the process of evaluating the expression in a thunk is called forcing.
