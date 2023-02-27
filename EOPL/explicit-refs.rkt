@@ -23,8 +23,14 @@
    (exp2 expression?)
    (exp3 expression?)
    )
+
   (var-exp
    (var identifier?))
+  (assign-exp
+   (var identifier?)
+   (exp1 expression?)
+   )
+
   (let-exp
    (var identifier?)
    (exp1 expression?)
@@ -125,6 +131,13 @@
   (cases expression exp
     (const-exp (num) (num-val num))
     (var-exp (var) (apply-env env var))
+    (assign-exp (var exp1)
+                (let ((val1 (value-of exp1 env)))
+                  (apply-env var val1)
+                  ; return arbitrary val
+                  (num-val 27)
+                  )
+                )
     (diff-exp (exp1 exp2)
               (let ((val1 (value-of exp1 env))
                     (val2 (value-of exp2 env)))
@@ -153,6 +166,7 @@
                   )
               )
             )
+
     (let-exp (var exp1 body)
              (let ((val1 (value-of exp1 env)))
                (value-of body
@@ -296,6 +310,11 @@
      ("setref" "(" expression "," expression ")")
      setref-exp
      )
+
+    (expression
+     ("set" identifier "=" expression)
+     assign-exp
+     )
     ))
 
 (define scan&parse
@@ -323,7 +342,23 @@
 ; (equal-answer? (run "let x = 1 in x") 1 "let")
 
 ; (equal-answer? (run "let f = proc (x) -(x,11) in (f (f 77))") 55 "proc")
-(equal-answer? (run " let x = 1 in begin x ; -(x, 1) end ") 0 "begin")
+; (equal-answer? (run " let x = 1 in begin x ; -(x, 1) end ") 0 "begin")
 
-; ref
-(equal-answer? (run "let x = newref(1) in deref(x)") 1 "ref")
+; ; ref
+; (equal-answer? (run "
+; let x = newref(1)
+;   in let y = x
+;     in begin
+;       setref(y, 2);
+;       deref(x)
+;     end
+; ") 2 "ref")
+
+
+(equal-answer? (run "
+let x = newref(newref(0))
+  in begin
+    setref(deref(x), 11);
+    deref(deref(x))
+  end
+") 11 "chained refs")
