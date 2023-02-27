@@ -2,6 +2,7 @@
 
 (require rackunit)
 (require "ch2.rkt")
+(require "store.rkt")
 
 (define-datatype program program?
   (a-program (exp1 expression?))
@@ -43,6 +44,16 @@
    (rator expression?)
    (rand expression?)
    )
+  (newref-exp
+   (exp1 expression?)
+   )
+  (deref-exp
+   (exp1 expression?)
+   )
+  (setref-exp
+   (exp1 expression?)
+   (exp2 expression?)
+   )
   )
 
 (define identifier? symbol?)
@@ -51,6 +62,7 @@
   (num-val (num number?))
   (bool-val (bool boolean?))
   (proc-val (proc proc?))
+  (ref-val (ref reference?))
   )
 
 (define (expval->num val)
@@ -74,6 +86,13 @@
     )
   )
 
+(define (expval->ref val)
+  (cases expval val
+    (ref-val (ref) ref)
+    (else (report-expval-extractor-error 'ref val))
+    )
+  )
+
 (define empty-env '())
 (define (init-env)
   (extend-env
@@ -94,6 +113,7 @@
   )
 
 (define (value-of-program prog)
+  (initialize-store!)
   (cases program prog
     (a-program (exp1)
                (value-of exp1 (init-env))
@@ -161,7 +181,25 @@
                 (apply-procedure proc arg)
                 )
               )
-
+    (newref-exp (exp1)
+                (let ((val (value-of exp1 env)))
+                  (ref-val (newref val)))
+                )
+    (deref-exp (exp)
+               (let ((val (value-of exp env)))
+                 (let ((ref1 (expval->ref val)))
+                   (deref ref1)
+                   )
+                 )
+               )
+    (setref-exp (exp1 exp2)
+                (let ((ref (expval->ref (value-of exp1 env))))
+                  (let ((val2 (value-of exp2 env)))
+                    (setref! ref val2)
+                    (num-val 23)
+                    )
+                  )
+                )
     )
   )
 
@@ -242,6 +280,22 @@
      ("(" expression expression ")")
      call-exp
      )
+
+    ; explicit reference?
+    (expression
+     ("newref" "(" expression ")")
+     newref-exp
+     )
+
+    (expression
+     ("deref" "(" expression ")")
+     deref-exp
+     )
+
+    (expression
+     ("setref" "(" expression "," expression ")")
+     setref-exp
+     )
     ))
 
 (define scan&parse
@@ -269,5 +323,7 @@
 ; (equal-answer? (run "let x = 1 in x") 1 "let")
 
 ; (equal-answer? (run "let f = proc (x) -(x,11) in (f (f 77))") 55 "proc")
-
 (equal-answer? (run " let x = 1 in begin x ; -(x, 1) end ") 0 "begin")
+
+; ref
+(equal-answer? (run "let x = newref(1) in deref(x)") 1 "ref")
