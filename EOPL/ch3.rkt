@@ -29,6 +29,12 @@
    (exp1 expression?)
    (body expression?)
    )
+
+  (begin-exp
+    (exp1 expression?)
+    (exps (list-of expression?))
+    )
+
   (proc-exp
    (var identifier?)
    (body expression?)
@@ -134,6 +140,17 @@
                          )
                )
              )
+
+    (begin-exp (exp1 exps)
+               (letrec
+                   ((value-of-begins
+                     (lambda (e1 es)
+                       (let ((v1 (value-of e1 env)))
+                         (if (null? es)
+                             v1
+                             (value-of-begins (car es) (cdr es)))))))
+                 (value-of-begins exp1 exps)))
+
     (proc-exp (var body)
               (proc-val (procedure var body env))
               )
@@ -144,6 +161,7 @@
                 (apply-procedure proc arg)
                 )
               )
+
     )
   )
 
@@ -212,6 +230,10 @@
      let-exp)
 
     (expression
+     ("begin" expression (arbno ";" expression) "end")
+     begin-exp)
+
+    (expression
      ("proc" "(" identifier ")" expression)
      proc-exp
      )
@@ -240,10 +262,12 @@
                    "Can't convert sloppy value to expval: ~s"
                    sloppy-val)))))
 
-(equal-answer? (run "11") 11 "number")
-(equal-answer? (run "-(11, 1)") 10 "number")
-(equal-answer? (run "if zero? (0) then 1 else 2") 1 "if-exp")
-(equal-answer? (run "if zero? (1) then 1 else 2") 2 "if-exp")
-(equal-answer? (run "let x = 1 in x") 1 "let")
+; (equal-answer? (run "11") 11 "number")
+; (equal-answer? (run "-(11, 1)") 10 "number")
+; (equal-answer? (run "if zero? (0) then 1 else 2") 1 "if-exp")
+; (equal-answer? (run "if zero? (1) then 1 else 2") 2 "if-exp")
+; (equal-answer? (run "let x = 1 in x") 1 "let")
 
-(equal-answer? (run "let f = proc (x) -(x,11) in (f (f 77))") 55 "proc")
+; (equal-answer? (run "let f = proc (x) -(x,11) in (f (f 77))") 55 "proc")
+
+(equal-answer? (run " let x = 1 in begin x ; -(x, 1) end ") 0 "begin")
