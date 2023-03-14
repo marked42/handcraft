@@ -171,6 +171,10 @@ integer 1 2 3 4 5 6
 
 其中通项同事 next = start + 1
 
+## Continuation
+
+https://www.youtube.com/watch?v=Ju3KKu_mthg&t=1089s
+
 ## Concurrency
 
 assignment / concurrency SICP 3.4
