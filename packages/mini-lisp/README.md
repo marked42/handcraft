@@ -175,6 +175,19 @@ integer 1 2 3 4 5 6
 
 https://www.youtube.com/watch?v=Ju3KKu_mthg&t=1089s
 
+如何将普通函数改写为 CPS 形式
+
+The CPS Recipe
+To convert a program to continuation-passing style
+
+1. Pass each procedure an extra parameter (typically cont or k).
+2. Whenever the procedure returns a constant or variable, return that
+   value to the continuation instead, as we did with (cont 7) above.
+3. Whenever a procedure call occurs in a **tail position**, call the procedure with the same continuation cont.
+4. Whenever a procedure call occurs in an operand position, evaluate
+   the procedure call in a new continuation that gives a name to the
+   result and continues with the computation.
+
 ## Concurrency
 
 assignment / concurrency SICP 3.4
