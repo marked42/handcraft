@@ -188,6 +188,35 @@ To convert a program to continuation-passing style
    the procedure call in a new continuation that gives a name to the
    result and continues with the computation.
 
+函数参数的求值顺序可以是从左到右，也可以是从右到左，或者其他可选的形式，求值的顺序和嵌套的顺序有关，
+外层函数代表的操作先进行，被嵌套的内层函数代表的操作后进行。
+
+递归的简单形式，满足交换律操作的形式，递归函数可以从外到内，每一步递归调用时更新局部结果 acc，直到递归结束，
+acc 的值就是最终值。
+
+1. Programming Language Pragmatics Chapter 6.2
+
+1. https://en.wikipedia.org/wiki/Continuation
+1. [Web Programming with Continuations](https://wayback.archive-it.org/all/20120905083130/http://double.co.nz/pdf/continuations.pdf)
+1. [continuation passing style](https://lisperator.net/pltut/cps-evaluator/)
+    1. [cps evaluator](https://lisperator.net/pltut/cps-evaluator/)
+    1. [cps transformer](https://lisperator.net/pltut/compiler/cps-transformer)
+    1. https://okmij.org/ftp/continuations/against-callcc.html
+1. call with current continuation
+
+### CPS 变换
+
+尾递归
+
+1. Tail Position 表达式中子表达式的值能作为整个表达式的最终值，子表达式所在的位置叫做 Tail Position
+1. Tail Call 位于 Tail Position 的调用表达式
+1. Tail Form 函数中所有的 调用表达式都是 Tail Call
+
+Tail Form 的函数调用不会增加调用栈，也就是子表达式和父表达式处于同一个 Continuation 中。
+
+**重新设计语法**，使得代码所有是 Tail Form 形式，所有 call 都是 Tail Call，非 Tail Position 的地方都是内置运算，不包括函数调用。
+这样整个过程都是尾递归，不会增加调用栈深度，调用栈完全被消除，也就是只有一个 continuation 一直被传递使用，不产生新的 continuation。
+
 ## Concurrency
 
 assignment / concurrency SICP 3.4
