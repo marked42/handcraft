@@ -1,0 +1,42 @@
+#lang eopl
+
+; (define (remove-first s los)
+;   (if (null? los)
+;       '()
+;       (let ((first (car los)) (rest (cdr los)))
+;         (if (eq? first s)
+;             rest
+;             (cons first (remove-first s rest))
+;             )
+;         )
+;       )
+;   )
+
+(define (remove-first s los)
+    (remove-first/k s los (end-cont))
+)
+(define (remove-first/k s los cont)
+    (if (null? los)
+        (cont '())
+        (let ((first (car los)) (rest (cdr los)))
+            (if (eq? first s)
+                (cont rest)
+                (remove-first/k s rest (lambda (val)
+                    (cont (cons first val))
+                ))
+                )
+            )
+    )
+)
+
+(define (end-cont)
+    (lambda (val)
+        (begin
+        (eopl:printf "End of computation.~%")
+        (eopl:printf "This sentence should appear only once.~%")
+        val)
+    )
+)
+
+; (display (remove-first 1 '(1 2 3 4)))
+(display (remove-first 2 '(1 2 3 4)))
