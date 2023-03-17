@@ -217,6 +217,17 @@ Tail Form 的函数调用不会增加调用栈，也就是子表达式和父表�
 **重新设计语法**，使得代码所有是 Tail Form 形式，所有 call 都是 Tail Call，非 Tail Position 的地方都是内置运算，不包括函数调用。
 这样整个过程都是尾递归，不会增加调用栈深度，调用栈完全被消除，也就是只有一个 continuation 一直被传递使用，不产生新的 continuation。
 
+CPS变换，输入是一种语言的ast，输出是另外一种语言的AST。
+
+1. 有固定个operands的表达式
+1. 有不固定若干个operands的表达式，（数组，函数参数）
+1. 函数定义
+    1. 需要添加一个参数k (continuation)，并将函数体中的返回表达式替换为k的调用。
+    1. 函数定义表达式本身被转换为 (k func) 的形式
+
+1. EOPL Chapter 6.3
+1. [CPS Transformer](https://lisperator.net/pltut/compiler/cps-transformer)
+
 ## Concurrency
 
 assignment / concurrency SICP 3.4
