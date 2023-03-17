@@ -198,6 +198,8 @@ acc 的值就是最终值。
 
 1. https://en.wikipedia.org/wiki/Continuation
 1. [Web Programming with Continuations](https://wayback.archive-it.org/all/20120905083130/http://double.co.nz/pdf/continuations.pdf)
+1. http://community.schemewiki.org/?call-with-current-continuation-for-C-programmers
+1. https://www.jquigley.com/files/talks/continuations.pdf
 1. [continuation passing style](https://lisperator.net/pltut/cps-evaluator/)
     1. [cps evaluator](https://lisperator.net/pltut/cps-evaluator/)
     1. [cps transformer](https://lisperator.net/pltut/compiler/cps-transformer)
@@ -217,16 +219,21 @@ Tail Form 的函数调用不会增加调用栈，也就是子表达式和父表�
 **重新设计语法**，使得代码所有是 Tail Form 形式，所有 call 都是 Tail Call，非 Tail Position 的地方都是内置运算，不包括函数调用。
 这样整个过程都是尾递归，不会增加调用栈深度，调用栈完全被消除，也就是只有一个 continuation 一直被传递使用，不产生新的 continuation。
 
-CPS变换，输入是一种语言的ast，输出是另外一种语言的AST。
+CPS 变换，输入是一种语言的 ast，输出是另外一种语言的 AST。
 
-1. 有固定个operands的表达式
-1. 有不固定若干个operands的表达式，（数组，函数参数）
+1. 有固定个 operands 的表达式
+1. 有不固定若干个 operands 的表达式，（数组，函数参数）
 1. 函数定义
-    1. 需要添加一个参数k (continuation)，并将函数体中的返回表达式替换为k的调用。
+
+    1. 需要添加一个参数 k (continuation)，并将函数体中的返回表达式替换为 k 的调用。
     1. 函数定义表达式本身被转换为 (k func) 的形式
 
 1. EOPL Chapter 6.3
 1. [CPS Transformer](https://lisperator.net/pltut/compiler/cps-transformer)
+1. [A normal form](https://en.wikipedia.org/wiki/A-normal_form)
+
+1. [Implementing Exception](https://matt.might.net/articles/implementing-exceptions/)
+1. Compiling with continuations
 
 ## Concurrency
 
