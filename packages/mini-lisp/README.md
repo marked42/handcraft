@@ -55,6 +55,11 @@ derived-expression/syntactic sugar 通过将语法转换另一种语法的等价
 
 optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze， 提高 evaluator 运行效率，
 
+## Non-deterministic Computing
+
+1. PLP 6.7 Nondeterminacy
+1. SICP 4.3 Variations on a Scheme — Nondeterministic Computing
+
 ### evaluator
 
 1. primitive data
@@ -194,17 +199,19 @@ To convert a program to continuation-passing style
 递归的简单形式，满足交换律操作的形式，递归函数可以从外到内，每一步递归调用时更新局部结果 acc，直到递归结束，
 acc 的值就是最终值。
 
-1. Programming Language Pragmatics Chapter 6.2
+一个 Continuation 包含三部分
 
-1. https://en.wikipedia.org/wiki/Continuation
-1. [Web Programming with Continuations](https://wayback.archive-it.org/all/20120905083130/http://double.co.nz/pdf/continuations.pdf)
-1. http://community.schemewiki.org/?call-with-current-continuation-for-C-programmers
-1. https://www.jquigley.com/files/talks/continuations.pdf
-1. [continuation passing style](https://lisperator.net/pltut/cps-evaluator/)
-    1. [cps evaluator](https://lisperator.net/pltut/cps-evaluator/)
-    1. [cps transformer](https://lisperator.net/pltut/compiler/cps-transformer)
-    1. https://okmij.org/ftp/continuations/against-callcc.html
-1. call with current continuation
+1. 代码地址 code address
+1. 代码状态 referencing environment
+1. 另外一个 continuation
+
+continuation 只记录结构，不记录具体的数据，一个关于 Continuation 的比喻
+
+Say you're in the kitchen in front of the refrigerator, thinking about a sandwich. You take a continuation right there and stick it in your pocket. Then you get some turkey and bread out of the refrigerator and make yourself a sandwich, which is now sitting on the counter. You invoke the continuation in your pocket, and you find yourself standing in front of the refrigerator again, thinking about a sandwich. But fortunately, there's a sandwich on the counter, and all the materials used to make it are gone. So you eat it. :-)
+
+抽象了剩余的计算(rest of computation)
+
+用来实现各种流程控制结构，Exception/Iterator/Generator/Coroutine/Threads 等
 
 ### CPS 变换
 
@@ -231,9 +238,88 @@ CPS 变换，输入是一种语言的 ast，输出是另外一种语言的 AST�
 1. EOPL Chapter 6.3
 1. [CPS Transformer](https://lisperator.net/pltut/compiler/cps-transformer)
 1. [A normal form](https://en.wikipedia.org/wiki/A-normal_form)
-
 1. [Implementing Exception](https://matt.might.net/articles/implementing-exceptions/)
 1. Compiling with continuations
+
+### call/cc
+
+```ruby
+def foo(i, c)
+    printf "start %d; ", i
+    if i < 3 then foo(i+1, c) else c.call(i) end
+    printf "end %d; ", i
+end
+
+v = callcc { |d| foo(1, d) }
+printf "got %d\n", v
+
+# 输出
+# start 1; start 2; start 3; got 3
+```
+
+```ruby
+def here
+    return callcc { |a| return a }
+end
+
+def bar(i)
+    printf "start %d; ", i
+    b = if i < 3 then bar(i+1) else here end
+    printf "end %d; ", i
+    return b
+end
+
+n = 3
+c = bar(1)
+n -= 1
+puts # print newline
+if n > 0 then c.call(c) end
+puts "done"
+
+# 程序输出
+# start 1; start 2; start 3; end 3; end 2; end 1;
+# end 3; end 2; end 1;
+# end 3; end 2; end 1;
+# done
+```
+
+关于刀的比喻，用得好非常高效，用不好伤了自己。
+
+1. 有点是扩展性非常强
+1. 缺点是理解成本高
+
+### 实现机制对比
+
+continuation 这种机制适合 non-determinate flow control
+
+call/cc 的实现，continuation 参数保存了程序当前运行的状态，需要在任意时刻能被访问到，因此需要保存在堆中。
+
+对比 setjmp/longjump 的功能，activation record 保存在栈中，setjmp/longjump 只能跳转到当前更深层的栈帧中，一旦函数返回，栈帧生命周期结束，就不能再跳转。
+
+> Used in a disciplined way, continuations make a language surprisingly extensible. At the same time, they allow the undisciplined programmer to construct completely inscrutable programs.
+
+### 参考资料
+
+1. Programming Language Pragmatics Chapter 6.2
+
+1. https://en.wikipedia.org/wiki/Continuation
+1. [Computational Continuation](https://www.jquigley.com/files/talks/continuations.pdf)
+1. [Web Programming with Continuations](https://wayback.archive-it.org/all/20120905083130/http://double.co.nz/pdf/continuations.pdf)
+1. [call-with-current-continuation-for-C-programmers](http://community.schemewiki.org/?call-with-current-continuation-for-C-programmers)
+1. [continuation passing style](https://lisperator.net/pltut/cps-evaluator/)
+    1. [cps evaluator](https://lisperator.net/pltut/cps-evaluator/)
+    1. [cps transformer](https://lisperator.net/pltut/compiler/cps-transformer)
+    1. https://okmij.org/ftp/continuations/against-callcc.html
+
+## Types
+
+1. type checking
+1. type inference
+
+References
+
+1. EOPL Chapter 7
+1. PLP Chapter 7 Type Systems / Chapter 8 Composite Types
 
 ## Concurrency
 
