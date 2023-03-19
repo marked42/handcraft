@@ -55,6 +55,15 @@ derived-expression/syntactic sugar 通过将语法转换另一种语法的等价
 
 optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze， 提高 evaluator 运行效率，
 
+### functional representation of list
+
+```js
+cons = λ(a, b) λ(f) f(a, b);
+car = λ(cell) cell(λ(a, b) a);
+cdr = λ(cell) cell(λ(a, b) b);
+NIL = λ(f) f(NIL, NIL);
+```
+
 ## Non-deterministic Computing
 
 1. PLP 6.7 Nondeterminacy
