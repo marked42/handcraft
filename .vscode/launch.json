@@ -8,14 +8,9 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "runtimeExecutable": "/Users/penghui/.nvm/versions/node/v16.17.0/bin/node",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}/pl/lambda.js",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js"
-            ]
+            "skipFiles": ["<node_internals>/**"],
+            "program": "${workspaceFolder}/packages/lambda-lang/cps-evaluator.js",
+            "outFiles": ["${workspaceFolder}/**/*.js"]
         }
     ]
 }
