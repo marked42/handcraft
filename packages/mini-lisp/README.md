@@ -216,7 +216,8 @@ integer 1 2 3 4 5 6
 
 ## Continuation
 
-https://www.youtube.com/watch?v=Ju3KKu_mthg&t=1089s
+1. [Continuations: The Swiss Army Knife of Flow Control](https://www.youtube.com/watch?v=Ju3KKu_mthg&t=1089s)
+1. [Continuations](https://ps-tuebingen-courses.github.io/pl1-lecture-notes/15-continuations-1/continuations-1.html)
 
 如何将普通函数改写为 CPS 形式
 
@@ -325,6 +326,10 @@ puts "done"
 
 1. 有点是扩展性非常强
 1. 缺点是理解成本高
+
+### Delimited Continuation
+
+1. https://okmij.org/ftp/continuations/
 
 ### 实现机制对比
 
