@@ -66,6 +66,35 @@ NIL = λ(f) f(NIL, NIL);
 
 ## Non-deterministic Computing
 
+1. [Easy backtracking](https://lisperator.net/pltut/cps-evaluator/continuations)
+
+```
+run(`
+fail = λ() false;
+guess = λ(current) {
+  CallCC(λ(k){
+    let (prevFail = fail) {
+      fail = λ(){
+        current = current + 1;
+        if current > 4 {
+          fail = prevFail;
+          fail();
+        } else {
+          k(current);
+        };
+      };
+      k(current);
+    };
+  });
+};
+
+a = guess(1);
+b = guess(a);
+print(a); print(" x "); println(b);
+fail();
+`);
+```
+
 1. PLP 6.7 Nondeterminacy
 1. SICP 4.3 Variations on a Scheme — Nondeterministic Computing
 
@@ -220,7 +249,7 @@ Say you're in the kitchen in front of the refrigerator, thinking about a sandwic
 
 抽象了剩余的计算(rest of computation)
 
-用来实现各种流程控制结构，Exception/Iterator/Generator/Coroutine/Threads 等
+用来实现各种流程控制结构，Return/Halt/sleep/Exception/Iterator/Generator/Coroutine/Threads 等
 
 ### CPS 变换
 

@@ -188,13 +188,30 @@ globalEnv.def("time", function (func) {
     }
 });
 
-globalEnv.def("print", function (callback, value) {
-    console.log(value);
+globalEnv.def("println", function (k, val) {
+    console.log(val);
+    k(false);
+});
+globalEnv.def("print", function (k, val) {
+    process.stdout.write(val.toString());
     // exer 1 如果这里不实现
-    // callback(false);
+    k(false);
 });
 
+globalEnv.def("twice", function (k, a, b) {
+    k(a);
+    k(b);
+});
+
+globalEnv.def("halt", function (k) {});
+
 globalEnv.def("zero", 0);
+
+globalEnv.def("CallCC", function (k, f) {
+    f(k, function CC(discarded, ret) {
+        k(ret);
+    });
+});
 
 function run(code) {
     var ast = parse(TokenStream(InputStream(code)));
@@ -202,6 +219,8 @@ function run(code) {
         console.log("end: ", val);
     });
 }
+
+module.exports.run = run;
 
 function test(code, value, msg) {
     var ast = parse(TokenStream(InputStream(code)));
@@ -212,27 +231,91 @@ function test(code, value, msg) {
     });
 }
 
-test("1", 1, "number");
-test('"a text"', "a text", "string");
-test("true", true, "boolean");
-test("1 + 1", 2, "binary");
-test("zero", 0, "var");
-test("a = 1", 1, "assign");
-test("if true then 2 else 3", 2, "if-then-else");
-test("if true then 2", 2, "if-then");
-test("if false then 2 else 3", 3, "if-then-else");
-test("if false then 2", false, "if-then");
+// test("1", 1, "number");
+// test('"a text"', "a text", "string");
+// test("true", true, "boolean");
+// test("1 + 1", 2, "binary");
+// test("zero", 0, "var");
+// test("a = 1", 1, "assign");
+// test("if true then 2 else 3", 2, "if-then-else");
+// test("if true then 2", 2, "if-then");
+// test("if false then 2 else 3", 3, "if-then-else");
+// test("if false then 2", false, "if-then");
 
-test("let (x = 2, y = 3, z = x + y) x + y + z;", 10, "let");
+// test("let (x = 2, y = 3, z = x + y) x + y + z;", 10, "let");
 
-test("a = lambda (x, y) x + y; a(1, 2)", 3, "lambda");
+// test("a = lambda (x, y) x + y; a(1, 2)", 3, "lambda");
 
 // var code = "sum = lambda(x, y) x + y; print(sum(2, 3));";
 // 看 print中 exer 1
 // var code = "print(1);print(2)";
 // run(code);
 
-const code = `
-fib = λ(n) if n < 2 then n else fib(n - 1) + fib(n - 2);
-time( λ() println(fib(10)) );`;
-run(code);
+// const code = `
+// fib = λ(n) if n < 2 then n else fib(n - 1) + fib(n - 2);
+// time( λ() println(fib(10)) );`;
+// run(code);
+
+// halt stops the program and bar is not printed
+// const code = `
+// println("foo");
+// halt();
+// println("bar");
+// `;
+// run(code);
+
+// const code = `
+// println(2 + twice(3, 4));
+// println("Done");
+// `;
+// run(code);
+
+// return
+// run(`
+// foo = λ(return){
+//     println("foo");
+//     return("DONE");
+//     println("bar");
+//   };
+//   CallCC(foo);
+// `);
+
+// wrap callcc inside with-return
+// run(`
+// with-return = λ(f) λ() CallCC(f);
+
+// foo = with-return(λ(return){
+//   println("foo");
+//   return("DONE");
+//   println("bar");
+// });
+
+// foo();
+
+// `);
+
+// guess
+run(`
+fail = λ() false;
+guess = λ(current) {
+  CallCC(λ(k){
+    let (prevFail = fail) {
+      fail = λ(){
+        current = current + 1;
+        if current > 4 {
+          fail = prevFail;
+          fail();
+        } else {
+          k(current);
+        };
+      };
+      k(current);
+    };
+  });
+};
+
+a = guess(1);
+b = guess(a);
+print(a); print(" x "); println(b);
+fail();
+`);
