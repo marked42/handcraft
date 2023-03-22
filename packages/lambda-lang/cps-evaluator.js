@@ -1,5 +1,5 @@
 const { InputStream, TokenStream, parse } = require("./parser");
-const { Environment } = require("./env");
+const { globalEnv } = require("./env");
 
 function evaluate(exp, env, callback) {
     switch (exp.type) {
@@ -177,42 +177,6 @@ function make_lambda(env, exp) {
 
 /* -----[ entry point for NodeJS ]----- */
 
-var globalEnv = new Environment();
-
-globalEnv.def("time", function (func) {
-    try {
-        console.time("time");
-        return func();
-    } finally {
-        console.timeEnd("time");
-    }
-});
-
-globalEnv.def("println", function (k, val) {
-    console.log(val);
-    k(false);
-});
-globalEnv.def("print", function (k, val) {
-    process.stdout.write(val.toString());
-    // exer 1 如果这里不实现
-    k(false);
-});
-
-globalEnv.def("twice", function (k, a, b) {
-    k(a);
-    k(b);
-});
-
-globalEnv.def("halt", function (k) {});
-
-globalEnv.def("zero", 0);
-
-globalEnv.def("CallCC", function (k, f) {
-    f(k, function CC(discarded, ret) {
-        k(ret);
-    });
-});
-
 function run(code) {
     var ast = parse(TokenStream(InputStream(code)));
     return evaluate(ast, globalEnv, (val) => {
@@ -295,27 +259,33 @@ function test(code, value, msg) {
 // `);
 
 // guess
-run(`
-fail = λ() false;
-guess = λ(current) {
-  CallCC(λ(k){
-    let (prevFail = fail) {
-      fail = λ(){
-        current = current + 1;
-        if current > 4 {
-          fail = prevFail;
-          fail();
-        } else {
-          k(current);
-        };
-      };
-      k(current);
-    };
-  });
-};
+// run(`
+// fail = λ() false;
+// guess = λ(current) {
+//   CallCC(λ(k){
+//     let (prevFail = fail) {
+//       fail = λ(){
+//         current = current + 1;
+//         if current > 4 {
+//           fail = prevFail;
+//           fail();
+//         } else {
+//           k(current);
+//         };
+//       };
+//       k(current);
+//     };
+//   });
+// };
 
-a = guess(1);
-b = guess(a);
-print(a); print(" x "); println(b);
-fail();
-`);
+// a = guess(1);
+// b = guess(a);
+// print(a); print(" x "); println(b);
+// fail();
+// `);
+
+// stack size limit
+run(`
+fib = λ(n) if n < 2 then n else fib(n - 1) + fib(n - 2);
+time( λ() println(fib(11)) );
+`)

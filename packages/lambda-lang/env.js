@@ -29,6 +29,43 @@ Environment.prototype = {
     },
 };
 
+var globalEnv = new Environment();
+
+globalEnv.def("time", function (k, func) {
+    console.time("time");
+    func((ret) => {
+        k(ret)
+        console.timeEnd("time");
+    })
+});
+
+globalEnv.def("println", function (k, val) {
+    console.log(val);
+    k(false);
+});
+globalEnv.def("print", function (k, val) {
+    process.stdout.write(val.toString());
+    // exer 1 如果这里不实现
+    k(false);
+});
+
+globalEnv.def("twice", function (k, a, b) {
+    k(a);
+    k(b);
+});
+
+globalEnv.def("halt", function (k) {});
+
+globalEnv.def("zero", 0);
+
+globalEnv.def("CallCC", function (k, f) {
+    f(k, function CC(discarded, ret) {
+        k(ret);
+    });
+});
+
+
 module.exports = {
     Environment,
+    globalEnv,
 };

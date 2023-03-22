@@ -1,12 +1,21 @@
 const { InputStream, TokenStream, parse } = require("./parser");
-const { Environment } = require("./env");
+const { globalEnv } = require("./env");
 
 const STACK_LIMIT = 200;
 let stackDepth = 0;
+/**
+ * 递归函数执行时避免stack overflow
+ */
 function GUARD_STACK(f, args) {
+    console.log('stackDepth: ', stackDepth, f.name)
     if (stackDepth++ > STACK_LIMIT) {
         throw new Continuation(f, args);
     }
+}
+
+function resetStack() {
+    stackDepth = 0;
+    console.log('reset stack')
 }
 
 class Continuation {
@@ -31,14 +40,17 @@ function evaluate(exp, env, callback) {
             if (exp.left.type != "var") {
                 throw new Error("Cannot assign to " + JSON.stringify(exp.left));
             }
-            evaluate(exp.right, env, (result) => {
+            evaluate(exp.right, env, function cc(result) {
+                GUARD_STACK(cc, arguments)
                 callback(env.set(exp.left.value, result));
             });
             return;
 
         case "binary":
-            evaluate(exp.left, env, (left) => {
-                evaluate(exp.right, env, (right) => {
+            evaluate(exp.left, env, function cc(left) {
+                GUARD_STACK(cc, arguments)
+                evaluate(exp.right, env, function cc(right) {
+                    GUARD_STACK(cc, arguments)
                     callback(apply_op(exp.operator, left, right));
                 });
             });
@@ -46,6 +58,7 @@ function evaluate(exp, env, callback) {
 
         case "let":
             (function loop(env, i) {
+                GUARD_STACK(loop, arguments);
                 if (i < exp.vars.length) {
                     const { name, def } = exp.vars[i];
                     const newEnv = env.extend();
@@ -53,13 +66,15 @@ function evaluate(exp, env, callback) {
                         newEnv.def(name, false);
                         loop(newEnv, i + 1);
                     } else {
-                        evaluate(def, env, (val) => {
+                        evaluate(def, env, function cc(val) {
+                            GUARD_STACK(cc, arguments)
                             newEnv.def(name, val);
                             loop(newEnv, i + 1);
                         });
                     }
                 } else {
-                    evaluate(exp.body, env, (val) => {
+                    evaluate(exp.body, env, function cc(val) {
+                        GUARD_STACK(cc, arguments)
                         callback(val);
                     });
                 }
@@ -67,13 +82,16 @@ function evaluate(exp, env, callback) {
             return;
 
         case "if":
-            evaluate(exp.cond, env, (cond) => {
+            evaluate(exp.cond, env, function cc(cond) {
+                GUARD_STACK(cc, arguments);
                 if (cond !== false) {
-                    evaluate(exp.then, env, (consequent) => {
+                    evaluate(exp.then, env, function cc(consequent) {
+                        GUARD_STACK(cc, arguments);
                         callback(consequent);
                     });
                 } else if (exp.else) {
-                    evaluate(exp.else, env, (alternate) => {
+                    evaluate(exp.else, env, function cc(alternate) {
+                        GUARD_STACK(cc, arguments);
                         callback(alternate);
                     });
                 } else {
@@ -92,8 +110,10 @@ function evaluate(exp, env, callback) {
             //     });
             // });
             (function loop(last, i) {
+                GUARD_STACK(loop, arguments);
                 if (i < exp.prog.length)
-                    evaluate(exp.prog[i], env, function (val) {
+                    evaluate(exp.prog[i], env, function cc(val) {
+                        GUARD_STACK(cc, arguments)
                         loop(val, i + 1);
                     });
                 else {
@@ -106,18 +126,21 @@ function evaluate(exp, env, callback) {
             return callback(make_lambda(env, exp));
 
         case "call":
-            evaluate(exp.func, env, (func) => {
+            evaluate(exp.func, env, function cc(func) {
+                GUARD_STACK(cc, arguments);
                 const args = [];
                 // make_lambda 记录形参个数，才能在调用的时候校验参数个数和类型
 
                 (function loop(callback, i) {
+                    GUARD_STACK(loop, arguments);
                     if (i < exp.args.length) {
                         const def = exp.args[i];
                         if (!def) {
                             args[i] = false;
                             loop(callback, i + 1);
                         } else {
-                            evaluate(def, env, (val) => {
+                            evaluate(def, env, function cc(val) {
+                                GUARD_STACK(cc, arguments);
                                 args[i] = val;
                                 loop(callback, i + 1);
                             });
@@ -182,6 +205,7 @@ function make_lambda(env, exp) {
         env.def(exp.name, lambda);
     }
     function lambda(callback, ...args) {
+        GUARD_STACK(lambda, arguments)
         var names = exp.vars;
         var scope = env.extend();
         for (var i = 0; i < names.length; ++i)
@@ -191,147 +215,37 @@ function make_lambda(env, exp) {
     return lambda;
 }
 
-/* -----[ entry point for NodeJS ]----- */
-
-var globalEnv = new Environment();
-
-globalEnv.def("time", function (func) {
-    try {
-        console.time("time");
-        return func();
-    } finally {
-        console.timeEnd("time");
-    }
-});
-
-globalEnv.def("println", function (k, val) {
-    console.log(val);
-    k(false);
-});
-globalEnv.def("print", function (k, val) {
-    process.stdout.write(val.toString());
-    // exer 1 如果这里不实现
-    k(false);
-});
-
-globalEnv.def("twice", function (k, a, b) {
-    k(a);
-    k(b);
-});
-
-globalEnv.def("halt", function (k) {});
-
-globalEnv.def("zero", 0);
-
-globalEnv.def("CallCC", function (k, f) {
-    f(k, function CC(discarded, ret) {
-        k(ret);
-    });
-});
-
 function run(code) {
     var ast = parse(TokenStream(InputStream(code)));
-    return evaluate(ast, globalEnv, (val) => {
-        console.log("end: ", val);
-    });
+    const continuation = new Continuation(evaluate, [ast, globalEnv, function end(val) {
+        console.log('end:', val)
+    }])
+
+    return trampoline(continuation)
+}
+
+function trampoline(continuation) {
+    while (true) {
+        try {
+            continuation.f.apply(null, continuation.args);
+            // 执行到这里说明递归过程没有触发stackoverflow, 全部运行结束，应该返回了。j
+            return
+        } catch (e) {
+            if (e instanceof Continuation) {
+                continuation = e;
+                resetStack();
+            }
+        }
+    }
 }
 
 module.exports.run = run;
 
-function test(code, value, msg) {
-    var ast = parse(TokenStream(InputStream(code)));
-    evaluate(ast, globalEnv, (result) => {
-        if (value !== result) {
-            console.error(`msg: ${msg}, ${value}, ${code}`);
-        }
-    });
-}
+// run(`1`)
 
-// test("1", 1, "number");
-// test('"a text"', "a text", "string");
-// test("true", true, "boolean");
-// test("1 + 1", 2, "binary");
-// test("zero", 0, "var");
-// test("a = 1", 1, "assign");
-// test("if true then 2 else 3", 2, "if-then-else");
-// test("if true then 2", 2, "if-then");
-// test("if false then 2 else 3", 3, "if-then-else");
-// test("if false then 2", false, "if-then");
-
-// test("let (x = 2, y = 3, z = x + y) x + y + z;", 10, "let");
-
-// test("a = lambda (x, y) x + y; a(1, 2)", 3, "lambda");
-
-// var code = "sum = lambda(x, y) x + y; print(sum(2, 3));";
-// 看 print中 exer 1
-// var code = "print(1);print(2)";
-// run(code);
-
-// const code = `
-// fib = λ(n) if n < 2 then n else fib(n - 1) + fib(n - 2);
-// time( λ() println(fib(10)) );`;
-// run(code);
-
-// halt stops the program and bar is not printed
-// const code = `
-// println("foo");
-// halt();
-// println("bar");
-// `;
-// run(code);
-
-// const code = `
-// println(2 + twice(3, 4));
-// println("Done");
-// `;
-// run(code);
-
-// return
-// run(`
-// foo = λ(return){
-//     println("foo");
-//     return("DONE");
-//     println("bar");
-//   };
-//   CallCC(foo);
-// `);
-
-// wrap callcc inside with-return
-// run(`
-// with-return = λ(f) λ() CallCC(f);
-
-// foo = with-return(λ(return){
-//   println("foo");
-//   return("DONE");
-//   println("bar");
-// });
-
-// foo();
-
-// `);
-
-// guess
+// 743 ms vs cps 8 ms
+// 一百倍 两个数量级的差异
 run(`
-fail = λ() false;
-guess = λ(current) {
-  CallCC(λ(k){
-    let (prevFail = fail) {
-      fail = λ(){
-        current = current + 1;
-        if current > 4 {
-          fail = prevFail;
-          fail();
-        } else {
-          k(current);
-        };
-      };
-      k(current);
-    };
-  });
-};
-
-a = guess(1);
-b = guess(a);
-print(a); print(" x "); println(b);
-fail();
-`);
+fib = λ(n) if n < 2 then n else fib(n - 1) + fib(n - 2);
+time( λ() println(fib(11)) );
+`)
