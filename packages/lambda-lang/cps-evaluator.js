@@ -226,16 +226,6 @@ function test(code, value, msg) {
 // `;
 // run(code);
 
-// return
-// run(`
-// foo = λ(return){
-//     println("foo");
-//     return("DONE");
-//     println("bar");
-//   };
-//   CallCC(foo);
-// `);
-
 // wrap callcc inside with-return
 // run(`
 // with-return = λ(f) λ() CallCC(f);

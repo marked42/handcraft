@@ -56,12 +56,6 @@ globalEnv.def("twice", function (k, a, b) {
 
 globalEnv.def("zero", 0);
 
-globalEnv.def("CallCC", function (k, f) {
-    f(k, function CC(discarded, ret) {
-        k(ret);
-    });
-});
-
 module.exports = {
     Environment,
     globalEnv,
