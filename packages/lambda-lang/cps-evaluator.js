@@ -220,14 +220,6 @@ function test(code, value, msg) {
 // time( λ() println(fib(10)) );`;
 // run(code);
 
-// halt stops the program and bar is not printed
-// const code = `
-// println("foo");
-// halt();
-// println("bar");
-// `;
-// run(code);
-
 // const code = `
 // println(2 + twice(3, 4));
 // println("Done");
@@ -288,4 +280,4 @@ function test(code, value, msg) {
 run(`
 fib = λ(n) if n < 2 then n else fib(n - 1) + fib(n - 2);
 time( λ() println(fib(11)) );
-`)
+`);

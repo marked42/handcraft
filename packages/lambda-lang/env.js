@@ -34,9 +34,9 @@ var globalEnv = new Environment();
 globalEnv.def("time", function (k, func) {
     console.time("time");
     func((ret) => {
-        k(ret)
+        k(ret);
         console.timeEnd("time");
-    })
+    });
 });
 
 globalEnv.def("println", function (k, val) {
@@ -54,8 +54,6 @@ globalEnv.def("twice", function (k, a, b) {
     k(b);
 });
 
-globalEnv.def("halt", function (k) {});
-
 globalEnv.def("zero", 0);
 
 globalEnv.def("CallCC", function (k, f) {
@@ -63,7 +61,6 @@ globalEnv.def("CallCC", function (k, f) {
         k(ret);
     });
 });
-
 
 module.exports = {
     Environment,
