@@ -43,16 +43,16 @@ function evaluate(exp, env, callback) {
                 throw new Error("Cannot assign to " + JSON.stringify(exp.left));
             }
             evaluate(exp.right, env, function cc(result) {
-                GUARD_STACK(cc, arguments)
+                GUARD_STACK(cc, arguments);
                 callback(env.set(exp.left.value, result));
             });
             return;
 
         case "binary":
             evaluate(exp.left, env, function cc(left) {
-                GUARD_STACK(cc, arguments)
+                GUARD_STACK(cc, arguments);
                 evaluate(exp.right, env, function cc(right) {
-                    GUARD_STACK(cc, arguments)
+                    GUARD_STACK(cc, arguments);
                     callback(apply_op(exp.operator, left, right));
                 });
             });
@@ -69,14 +69,14 @@ function evaluate(exp, env, callback) {
                         loop(newEnv, i + 1);
                     } else {
                         evaluate(def, env, function cc(val) {
-                            GUARD_STACK(cc, arguments)
+                            GUARD_STACK(cc, arguments);
                             newEnv.def(name, val);
                             loop(newEnv, i + 1);
                         });
                     }
                 } else {
                     evaluate(exp.body, env, function cc(val) {
-                        GUARD_STACK(cc, arguments)
+                        GUARD_STACK(cc, arguments);
                         callback(val);
                     });
                 }
@@ -115,7 +115,7 @@ function evaluate(exp, env, callback) {
                 GUARD_STACK(loop, arguments);
                 if (i < exp.prog.length)
                     evaluate(exp.prog[i], env, function cc(val) {
-                        GUARD_STACK(cc, arguments)
+                        GUARD_STACK(cc, arguments);
                         loop(val, i + 1);
                     });
                 else {
@@ -207,24 +207,28 @@ function make_lambda(env, exp) {
         env.def(exp.name, lambda);
     }
     function lambda(callback, ...args) {
-        GUARD_STACK(lambda, arguments)
+        GUARD_STACK(lambda, arguments);
         var names = exp.vars;
         var scope = env.extend();
-        for (var i = 0; i < names.length; ++i)
+        for (var i = 0; i < names.length; ++i) {
             scope.def(names[i], i < args.length ? args[i] : false);
+        }
         return evaluate(exp.body, scope, callback);
     }
     return lambda;
 }
 
-
 function run(code) {
     var ast = parse(TokenStream(InputStream(code)));
-    const continuation = new Continuation(evaluate, [ast, globalEnv, function end(val) {
-        console.log('end:', val)
-    }])
+    const continuation = new Continuation(evaluate, [
+        ast,
+        globalEnv,
+        function end(val) {
+            console.log("end:", val);
+        },
+    ]);
 
-    return trampoline(continuation)
+    return trampoline(continuation);
 }
 
 function trampoline(continuation) {
@@ -232,7 +236,7 @@ function trampoline(continuation) {
         try {
             continuation.f.apply(null, continuation.args);
             // 执行到这里说明递归过程没有触发stackoverflow, 全部运行结束，应该返回了。j
-            return
+            return;
         } catch (e) {
             if (e instanceof Continuation) {
                 continuation = e;
@@ -243,6 +247,6 @@ function trampoline(continuation) {
 }
 
 module.exports.run = run;
-module.exports.trampoline = trampoline
+module.exports.trampoline = trampoline;
 
 // run(`1`)
