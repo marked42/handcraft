@@ -7,7 +7,7 @@ let stackDepth = 0;
  * 递归函数执行时避免stack overflow
  */
 function GUARD_STACK(f, args) {
-    console.log('stackDepth: ', stackDepth, f.name)
+    // console.log('stackDepth: ', stackDepth, f.name)
     if (stackDepth++ > STACK_LIMIT) {
         throw new Continuation(f, args);
     }
@@ -15,7 +15,7 @@ function GUARD_STACK(f, args) {
 
 function resetStack() {
     stackDepth = 0;
-    console.log('reset stack')
+    // console.log('reset stack')
 }
 
 class Continuation {
@@ -24,6 +24,8 @@ class Continuation {
         this.args = args;
     }
 }
+
+module.exports.Continuation = Continuation;
 
 function evaluate(exp, env, callback) {
     GUARD_STACK(evaluate, arguments);
@@ -215,6 +217,7 @@ function make_lambda(env, exp) {
     return lambda;
 }
 
+
 function run(code) {
     var ast = parse(TokenStream(InputStream(code)));
     const continuation = new Continuation(evaluate, [ast, globalEnv, function end(val) {
@@ -240,12 +243,6 @@ function trampoline(continuation) {
 }
 
 module.exports.run = run;
+module.exports.trampoline = trampoline
 
 // run(`1`)
-
-// 743 ms vs cps 8 ms
-// 一百倍 两个数量级的差异
-run(`
-fib = λ(n) if n < 2 then n else fib(n - 1) + fib(n - 2);
-time( λ() println(fib(11)) );
-`)
