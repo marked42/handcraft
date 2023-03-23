@@ -1,0 +1,16 @@
+line 1
+length:  0
+1
+line 2
+length:  1
+2
+line 2
+length:  2
+3
+line 2
+length:  3
+DONE
+line 2
+length:  3
+DONE
+line 2
