@@ -14,16 +14,16 @@ globalEnv.def("with-yield", function withYield(k1, f) {
         pause(value);
     }
 
-    function generator(k2, val) {
+    function generator(k2) {
         pause = k2;
 
-        if (resume) {
-            reset(k2, () => {
-                resume(val);
-            });
-        } else {
-            f(k2, yield);
-        }
+        reset(k2, () => {
+            if (resume) {
+                resume();
+            } else {
+                f(k2, yield);
+            }
+        })
     }
 
     k1(generator);
@@ -33,6 +33,7 @@ var pstack = [];
 
 function _goto(f) {
     f(function KGOTO(r) {
+        console.log('KGOTO: ', r)
         var h = pstack.pop();
         h(r);
     });
