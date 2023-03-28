@@ -3,6 +3,8 @@
 1. [Reference](https://maryrosecook.com/blog/post/little-lisp-interpreter)
 1. [(How to Write a (Lisp) Interpreter (in Python))](http://norvig.com/lispy.html)
 1. [(An ((Even Better) Lisp) Interpreter (in Python))](http://norvig.com/lispy2.html)
+1. [Three Implementation Models of Scheme](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.66.786&rep=rep1&type=pdf)
+
 
 ## Roadmap
 
@@ -330,6 +332,9 @@ puts "done"
 ### Delimited Continuation
 
 1. https://okmij.org/ftp/continuations/
+1. [composable continuations tutorial](http://community.schemewiki.org/?composable-continuations-tutorial)
+1. [Wiki](https://en.wikipedia.org/wiki/Delimited_continuation)
+1. [The Axis of Eval](http://axisofeval.blogspot.com/2011/07/some-nice-paperz.html)
 
 ### 实现机制对比
 

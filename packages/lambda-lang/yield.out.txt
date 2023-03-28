@@ -1,6 +1,0 @@
-line 1
-1
-line 2
-DONE
-line 2
-DONE

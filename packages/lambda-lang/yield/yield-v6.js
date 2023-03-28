@@ -9,38 +9,43 @@ function _goto(f) {
     });
 }
 
-globalEnv.def("reset", function (KRESET, th) {
+function reset(KRESET, th) {
     pstack.push(KRESET);
     _goto(th);
-});
+}
+globalEnv.def("reset", reset);
 
-globalEnv.def("shift", function (KSHIFT, f) {
+function shift(KSHIFT, f) {
     _goto(function (KGOTO) {
         f(KGOTO, function SK(k1, v) {
+            // re-installs interception
             pstack.push(k1);
             KSHIFT(v);
+        });
+    });
+}
+globalEnv.def("shift", shift);
+
+globalEnv.def("with-yield", function (kWithYield, func) {
+    const yield = (kYield, val) => {
+        shift(kYield, (kShift, sk) => {
+            func = sk;
+            kShift(val);
+        });
+    };
+
+    kWithYield(function generator(kGenerator) {
+        reset(kGenerator, (KGOTO) => {
+            func(KGOTO, yield);
         });
     });
 });
 
 run(`
-with-yield = λ(func) {
-    let (yield) {
-      yield = λ(val) {
-        shift(λ(SK){
-          func = SK;
-          val;         ## return val
-        });
-      };
-      λ(val) {
-        reset( λ() func(val || yield) );
-      };
-    }
-  };
-
 # k1
 foo = with-yield(λ name (yield){
     yield(1);
+    yield(2);
     "DONE";
   });
 
