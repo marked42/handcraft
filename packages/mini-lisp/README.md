@@ -4,7 +4,10 @@
 1. [(How to Write a (Lisp) Interpreter (in Python))](http://norvig.com/lispy.html)
 1. [(An ((Even Better) Lisp) Interpreter (in Python))](http://norvig.com/lispy2.html)
 1. [Three Implementation Models of Scheme](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.66.786&rep=rep1&type=pdf)
+1. [Make A Lisp](https://github.com/kanaka/mal/blob/master/process/guide.md#the-make-a-lisp-process)
+1. [IU Compiler Course](https://github.com/IUCompilerCourse/IU-P423-P523-E313-E513-Fall-2020)
 
+1. https://www.zhihu.com/collection/20308418?page=7
 
 ## Roadmap
 
@@ -407,3 +410,7 @@ function isNumbers(...args: any[]): args is number[] {
 1. 一行多条语句
 1. 错误处理
 1. syntax error
+
+## Optimization
+
+1. [Tricks of an Efficient Embedded Lisp Interpreter, by Jonas Karlsson (long-form talk)](https://www.youtube.com/watch?v=Lf03mxLDYa4&t=5s)
