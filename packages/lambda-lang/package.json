@@ -13,7 +13,9 @@
         "test:watch": "jest --watch"
     },
     "dependencies": {
-        "prettier": "^2.8.7"
+        "prettier": "^2.8.7",
+        "uglify-js": "^3.17.4",
+        "uglifyjs": "^2.4.11"
     },
     "keywords": [
         "Lisp",

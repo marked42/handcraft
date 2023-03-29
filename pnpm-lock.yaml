@@ -57,8 +57,12 @@ importers:
   packages/lambda-lang:
     specifiers:
       prettier: ^2.8.7
+      uglify-js: ^3.17.4
+      uglifyjs: ^2.4.11
     dependencies:
       prettier: 2.8.7
+      uglify-js: registry.npmmirror.com/uglify-js/3.17.4
+      uglifyjs: registry.npmmirror.com/uglifyjs/2.4.11
 
   packages/mini-lisp:
     specifiers: {}
@@ -6696,6 +6700,21 @@ packages:
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true
+
+  registry.npmmirror.com/uglify-js/3.17.4:
+    resolution: {integrity: sha512-T9q82TJI9e/C1TAxYvfb16xO120tMVFZrGA3f9/P4424DNu6ypK103y0GPFVa17yotwSyZW5iYXgjYHkGrJW/g==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/uglify-js/-/uglify-js-3.17.4.tgz}
+    name: uglify-js
+    version: 3.17.4
+    engines: {node: '>=0.8.0'}
+    hasBin: true
+    dev: false
+
+  registry.npmmirror.com/uglifyjs/2.4.11:
+    resolution: {integrity: sha512-iR5+eXZCsoqmlzqYYENJm+rtX/KpC+jhhCtgORtBeVxRET+mfFHlyArl3DgYEqRTVDOxenv0OojFg02tf6LluA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/uglifyjs/-/uglifyjs-2.4.11.tgz}
+    name: uglifyjs
+    version: 2.4.11
+    deprecated: uglifyjs is deprecated - use uglify-js instead.
+    dev: false
 
   registry.npmmirror.com/underscore/1.6.0:
     resolution: {integrity: sha512-z4o1fvKUojIWh9XuaVLUDdf86RQiq13AC1dmHbTpoyuu+bquHms76v16CjycCbec87J7z0k//SiQVk0sMdFmpQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/underscore/-/underscore-1.6.0.tgz}
