@@ -54,6 +54,12 @@ importers:
     devDependencies:
       '@types/charcodes': registry.npmmirror.com/@types/charcodes/0.2.0
 
+  packages/lambda-lang:
+    specifiers:
+      prettier: ^2.8.7
+    dependencies:
+      prettier: 2.8.7
+
   packages/mini-lisp:
     specifiers: {}
 
@@ -1115,6 +1121,12 @@ packages:
     resolution: {integrity: sha1-O6ODNzNkbZ0+SZWUbBNlpn+wekI=, tarball: picomatch/download/picomatch-2.3.1.tgz}
     engines: {node: '>=8.6'}
     dev: true
+
+  /prettier/2.8.7:
+    resolution: {integrity: sha1-u3n8hykwhUnSj+Opj85z0sBlZFA=, tarball: prettier/download/prettier-2.8.7.tgz}
+    engines: {node: '>=10.13.0'}
+    hasBin: true
+    dev: false
 
   /punycode/2.1.1:
     resolution: {integrity: sha1-tYsBCsQMIsVldhbI0sLALHv0eew=, tarball: punycode/download/punycode-2.1.1.tgz}
