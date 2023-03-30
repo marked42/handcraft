@@ -47,19 +47,38 @@ function to_cps(exp, k) {
         return k(exp);
     }
 
+    // function cps_prog(exp, k) {
+    //     return (function loop(body) {
+    //         if (body.length == 0) return k(FALSE);
+    //         if (body.length == 1) return cps(body[0], k);
+    //         return cps(body[0], function (first) {
+    //             // FIXME: 生成了嵌套prog
+    //             const val = loop(body.slice(1));
+    //             return {
+    //                 type: "prog",
+    //                 prog: [first, val],
+    //             };
+    //         });
+    //     })(exp.prog);
+    // }
+
     function cps_prog(exp, k) {
-        return (function loop(body) {
-            if (body.length == 0) return k(FALSE);
-            if (body.length == 1) return cps(body[0], k);
-            return cps(body[0], function (first) {
-                // FIXME: 生成了嵌套prog
-                const val = loop(body.slice(1));
-                return {
+        const prog = new Array(exp.prog.length);
+        function loop(body, i) {
+            if (i < body.length) {
+                return cps(body[i], (val) => {
+                    prog[i] = val;
+                    return loop(body, i + 1);
+                });
+            } else {
+                return k({
                     type: "prog",
-                    prog: [first, val],
-                };
-            });
-        })(exp.prog);
+                    prog,
+                });
+            }
+        }
+
+        return loop(exp.prog, 0);
     }
 
     function cps_binary(exp, k) {
@@ -127,6 +146,7 @@ function to_cps(exp, k) {
             };
         });
 
+        // TODO: 为什么这里 return k
         return k({
             type: "lambda",
             name: exp.name,
@@ -154,6 +174,7 @@ function to_cps(exp, k) {
 
     function make_continuation(k) {
         var cont = gensym("R");
+        // TODO: 为什么这里不 return k?
         return {
             type: "lambda",
             vars: [cont],
@@ -196,16 +217,23 @@ function test(code) {
 
 // console.log(test("1;2;3"));
 // console.log(test("1;b + 3;c = 4;"));
+// console.log(test("1;2 + foo(3);4"));
+// console.log(test("1;foo(2);bar(3);4"));
+// console.log(test("foo(2) + 1"));
 // console.log(test("1; if b then a = 1 else a = 2; 4"));
 // console.log(test("lambda (x) x + 1;"));
+// console.log(test("1 ; lambda (x) x + 1; 2;"));
+console.log(test("1; let (a = 1, b = a) { a + b };3;"));
 /**
  * TODO: 这个转换很重要
  * foo(function(β_R1) {
  *   return a = β_R1;
  * }, 10);
  */
-console.log(test("1; a = foo(10); 2"));
+// console.log(test("1; a = foo(10); 2"));
 
-// TODO: 使用 identity作为k，同时使用return语句
+// TODO: 使用 identity作为k，同时使用return语句，所有的递归调用都要用return才能保证返回值
+// k 内外反转，return
+// return {} 和 return k() 的区别？
 // TODO: 不使用CPS的方式实现转换？
 // TODO: let表达式是语法糖，可以翻译成 call/lambda
