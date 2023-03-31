@@ -1,6 +1,10 @@
 const { TokenStream, InputStream, parse } = require("./parser");
 const { make_js } = require("./code-gen");
+const { has_side_effects } = require("./improvement");
 const uglifyjs = require("uglify-js");
+
+var FALSE = { type: "bool", value: false };
+var TRUE = { type: "bool", value: true };
 
 // these are global
 var GENSYM = 0;
@@ -47,38 +51,57 @@ function to_cps(exp, k) {
         return k(exp);
     }
 
-    // 必须生成嵌套的形式，保证求值顺序？
+    // function cps_body(body, k) {
+    //     if (body.length == 0) return k([]);
+    //     if (body.length == 1) return cps(body[0], k);
+    //     return cps(body[0], function (first) {
+    //         const val = cps_body(body.slice(1), k);
+    //         // 嵌套
+    //         return k([first, ...val]);
+    //     });
+    // }
+    // return cps_body(exp.prog, (prog) => {
+    //     return k({ type: "prog", prog });
+    // });
+
+    // TODO: 必须生成嵌套的形式，保证求值顺序？
     function cps_prog(exp, k) {
         return (function loop(body) {
             if (body.length == 0) return k(FALSE);
+            // 忽略第一个没有副作用的语句
+            if (!has_side_effects(body[0])) {
+                return k(loop(body.slice(1)));
+            }
+
             if (body.length == 1) return cps(body[0], k);
             return cps(body[0], function (first) {
                 const val = loop(body.slice(1));
                 // 嵌套
-                return {
+                return k({
                     type: "prog",
                     prog: [first, val],
-                };
+                });
             });
         })(exp.prog);
     }
 
     // TODO: 一维数组的结果不对，这样代表所有语句并行处理，然后输出结果，实际的过程是
     // 语句有从前到后的顺序处理，前边语句的处理作为后边语句的输入
+    // if 语句会多次调用 k。
     // function cps_prog(exp, k) {
     //     const prog = new Array(exp.prog.length);
     //     function loop(body, i) {
     //         if (i < body.length) {
     //             return cps(body[i], (val) => {
     //                 prog[i] = val;
-    //                 console.log('set val: ', val)
+    //                 console.log("set val: ", prog);
     //                 return loop(body, i + 1);
     //             });
     //         } else {
-    //             return {
+    //             return k({
     //                 type: "prog",
     //                 prog,
-    //             };
+    //             });
     //         }
     //     }
 
@@ -101,14 +124,14 @@ function to_cps(exp, k) {
 
     function cps_if(exp, k) {
         return cps(exp.cond, function (cond) {
-            const t = cps(exp.then, k)
-            const e = cps(exp.else, k)
+            const t = cps(exp.then, k);
+            const e = cps(exp.else, k);
             const val = {
                 type: "if",
                 cond: cond,
                 then: t,
                 else: e,
-            }
+            };
             return val;
         });
         // return cps(exp.cond, function (cond) {
@@ -222,15 +245,6 @@ function test(code) {
     return uglifyjs.parse(out).print_to_string({ beautify: true });
 }
 
-
-/**
- * TODO: 这个转换很重要
- * foo(function(β_R1) {
- *   return a = β_R1;
- * }, 10);
- */
-// console.log(test("1; a = foo(10); 2"));
-
 // TODO: 使用 identity作为k，同时使用return语句，所有的递归调用都要用return才能保证返回值
 // k 内外反转，return
 // return k(r) 中代表传入如的 r 会继续作为结果的一部分进行后续运算
@@ -244,13 +258,20 @@ function test(code) {
 // console.log(test('a = foo(10) + bar(20);'))
 
 // sequences
-// console.log(test(`
-// a = foo();
-// b = bar();
-// c = baz();
-// `))
+// console.log(
+//     test(`
+// foo();
+// bar();
+// baz();
+// `)
+// );
+// console.log(
+//     test(`
+//     1 ; 2; 3
+// `)
+// );
 
-
+// console.log(test("if 1 then 2 else 3;"));
 // console.log(test('if foo() then a = 1 else b = 2;'))
 // console.log(test('a = if foo() then 1 else 2;'))
 
@@ -274,7 +295,6 @@ function test(code) {
 // }
 // `))
 
-
 // fib
 // console.log(test(`
 // fib = λ(n) {
@@ -285,3 +305,7 @@ function test(code) {
 //   };
 //   print(fib(20));
 // `))
+
+// side effect
+// dropping expression with no side effects 1 ; 3
+// console.log(test("1; a = 2; 3"));
