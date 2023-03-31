@@ -47,43 +47,48 @@ function to_cps(exp, k) {
         return k(exp);
     }
 
+    // 必须生成嵌套的形式，保证求值顺序？
+    function cps_prog(exp, k) {
+        return (function loop(body) {
+            if (body.length == 0) return k(FALSE);
+            if (body.length == 1) return cps(body[0], k);
+            return cps(body[0], function (first) {
+                const val = loop(body.slice(1));
+                // 嵌套
+                return {
+                    type: "prog",
+                    prog: [first, val],
+                };
+            });
+        })(exp.prog);
+    }
+
+    // TODO: 一维数组的结果不对，这样代表所有语句并行处理，然后输出结果，实际的过程是
+    // 语句有从前到后的顺序处理，前边语句的处理作为后边语句的输入
     // function cps_prog(exp, k) {
-    //     return (function loop(body) {
-    //         if (body.length == 0) return k(FALSE);
-    //         if (body.length == 1) return cps(body[0], k);
-    //         return cps(body[0], function (first) {
-    //             // FIXME: 生成了嵌套prog
-    //             const val = loop(body.slice(1));
+    //     const prog = new Array(exp.prog.length);
+    //     function loop(body, i) {
+    //         if (i < body.length) {
+    //             return cps(body[i], (val) => {
+    //                 prog[i] = val;
+    //                 console.log('set val: ', val)
+    //                 return loop(body, i + 1);
+    //             });
+    //         } else {
     //             return {
     //                 type: "prog",
-    //                 prog: [first, val],
+    //                 prog,
     //             };
-    //         });
-    //     })(exp.prog);
+    //         }
+    //     }
+
+    //     return loop(exp.prog, 0);
     // }
-
-    function cps_prog(exp, k) {
-        const prog = new Array(exp.prog.length);
-        function loop(body, i) {
-            if (i < body.length) {
-                return cps(body[i], (val) => {
-                    prog[i] = val;
-                    return loop(body, i + 1);
-                });
-            } else {
-                return k({
-                    type: "prog",
-                    prog,
-                });
-            }
-        }
-
-        return loop(exp.prog, 0);
-    }
 
     function cps_binary(exp, k) {
         return cps(exp.left, (left) => {
             return cps(exp.right, (right) => {
+                // TODO: 不调用k会怎么样？
                 return k({
                     type: exp.type,
                     operator: exp.operator,
@@ -96,34 +101,36 @@ function to_cps(exp, k) {
 
     function cps_if(exp, k) {
         return cps(exp.cond, function (cond) {
-            // TODO: why wrong ?
-            // return cps(exp.cond, function(cond){
-            //     return {
-            //         type: "if",
-            //         cond: cond,
-            //         then: cps(exp.then, k),
-            //         else: cps(exp.else || FALSE, k),
-            //     };
-            // });
-            return cps(exp.then, (then) => {
-                if (exp.else) {
-                    return cps(exp.else, (alternate) => {
-                        return k({
-                            type: "if",
-                            cond,
-                            then,
-                            else: alternate,
-                        });
-                    });
-                }
-                return k({
-                    type: "if",
-                    cond,
-                    then,
-                    else: false,
-                });
-            });
+            const t = cps(exp.then, k)
+            const e = cps(exp.else, k)
+            const val = {
+                type: "if",
+                cond: cond,
+                then: t,
+                else: e,
+            }
+            return val;
         });
+        // return cps(exp.cond, function (cond) {
+        //     return cps(exp.then, (then) => {
+        //         if (exp.else) {
+        //             return cps(exp.else, (alternate) => {
+        //                 return k({
+        //                     type: "if",
+        //                     cond,
+        //                     then,
+        //                     else: alternate,
+        //                 });
+        //             });
+        //         }
+        //         return k({
+        //             type: "if",
+        //             cond,
+        //             then,
+        //             else: false,
+        //         });
+        //     });
+        // });
     }
 
     /**
@@ -215,15 +222,7 @@ function test(code) {
     return uglifyjs.parse(out).print_to_string({ beautify: true });
 }
 
-// console.log(test("1;2;3"));
-// console.log(test("1;b + 3;c = 4;"));
-// console.log(test("1;2 + foo(3);4"));
-// console.log(test("1;foo(2);bar(3);4"));
-// console.log(test("foo(2) + 1"));
-// console.log(test("1; if b then a = 1 else a = 2; 4"));
-// console.log(test("lambda (x) x + 1;"));
-// console.log(test("1 ; lambda (x) x + 1; 2;"));
-console.log(test("1; let (a = 1, b = a) { a + b };3;"));
+
 /**
  * TODO: 这个转换很重要
  * foo(function(β_R1) {
@@ -234,6 +233,55 @@ console.log(test("1; let (a = 1, b = a) { a + b };3;"));
 
 // TODO: 使用 identity作为k，同时使用return语句，所有的递归调用都要用return才能保证返回值
 // k 内外反转，return
-// return {} 和 return k() 的区别？
-// TODO: 不使用CPS的方式实现转换？
-// TODO: let表达式是语法糖，可以翻译成 call/lambda
+// return k(r) 中代表传入如的 r 会继续作为结果的一部分进行后续运算
+// 外层函数调用的内层函数，return语句代表的函数结果可以不断累加，典型的类型是call
+// 内层调用使用 k 代表继续进行转换运算，用内层对应的结果参与到外层运算中，例如 binary + call: foo(1) + bar(2)
+// return r 中 r 代表整个的返回结果
+
+// console.log(test('1; a = foo(10); 2;'))
+// console.log(test('a = foo(10);'))
+// console.log(test('a = foo(bar(10));'))
+// console.log(test('a = foo(10) + bar(20);'))
+
+// sequences
+// console.log(test(`
+// a = foo();
+// b = bar();
+// c = baz();
+// `))
+
+
+// console.log(test('if foo() then a = 1 else b = 2;'))
+// console.log(test('a = if foo() then 1 else 2;'))
+
+// FIXME: code explosion exponentially
+// console.log(test(`
+// a = if foo() then 1 else 2;
+// b = if bar() then 3 else 4;
+// c = if baz() then 5 else 6;
+// `))
+
+// Functions
+// console.log(test(`1; add = λ(a, b) a + b; 2`))
+// TODO: tail call optimization dup tail calls add
+// console.log(test(`dup = λ(x) add(x, x);`))
+
+// Let
+// TODO: let表达式是语法糖，翻译为嵌套的函数调用
+// console.log(test(`
+// let (a = foo(), b = bar(a)) {
+//     print(a + b);
+// }
+// `))
+
+
+// fib
+// console.log(test(`
+// fib = λ(n) {
+//     if n < 2 then n
+//     else
+//       fib(n - 1) +
+//       fib(n - 2);
+//   };
+//   print(fib(20));
+// `))
