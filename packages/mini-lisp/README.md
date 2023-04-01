@@ -370,6 +370,11 @@ call/cc 的实现，continuation 参数保存了程序当前运行的状态，�
 
 1. Compiling with Continuation
 
+## Optimization
+
+1. https://lisperator.net/pltut/compiler/cps-transformer-improvements
+1. https://lisperator.net/pltut/compiler/optimizer
+
 ### 参考资料
 
 1. Programming Language Pragmatics Chapter 6.2
