@@ -69,40 +69,6 @@ cdr = λ(cell) cell(λ(a, b) b);
 NIL = λ(f) f(NIL, NIL);
 ```
 
-## Non-deterministic Computing
-
-1. [Easy backtracking](https://lisperator.net/pltut/cps-evaluator/continuations)
-
-```
-run(`
-fail = λ() false;
-guess = λ(current) {
-  CallCC(λ(k){
-    let (prevFail = fail) {
-      fail = λ(){
-        current = current + 1;
-        if current > 4 {
-          fail = prevFail;
-          fail();
-        } else {
-          k(current);
-        };
-      };
-      k(current);
-    };
-  });
-};
-
-a = guess(1);
-b = guess(a);
-print(a); print(" x "); println(b);
-fail();
-`);
-```
-
-1. PLP 6.7 Nondeterminacy
-1. SICP 4.3 Variations on a Scheme — Nondeterministic Computing
-
 ### evaluator
 
 1. primitive data
@@ -283,9 +249,55 @@ CPS 变换，输入是一种语言的 ast，输出是另外一种语言的 AST�
 1. [CPS Transformer](https://lisperator.net/pltut/compiler/cps-transformer)
 1. [A normal form](https://en.wikipedia.org/wiki/A-normal_form)
 1. [Implementing Exception](https://matt.might.net/articles/implementing-exceptions/)
-1. Compiling with continuations
+1. [Continuations by example: Exceptions, time-traveling search, generators, threads, and coroutines](https://matt.might.net/articles/programming-with-continuations--exceptions-backtracking-search-threads-generators-coroutines/)
+
+### Non-deterministic Computing
+
+amb
+
+1. [Easy backtracking](https://lisperator.net/pltut/cps-evaluator/continuations)
+
+```
+run(`
+fail = λ() false;
+guess = λ(current) {
+  CallCC(λ(k){
+    let (prevFail = fail) {
+      fail = λ(){
+        current = current + 1;
+        if current > 4 {
+          fail = prevFail;
+          fail();
+        } else {
+          k(current);
+        };
+      };
+      k(current);
+    };
+  });
+};
+
+a = guess(1);
+b = guess(a);
+print(a); print(" x "); println(b);
+fail();
+`);
+```
+
+1. PLP 6.7 Nondeterminacy
+1. SICP 4.3 Variations on a Scheme — Nondeterministic Computing
+
+### Exceptions
+
+### Generators
+
+### Coroutines
+
+### Time Traveling Search
 
 ### call/cc
+
+First class continuation
 
 ```ruby
 def foo(i, c)
@@ -338,6 +350,11 @@ puts "done"
 1. [composable continuations tutorial](http://community.schemewiki.org/?composable-continuations-tutorial)
 1. [Wiki](https://en.wikipedia.org/wiki/Delimited_continuation)
 1. [The Axis of Eval](http://axisofeval.blogspot.com/2011/07/some-nice-paperz.html)
+1. Representing Control A Study of Transformation Control
+1. The Discoveries of Continuations
+1. https://qr.ae/prBtEK
+1. [A Guide to The Chicken Compilation Process](http://wiki.call-cc.org/chicken-compilation-process)
+1. [Programming Languages: Concepts and Implementation](https://www.oreilly.com/library/view/programming-languages-concepts/9781284222739/xhtml/164_Chapter13_02.xhtml)
 
 ### 实现机制对比
 
@@ -349,10 +366,16 @@ call/cc 的实现，continuation 参数保存了程序当前运行的状态，�
 
 > Used in a disciplined way, continuations make a language surprisingly extensible. At the same time, they allow the undisciplined programmer to construct completely inscrutable programs.
 
+### Compiling with Continuations
+
+1. Compiling with Continuation
+
 ### 参考资料
 
 1. Programming Language Pragmatics Chapter 6.2
-
+1. The Scheme Programming Language Section 3.3 Continuations
+1. [Translating Lambda Calculus to CPS](https://matt.might.net/articles/by-example-continuation-passing-style/)
+1. [By example: Continuation-passing style in JavaScript](https://matt.might.net/articles/by-example-continuation-passing-style/)
 1. https://en.wikipedia.org/wiki/Continuation
 1. [Computational Continuation](https://www.jquigley.com/files/talks/continuations.pdf)
 1. [Web Programming with Continuations](https://wayback.archive-it.org/all/20120905083130/http://double.co.nz/pdf/continuations.pdf)

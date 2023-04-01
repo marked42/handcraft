@@ -122,38 +122,47 @@ function to_cps(exp, k) {
         });
     }
 
+    // function cps_if(exp, k) {
+    //     return cps(exp.cond, function (cond) {
+    //         const t = cps(exp.then, k);
+    //         const e = cps(exp.else, k);
+    //         const val = {
+    //             type: "if",
+    //             cond: cond,
+    //             then: t,
+    //             else: e,
+    //         };
+    //         return val;
+    //     });
+    // }
+
+    // avoid code explosion exponentially
     function cps_if(exp, k) {
         return cps(exp.cond, function (cond) {
-            const t = cps(exp.then, k);
-            const e = cps(exp.else, k);
-            const val = {
-                type: "if",
-                cond: cond,
-                then: t,
-                else: e,
+            const cont = gensym("I");
+
+            const newK = function (result) {
+                return {
+                    type: "call",
+                    func: { type: "var", value: cont },
+                    args: [result],
+                };
             };
-            return val;
+            return {
+                type: "call",
+                func: {
+                    type: "lambda",
+                    vars: [cont],
+                    body: {
+                        type: "if",
+                        cond,
+                        then: cps(exp.then, newK),
+                        else: cps(exp.else || FALSE, newK),
+                    },
+                },
+                args: [make_continuation(k)],
+            };
         });
-        // return cps(exp.cond, function (cond) {
-        //     return cps(exp.then, (then) => {
-        //         if (exp.else) {
-        //             return cps(exp.else, (alternate) => {
-        //                 return k({
-        //                     type: "if",
-        //                     cond,
-        //                     then,
-        //                     else: alternate,
-        //                 });
-        //             });
-        //         }
-        //         return k({
-        //             type: "if",
-        //             cond,
-        //             then,
-        //             else: false,
-        //         });
-        //     });
-        // });
     }
 
     /**
@@ -309,3 +318,10 @@ function test(code) {
 // side effect
 // dropping expression with no side effects 1 ; 3
 // console.log(test("1; a = 2; 3"));
+
+console.log(
+    test(`
+a = if foo then 1 else 2;
+print(a);
+`)
+);
