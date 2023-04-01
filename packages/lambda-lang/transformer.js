@@ -140,6 +140,7 @@ function to_cps(exp, k) {
     function cps_if(exp, k) {
         return cps(exp.cond, function (cond) {
             const cont = gensym("I");
+            const args = [make_continuation(k)];
 
             const newK = function (result) {
                 return {
@@ -160,7 +161,7 @@ function to_cps(exp, k) {
                         else: cps(exp.else || FALSE, newK),
                     },
                 },
-                args: [make_continuation(k)],
+                args,
             };
         });
     }
