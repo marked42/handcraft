@@ -319,9 +319,15 @@ function test(code) {
 // dropping expression with no side effects 1 ; 3
 // console.log(test("1; a = 2; 3"));
 
+// console.log(
+//     test(`
+// a = if foo then 1 else 2;
+// print(a);
+// `)
+// );
+
 console.log(
     test(`
-a = if foo then 1 else 2;
-print(a);
-`)
+fib = λ(n) if n < 2 then n else fib(n - 1) + fib(n - 2);
+    `)
 );
