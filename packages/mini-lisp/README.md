@@ -6,124 +6,66 @@
 1. [Three Implementation Models of Scheme](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.66.786&rep=rep1&type=pdf)
 1. [Make A Lisp](https://github.com/kanaka/mal/blob/master/process/guide.md#the-make-a-lisp-process)
 1. [IU Compiler Course](https://github.com/IUCompilerCourse/IU-P423-P523-E313-E513-Fall-2020)
-
+1. Essentials of Programming Language
+1. [An Incremental Approach to Compiler Construction](http://scheme2006.cs.uchicago.edu/11-ghuloum.pdf)
+1. [Lisp from Scratch in Rust](https://www.youtube.com/watch?v=0-wrD7gQ9R4)
 1. https://www.zhihu.com/collection/20308418?page=7
 
 ## Roadmap
 
 1. [LISP 方言路线图](https://www.zhihu.com/question/26760072/answer/35156245)
-1. proper tail recursive
-1. macro expansion
-1. procedure with arbitrary number of arguments
-1. primitive expression Atom / Symbol
-1. means of combination List / Procedure
-    1. special forms
-    1. built-in
-    1. user defined
-1. means of abstraction name and Environment
-1. Substitution Model Applicative Order/Normal Order
-1. Conditional cond/else if/else and/or/not
-1. [continuation passing style](https://lisperator.net/pltut/cps-evaluator/)
-    1. [cps evaluator](https://lisperator.net/pltut/cps-evaluator/)
-    1. [cps transformer](https://lisperator.net/pltut/compiler/cps-transformer)
-    1. https://okmij.org/ftp/continuations/against-callcc.html
-1. call with current continuation
-1. lazy evaluation
-1. register machine
-1. [An Incremental Approach to Compiler Construction](http://scheme2006.cs.uchicago.edu/11-ghuloum.pdf)
-1. [Lisp from Scratch in Rust](https://www.youtube.com/watch?v=0-wrD7gQ9R4)
 
-### pair & list
+## Language Features
 
-1. https://docs.racket-lang.org/guide/Lists__Iteration__and_Recursion.html
-1. https://docs.racket-lang.org/guide/Pairs__Lists__and_Racket_Syntax.html
-1. https://people.csail.mit.edu/jaffer/r5rs/Pairs-and-lists.html
+### data types
 
-substitution model -> environment model -> evaluator (applicative order) -> normal order (lazy evaluation) -> non-deterministic computing -> logic programming -> register machine
+1. number/boolean/string
+1. pair and list
+    1. [2.3](https://docs.racket-lang.org/guide/Lists__Iteration__and_Recursion.html)
+    1. [2.4](https://docs.racket-lang.org/guide/Pairs__Lists__and_Racket_Syntax.html)
+    1. [Pair and Lists](https://people.csail.mit.edu/jaffer/r5rs/Pairs-and-lists.html)
 
-1. 对于环境变量的优化 EOPL 3.26
+### special forms
 
-自由变量 lexical-addressing Section 5.5.6
+1. quote
+1. assignment
+1. control flow: if/begin
+1. cond test => recipient form
+1. logical: and/or/not
+1. lambda
 
-注意被实现语言中的值如何在实现语言中表示，对于 metacircular 语言来说，也是不同的。
+### REPL
 
-recursive procedure iterative process / recursive process
+1. 一行一条语句
+1. 一条语句跨多行
+1. 一行多条语句
+1. 错误处理
+1. syntax error
 
-metacircular / self-hoisting
+#### Environment
 
-derived-expression/syntactic sugar 通过将语法转换另一种语法的等价形式来实现
+1. let/named let simultaneous binding
+1. let 语句的变量初始化表达式在对应匿名函数外层环境求值，作为参数传给匿名函数，因此 let 定义的变量对于初始化表达式不可见，无法形成递归形式。
+1. let\*/let 的变量初始值作用域环境不同，考虑下面例子
 
-变量定义策略
+    ```
+    let x = 30
+    in let x = -(x,1) y = -(x,2)
+    in -(x,y)
+    -(x,y) 值为1
 
-1. 当做是函数体执行时一个一个顺序定义，某些未定义直接使用的程序会报错。
-1. 当做所有变量提前定义完成
+    let x = 30
+    in let∗ x = -(x,1) y = -(x,2)
+    in -(x,y)
 
-optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze， 提高 evaluator 运行效率，
+    -(x,y) 值为2
+    ```
 
-### functional representation of list
+1. define 定义的变量不能互相引用，效果和 let 相同。
+1. 环境变量的表示 每层一个/procedural representation
+1. let-rec 的变量初始值为 unassigned 特殊值，初始化的表达式在匿名函数内部求值，因此能引用定义的变量，形成递归形式。
 
-```js
-cons = λ(a, b) λ(f) f(a, b);
-car = λ(cell) cell(λ(a, b) a);
-cdr = λ(cell) cell(λ(a, b) b);
-NIL = λ(f) f(NIL, NIL);
-```
-
-### evaluator
-
-1. primitive data
-    1. number/boolean/string
-1. special forms
-
-    1. quote
-    1. assignment
-    1. if
-    1. lambda
-    1. begin
-    1. cond test => recipient form
-    1. let/named let simultaneous binding
-    1. let 语句的变量初始化表达式在对应匿名函数外层环境求值，作为参数传给匿名函数，因此 let 定义的变量对于初始化表达式不可见，无法形成递归形式。
-    1. let\*/let 的变量初始值作用域环境不同，考虑下面例子
-
-        ```
-        let x = 30
-        in let x = -(x,1) y = -(x,2)
-        in -(x,y)
-        -(x,y) 值为1
-
-        let x = 30
-        in let∗ x = -(x,1) y = -(x,2)
-        in -(x,y)
-
-        -(x,y) 值为2
-        ```
-
-    1. define 定义的变量不能互相引用，效果和 let 相同。
-    1. 环境变量的表示 每层一个/procedural representation
-    1. let-rec 的变量初始值为 unassigned 特殊值，初始化的表达式在匿名函数内部求值，因此能引用定义的变量，形成递归形式。
-
-1. 如何编写代码达到方便添加内置 operator 的效果，而不是写死在代码中
-1. primitive procedure
-1. compound procedure with environment model
-1. 函数特性
-    1. 多参数，参数末尾逗号
-    1. 命名参数
-    1. 变长参数
-    1. 高阶函数
-    1. 闭包
-    1. 匿名函数 声明和定义分开
-    1. 声明与定义合一 letproc
-    1. 多返回值
-    1. recursive EOPL 3.23/3.24/3.25 Y Combinator
-
-lazy evaluation + side effects + memoization
-
-1. 用户自定义函数是 lazy，内置函数是 eager
-1. 设计语法可以指定任意一个函数的参数是否 lazy 和 memo
-
-[SICP Exercise Solutions](https://eli.thegreenplace.net/tag/sicp)
-
-## Variable Binding
+**Variable Binding**
 
 let 表达式的变量初始化表达式中引用的变量是外层变量，该 let 定义的变量
 
@@ -137,11 +79,122 @@ let 表达式的变量初始化表达式中引用的变量是外层变量，该 
 1. lexical scoping
 1. scoping rules
 
+变量定义策略
+
+1. 当做是函数体执行时一个一个顺序定义，某些未定义直接使用的程序会报错。
+1. 当做所有变量提前定义完成
+
 Books
 
 1. EOPL 3.5 Scoping and Binding of Variables
 1. SICP 4.1.6 Internal Definitions
 1. PLP 3 Names Scopes Bindings
+
+### procedure
+
+1. primitive procedure （使用访问者模式实现，扩展灵活）
+1. 函数特性
+    1. 多参数，参数末尾逗号
+    1. 命名参数
+    1. 变长参数
+    1. 高阶函数
+    1. 闭包
+    1. 匿名函数 声明和定义分开
+    1. 声明与定义合一 letproc
+    1. 多返回值
+    1. recursive EOPL 3.23/3.24/3.25 Y Combinator
+1. Tail Call Optimization
+1. Lexical Addressing EOPL 3.26 / SICP 5.5.6
+
+### first class continuation
+
+1. call/cc
+1. reset/shift
+
+### Optimization
+
+1. optimize 区分 analyze 阶段和 execution 阶段，避免重复进行 analyze， 提高 evaluator 运行效率，
+
+### Exception
+
+1. [Implementing Exception](https://matt.might.net/articles/implementing-exceptions/)
+1. [Error Handling](https://lisperator.net/pltut/real-samples/error-handling)
+
+### Threads
+
+assignment / concurrency SICP 3.4
+
+### Generators
+
+### Coroutines
+
+### Macro Expansion
+
+### Lazy Evaluation
+
+lazy evaluation lazy evaluation + side effects + memoization 1. 用户自定义函数是 lazy，内置函数是 eager 1. 设计语法可以指定任意一个函数的参数是否 lazy 和 memo
+
+### Non-deterministic Computing
+
+Time Traveling Search
+
+amb
+
+1. [Easy backtracking](https://lisperator.net/pltut/cps-evaluator/continuations)
+
+```
+run(`
+fail = λ() false;
+guess = λ(current) {
+  CallCC(λ(k){
+    let (prevFail = fail) {
+      fail = λ(){
+        current = current + 1;
+        if current > 4 {
+          fail = prevFail;
+          fail();
+        } else {
+          k(current);
+        };
+      };
+      k(current);
+    };
+  });
+};
+
+a = guess(1);
+b = guess(a);
+print(a); print(" x "); println(b);
+fail();
+`);
+```
+
+1. PLP 6.7 Nondeterminacy
+1. SICP 4.3 Variations on a Scheme — Nondeterministic Computing
+
+### Typing
+
+1. type checking
+1. type inference
+
+References
+
+1. EOPL Chapter 7
+1. PLP Chapter 7 Type Systems / Chapter 8 Composite Types
+
+## Register Machine
+
+register machine
+[SICP Exercise Solutions](https://eli.thegreenplace.net/tag/sicp)
+
+### functional representation of list
+
+```js
+cons = λ(a, b) λ(f) f(a, b);
+car = λ(cell) cell(λ(a, b) a);
+cdr = λ(cell) cell(λ(a, b) b);
+NIL = λ(f) f(NIL, NIL);
+```
 
 ## Applicative Order VS Normal Order
 
@@ -189,6 +242,7 @@ integer 1 2 3 4 5 6
 
 1. [Continuations: The Swiss Army Knife of Flow Control](https://www.youtube.com/watch?v=Ju3KKu_mthg&t=1089s)
 1. [Continuations](https://ps-tuebingen-courses.github.io/pl1-lecture-notes/15-continuations-1/continuations-1.html)
+1. https://beautifulracket.com/explainer/continuations.html
 
 如何将普通函数改写为 CPS 形式
 
@@ -248,52 +302,11 @@ CPS 变换，输入是一种语言的 ast，输出是另外一种语言的 AST�
 1. EOPL Chapter 6.3
 1. [CPS Transformer](https://lisperator.net/pltut/compiler/cps-transformer)
 1. [A normal form](https://en.wikipedia.org/wiki/A-normal_form)
-1. [Implementing Exception](https://matt.might.net/articles/implementing-exceptions/)
 1. [Continuations by example: Exceptions, time-traveling search, generators, threads, and coroutines](https://matt.might.net/articles/programming-with-continuations--exceptions-backtracking-search-threads-generators-coroutines/)
-
-### Non-deterministic Computing
-
-amb
-
-1. [Easy backtracking](https://lisperator.net/pltut/cps-evaluator/continuations)
-
-```
-run(`
-fail = λ() false;
-guess = λ(current) {
-  CallCC(λ(k){
-    let (prevFail = fail) {
-      fail = λ(){
-        current = current + 1;
-        if current > 4 {
-          fail = prevFail;
-          fail();
-        } else {
-          k(current);
-        };
-      };
-      k(current);
-    };
-  });
-};
-
-a = guess(1);
-b = guess(a);
-print(a); print(" x "); println(b);
-fail();
-`);
-```
-
-1. PLP 6.7 Nondeterminacy
-1. SICP 4.3 Variations on a Scheme — Nondeterministic Computing
-
-### Exceptions
-
-### Generators
-
-### Coroutines
-
-### Time Traveling Search
+1. [continuation passing style](https://lisperator.net/pltut/cps-evaluator/)
+    1. [cps evaluator](https://lisperator.net/pltut/cps-evaluator/)
+    1. [cps transformer](https://lisperator.net/pltut/compiler/cps-transformer)
+    1. https://okmij.org/ftp/continuations/against-callcc.html
 
 ### call/cc
 
@@ -374,10 +387,11 @@ call/cc 的实现，continuation 参数保存了程序当前运行的状态，�
 
 1. https://lisperator.net/pltut/compiler/cps-transformer-improvements
 1. https://lisperator.net/pltut/compiler/optimizer
+1. [Tricks of an Efficient Embedded Lisp Interpreter, by Jonas Karlsson (long-form talk)](https://www.youtube.com/watch?v=Lf03mxLDYa4&t=5s)
 
 ### 参考资料
 
-1. Programming Language Pragmatics Chapter 6.2
+1. Programming Language Pragmatics Chapter 6.2.2 Continuations
 1. The Scheme Programming Language Section 3.3 Continuations
 1. [Translating Lambda Calculus to CPS](https://matt.might.net/articles/by-example-continuation-passing-style/)
 1. [By example: Continuation-passing style in JavaScript](https://matt.might.net/articles/by-example-continuation-passing-style/)
@@ -385,24 +399,9 @@ call/cc 的实现，continuation 参数保存了程序当前运行的状态，�
 1. [Computational Continuation](https://www.jquigley.com/files/talks/continuations.pdf)
 1. [Web Programming with Continuations](https://wayback.archive-it.org/all/20120905083130/http://double.co.nz/pdf/continuations.pdf)
 1. [call-with-current-continuation-for-C-programmers](http://community.schemewiki.org/?call-with-current-continuation-for-C-programmers)
-1. [continuation passing style](https://lisperator.net/pltut/cps-evaluator/)
-    1. [cps evaluator](https://lisperator.net/pltut/cps-evaluator/)
-    1. [cps transformer](https://lisperator.net/pltut/compiler/cps-transformer)
-    1. https://okmij.org/ftp/continuations/against-callcc.html
-
-## Types
-
-1. type checking
-1. type inference
-
-References
-
-1. EOPL Chapter 7
-1. PLP Chapter 7 Type Systems / Chapter 8 Composite Types
-
-## Concurrency
-
-assignment / concurrency SICP 3.4
+1. [cps evaluator](https://lisperator.net/pltut/cps-evaluator/)
+1. [cps transformer](https://lisperator.net/pltut/compiler/cps-transformer)
+1. https://okmij.org/ftp/continuations/against-callcc.html
 
 ## Y Combinator/Fixed Point
 
@@ -417,28 +416,3 @@ SICP 3.3.5 Propagation of Constraints
 
 1. https://docs.racket-lang.org/sicp-manual/index.html
 1. https://stackoverflow.com/questions/19546115/which-lang-packet-is-proper-for-sicp-in-dr-racket
-
-## Known Issues
-
-TODO:
-
-1. jest watch keeps file cache when creating new files
-1. typescript type predicate on multiple args ?
-
-```ts
-function isNumbers(...args: any[]): args is number[] {
-    // ...
-}
-```
-
-### REPL
-
-1. 一行一条语句
-1. 一条语句跨多行
-1. 一行多条语句
-1. 错误处理
-1. syntax error
-
-## Optimization
-
-1. [Tricks of an Efficient Embedded Lisp Interpreter, by Jonas Karlsson (long-form talk)](https://www.youtube.com/watch?v=Lf03mxLDYa4&t=5s)
